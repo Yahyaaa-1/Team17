@@ -1,12 +1,11 @@
-# rakusensdashboard
-
+Rakusens Dashboard
 A simple guide to set up the RAKUSENS Dashboard API using Python (Flask) and MySQL.
 
 Prerequisites
 XAMPP (for MySQL service)
 Python 3.11 (or above)
 All project files from the OneDrive shared folder (check your email for "Website - Test" files)
-Steps
+Setup Instructions
 1. Start MySQL Service in XAMPP
 Ensure XAMPP is installed.
 Open the XAMPP Control Panel.
@@ -47,17 +46,15 @@ If successful, you should see a message indicating the server is running on port
 Testing
 Open these links in your web browser:
 
-Check if the API is running:
-http://localhost:5000/
-Test Database Connection:
-http://localhost:5000/api/test
+Check if the API is running: http://localhost:5000/
+Test Database Connection: http://localhost:5000/api/test
 Important Notes
 Keep XAMPP MySQL running.
 Keep the Command Prompt window (with the virtual environment activated) open.
 To stop the server, press Ctrl + C in the Command Prompt.
 To close the virtual environment, type deactivate and press Enter.
 Troubleshooting
-If database connection fails:
+If the database connection fails:
 
 Make sure XAMPP MySQL is running.
 Check your .env file settings (e.g., database credentials, host, and port).
