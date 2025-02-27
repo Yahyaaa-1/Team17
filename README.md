@@ -16,17 +16,20 @@ Open Command Prompt (cmd) and switch to the API folder in your project:
 BASH
 
 cd path\to\your\Website-Test\api
+
 3. Create and Activate a Virtual Environment
 Create a virtual environment:
 
 BASH
 
 python -m venv venv
+
 Activate the virtual environment:
 
 BASH
 
 venv\Scripts\activate.bat
+
 After successful activation, you should see (venv) at the start of your command line.
 
 4. Install Required Packages
@@ -35,12 +38,14 @@ Install the required Python packages using:
 BASH
 
 pip install -r requirements.txt
+
 5. Start the Flask API
 Run the Flask application:
 
 BASH
 
 python app.py
+
 If successful, you should see a message indicating the server is running on port 5000.
 
 Testing
