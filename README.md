@@ -1,6 +1,9 @@
 Rakusens Dashboard
 A simple guide to set up the RAKUSENS Dashboard API using Python (Flask) and MySQL.
 
+Team 17 - 
+Yahya Ashfak - 23011246
+
 Prerequisites
 XAMPP (for MySQL service)
 Python 3.11 (or above)
