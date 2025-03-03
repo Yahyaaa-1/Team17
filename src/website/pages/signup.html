@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakusens - Sign Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/account.css">
+</head>
+<body>
+    <!-- Main Header -->
+    <header class="main-header position-relative">
+        <div class="header-content container-fluid h-100">
+            <div class="logo-container position-absolute top-50 start-50 translate-middle">
+                <img src="../images/rakusens_logo.svg" alt="Rakusens Logo" class="logo-svg">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid justify-content-center">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="../home.html">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Historical Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="help.html">Help & Support</a>
+                </li>
+            </ul>
+        </div>
+        <div class="header-controls d-flex align-items-center">
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content container py-5">
+        <div class="signup-container">
+            <h1 class="text-center mb-4">Register Account</h1>
+            <form id="register-form">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="email" 
+                        name="email" 
+                        required
+                    >
+                </div>
+            
+                <div class="mb-3">
+                    <label for="tempPassword" class="form-label">Temporary Password</label>
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="tempPassword" 
+                        name="tempPassword" 
+                        required
+                    >
+                </div>
+            
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="newPassword" 
+                        name="newPassword" 
+                        required
+                    >
+                    <div class="password-strength"></div>
+                    <small class="form-text text-muted helper-text">
+                        Minimum 8 characters, include numbers and special characters
+                    </small>
+                </div>
+            
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        class="form-control" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        required
+                    >
+                    <div id="passwordMatch" class="match-message"></div>
+                </div>
+            
+                <div id="message" class="alert" style="display: none;"></div>
+            
+                <button type="submit" class="btn btn-primary w-100 register-btn">Register</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>Quick Links</h3>
+                    <ul class="list-unstyled">
+                        <li><a href="/help" class="text-white">Help Center</a></li>
+                        <li><a href="/contact" class="text-white">Contact Support</a></li>
+                        <li><a href="/faq" class="text-white">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>&copy; 2024 Rakusens. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script src="../js/signup.js"></script>
+    <script src="../js/logged-in.js"></script>
+</body>
+</html>
