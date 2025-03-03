@@ -18,6 +18,7 @@ Open Command Prompt (cmd) and switch to the API folder in your project:
 
 CODE:
 cd path\to\your\Website-Test\api
+
 3. Create and Activate a Virtual Environment
 Create a virtual environment:
 
