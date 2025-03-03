@@ -1,0 +1,219 @@
+/* register.css */
+
+:root {
+    --primary-dark-blue: #1B355D;
+    --secondary-blue: #005095;
+    --deep-navy: #1A2C4E;
+    --light-blue: #3B5998;
+    --accent-blue: #0c3c84;
+    --error-red: #dc3545;
+    --success-green: #28a745;
+    --border-gray: #ddd;
+    --background-light: #f8f9fa;
+}
+
+.register-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary-dark-blue);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-gray);
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--accent-blue);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(27, 53, 93, 0.1);
+}
+
+/* Error and Success States */
+.form-group input.error {
+    border-color: var(--error-red);
+}
+
+.form-group input.success {
+    border-color: var(--success-green);
+}
+
+/* Message Styling */
+#message {
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 14px;
+    display: none;
+}
+
+.error-message {
+    background-color: #fff2f2;
+    color: var(--error-red);
+    border: 1px solid #ffcdd2;
+}
+
+.success-message {
+    background-color: #f0fff4;
+    color: var(--success-green);
+    border: 1px solid #c3e6cb;
+}
+
+/* Password Match Message */
+.match-message {
+    font-size: 12px;
+    margin-top: 5px;
+    padding-left: 5px;
+}
+
+.match-message.success {
+    color: var(--success-green);
+}
+
+.match-message.error {
+    color: var(--error-red);
+}
+
+/* Submit Button */
+.register-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.register-btn:hover {
+    background-color: var(--light-blue);
+}
+
+.register-btn:disabled {
+    background-color: var(--border-gray);
+    cursor: not-allowed;
+}
+
+/* Helper Text */
+.helper-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .register-container {
+    background-color: #2a2a2a;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .form-group label {
+    color: #fff;
+}
+
+[data-theme="dark"] .form-group input {
+    background-color: #333;
+    border-color: #444;
+    color: #fff;
+}
+
+[data-theme="dark"] .form-group input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .helper-text {
+    color: #aaa;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .register-container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .form-group input {
+        padding: 10px 12px;
+    }
+
+    .register-btn {
+        padding: 10px;
+    }
+}
+
+/* Optional: Loading State */
+.register-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.register-btn.loading::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Signup/Login Link Styles */
+.signup-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+.signup-link a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-password-link {
+    display: block;
+    text-align: right;
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--accent-blue);
+    text-decoration: none;
+}
