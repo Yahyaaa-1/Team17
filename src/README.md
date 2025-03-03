@@ -16,20 +16,17 @@ Start the MySQL service.
 2. Navigate to the API Folder
 Open Command Prompt (cmd) and switch to the API folder in your project:
 
-BASH
-
+CODE:
 cd path\to\your\Website-Test\api
-
 3. Create and Activate a Virtual Environment
 Create a virtual environment:
 
-BASH
-
+CODE:
 python -m venv venv
 
 Activate the virtual environment:
 
-BASH
+CODE:
 
 venv\Scripts\activate.bat
 
@@ -38,14 +35,14 @@ After successful activation, you should see (venv) at the start of your command 
 4. Install Required Packages
 Install the required Python packages using:
 
-BASH
+CODE:
 
 pip install -r requirements.txt
 
 5. Start the Flask API
 Run the Flask application:
 
-BASH
+CODE:
 
 python app.py
 
