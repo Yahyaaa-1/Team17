@@ -726,6 +726,42 @@ def get_live_data(line):
     finally:
         if connection:
             connection.close()
+            
+@app.route('/api/sensor-data/<line>/<sensor>', methods=['GET'])
+def get_sensor_data(line, sensor):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        # Fetch the most recent reading for the specified sensor
+        query = f"SELECT timestamp, {sensor} FROM {line} ORDER BY timestamp DESC LIMIT 1"
+        cursor.execute(query)
+        data = cursor.fetchone()
+
+        if not data:
+            return jsonify({'error': 'No data available for this sensor'}), 404
+
+        # Format the timestamp
+        data["timestamp"] = data["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching sensor data: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+
+@app.route('/sensor/<line>/<sensor>')
+def sensor_page(line, sensor):
+    return render_template('sensor-data.html', line=line, sensor=sensor)
 
 if __name__ == '__main__':
     simulation_thread = threading.Thread(target=generate_temperature_readings, daemon=True)
