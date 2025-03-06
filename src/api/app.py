@@ -687,16 +687,6 @@ def generate_temperature_readings():
             print(f"Simulation error: {e}")
             time.sleep(5)
 
-@app.route('/')
-def home():
-    return jsonify({
-        'message': 'Rakusens API is running',
-        'endpoints': {
-            'available_dates': '/api/available-dates/<line>',
-            'live_data': '/api/live-data/<line>'
-        }
-    })
-
 @app.route('/api/live-data/<line>', methods=['GET'])
 def get_live_data(line):
     try:
