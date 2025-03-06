@@ -1,0 +1,135 @@
+/* Bootstrap Overrides */
+:root {
+    --primary-dark-blue: #1B355D;
+    --secondary-blue: #005095;
+    --deep-navy: #1A2C4E;
+    --light-blue: #3B5998;
+    --accent-blue: #0c3c84;
+}
+
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Page Container */
+.container {
+    padding: 0px 20px;
+}
+
+/* Page Title */
+h2 {
+    color: var(--primary-dark-blue);
+    font-weight: bold;
+}
+
+/* Filter Controls */
+input[type="text"],
+input[type="date"],
+select {
+    border-radius: 5px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+/* DataTable Styles */
+.table-responsive {
+    margin-top: 20px;
+}
+
+#line4Table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#line4Table thead {
+    background-color: var(--primary-dark-blue);
+    color: white;
+}
+
+#line4Table th,
+#line4Table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+#line4Table tbody tr:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
+#line4Table tbody tr:hover {
+    background-color: #e0e0e0;
+}
+
+/* Pagination and Search Styling */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 15px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: var(--primary-dark-blue);
+    color: white;
+    border-color: var(--primary-dark-blue);
+}
+
+/* Dark Mode */
+[data-theme="dark"] body {
+    background-color: #121212;
+    color: white;
+}
+
+[data-theme="dark"] h2 {
+    color: #ffffff;
+}
+
+[data-theme="dark"] #line4Table thead {
+    background-color: var(--deep-navy);
+}
+
+[data-theme="dark"] #line4Table tbody tr:nth-child(even) {
+    background-color: #2a2a2a;
+}
+
+[data-theme="dark"] #line4Table tbody tr:hover {
+    background-color: #3a3a3a;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: var(--light-blue);
+}
+input[type="date"] {
+    color: black; /* Default color for available dates */
+}
+
+input[type="date"]::-webkit-datetime-edit {
+    color: black;
+}
+
+input[type="date"]:not([min]):not([max]) {
+    color: #999; /* Gray out if no available date */
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+}

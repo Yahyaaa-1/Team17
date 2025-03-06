@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakusens - Help & Support</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/account.css">
+    <link rel="stylesheet" href="../css/darkmode.css" id="theme-style">
+    <link rel="stylesheet" href="../css/help.css">
+</head>
+<body>
+    <!-- Main Header -->
+    <header class="main-header position-relative">
+        <div class="header-content container-fluid h-100">
+            <div class="logo-container position-absolute top-50 start-50 translate-middle">
+                <img src="../images/rakusens_logo.svg" alt="Rakusens Logo" class="logo-svg">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid justify-content-center">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="../home.html">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="historical.html">Historical Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="help.html">Help & Support</a>
+                </li>
+            </ul>
+        </div>
+        <div class="header-controls d-flex align-items-center">
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content container">
+        <div class="help-container">
+            <h2 class="text-center mb-4">Help & Support</h2>
+
+            <!-- Website Guide Section -->
+            <section class="help-section">
+                <h2>Website Guide</h2>
+                <p>Welcome to the Rakusens Industrial Monitoring System. This guide will help you navigate and use the website effectively:</p>
+                <ul class="guide-list">
+                    <li><strong>Dashboard:</strong> View real-time monitoring data and system status</li>
+                    <li><strong>Historical Data:</strong> Access past sensor readings and system performance</li>
+                    <li><strong>Help & Support:</strong> Find guides and contact information (you're here!)</li>
+                    <li><strong>Admin Panel:</strong> Manage users and employees (admin access only)</li>
+                </ul>
+            </section>
+
+            <!-- Sign Up Process Section -->
+            <section class="help-section process-steps">
+                <h2>Sign Up Process</h2>
+                <div class="steps-container">
+                    <div class="step">
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <p>Request a temporary password from your administrator</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <p>Go to the Sign Up page and enter your credentials</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <p>Create a new secure password</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">4</div>
+                        <div class="step-content">
+                            <p>Submit and wait for admin approval</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="note-box">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p class="note-text">Note: You cannot log in until admin approval</p>
+                </div>
+            </section>
+
+            <!-- Historical Data Section -->
+            <section class="help-section">
+                <h2>Using Historical Data</h2>
+                <p>The Historical Data page displays sensor readings from Line 4:</p>
+                <ul class="data-features">
+                    <li>Sortable table with timestamp and sensor values (r01-r08)</li>
+                    <li>Search and pagination functionality</li>
+                    <li>Auto-refresh every 30 seconds</li>
+                    <li>Data export available on request</li>
+                </ul>
+            </section>
+
+            <!-- Traffic Light System -->
+            <section class="help-section status-indicator">
+                <h2>Traffic Light System</h2>
+                <div class="traffic-lights">
+                    <div class="status-item">
+                        <div class="light green"></div>
+                        <span class="status-label">Normal Operation</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="light yellow"></div>
+                        <span class="status-label">Minor Issues</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="light red"></div>
+                        <span class="status-label">Critical Alert</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Support Section -->
+            <section class="help-section contact-info">
+                <h2>Contact Support</h2>
+                <ul class="contact-list">
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Email:</strong>
+                            <a href="mailto:support@rakusens.co.uk">support@rakusens.co.uk</a>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <strong>Phone:</strong>
+                            +44 1234 567890
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Hours:</strong>
+                            Mon-Fri, 9:00-17:00 GMT
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+           <!-- FAQ Section -->
+            <section class="help-section faq-accordion">
+                <h2>Frequently Asked Questions</h2>
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                <i class="fas fa-question-circle me-2"></i>
+                                What do I do if I forget my password?
+                            </button>
+                        </h3>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <div class="faq-content">
+                                    <i class="fas fa-key"></i>
+                                    <div>
+                                        <p>Click "Forgot Password" on the login page and contact your administrator for a temporary password.</p>
+                                        <small class="text-muted">Temporary passwords expire after 24 hours</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                <i class="fas fa-question-circle me-2"></i>
+                                How long does admin approval take?
+                            </button>
+                        </h3>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                <div class="faq-content">
+                                    <i class="fas fa-clock"></i>
+                                    <div>
+                                        <p>Approval typically takes 1-2 business days, depending on admin availability.</p>
+                                        <small class="text-muted">Weekends and holidays may extend this timeframe</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4">
+        <div class="container text-center">
+            <p>&copy; 2024 Rakusens. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script src="../js/logged-in.js"></script>
+</body>
+</html>
