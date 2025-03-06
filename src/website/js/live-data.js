@@ -72,19 +72,25 @@ function initializeCharts(line) {
         : ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"];
 
     sensors.forEach(sensor => {
-        const div = document.createElement("div");
-        div.classList.add("col-md-3", "mb-4", "mini-chart");
-        div.innerHTML = `
-            <div class="chart-title">${sensor}</div>
+        const chartDiv = document.createElement("div");
+        chartDiv.classList.add("col-md-3", "mb-4", "mini-chart");
+        chartDiv.innerHTML = `
+            <div class="chart-title">
+                <a href="pages/sensor-data.html?sensor=${sensor}&line=${line}" class="sensor-link">${sensor}</a>
+            </div>
             <div id="chart-${sensor}" style="height: 150px;"></div>
         `;
-        div.addEventListener("click", () => expandChart(sensor));
-        container.appendChild(div);
 
+        // Redirect when clicking on the entire chart box
+        chartDiv.addEventListener("click", () => {
+            window.location.href = `pages/sensor-data.html?sensor=${sensor}&line=${line}`;
+        });
+
+        chartsContainer.appendChild(chartDiv);
         charts[sensor] = new ApexCharts(document.querySelector(`#chart-${sensor}`), {
             chart: { type: "line", height: 150, animations: { enabled: false } },
             series: [{ name: sensor, data: [] }],
-            colors: ['#00E396'],  // Default to green
+            colors: ['#00E396'],
             xaxis: { labels: { show: false } },
             yaxis: { labels: { show: false } }
         });
