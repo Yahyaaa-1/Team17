@@ -763,7 +763,53 @@ def get_sensor_data(line, sensor):
 def sensor_page(line, sensor):
     return render_template('sensor-data.html', line=line, sensor=sensor)
 
+  
+@app.route('/api/historical/<line>', methods=['POST'])
+def get_historical_data(line):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        if request.content_type != "application/json":
+            return jsonify({'error': "Unsupported Media Type: Request must be JSON"}), 415
+
+        data = request.get_json()
+        length = int(data.get("length", 50))
+        search_value = data.get("searchValue", "")
+        date_filter = data.get("dateFilter", "")
+
+        query = f"SELECT * FROM {line} WHERE 1=1"
+
+        if date_filter:
+            query += f" AND DATE(timestamp) = '{date_filter}'"
+        if search_value:
+            query += f" AND (timestamp LIKE '%{search_value}%')"
+
+        query += f" ORDER BY timestamp DESC LIMIT {length}"
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        for record in data:
+            record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching historical data: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+
 if __name__ == '__main__':
     simulation_thread = threading.Thread(target=generate_temperature_readings, daemon=True)
     simulation_thread.start()
     app.run(debug=True, use_reloader=False)
+
+    
