@@ -1,4 +1,4 @@
-/* styles.css */
+/* Bootstrap Variables Override */
 :root {
     --primary-dark-blue: #1B355D;
     --secondary-blue: #005095;
@@ -7,6 +7,7 @@
     --accent-blue: #0c3c84;
 }
 
+/* General Reset */
 * {
     margin: 0;
     padding: 0;
@@ -16,28 +17,19 @@
 
 /* Main Header */
 .main-header {
-    position: relative;
-    height: 200px; 
-    background-image: url('../images/rakusens_header.png'); 
+    height: 200px;
+    background-image: url('../images/rakusens_header.png'); /* Ensure correct path */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 }
 
 .header-content {
-    position: relative;
-    
-    height: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 100%;
     padding: 0 50px;
-}
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin:auto; 
 }
 
 .logo-container {
@@ -48,57 +40,40 @@
 }
 
 .logo-svg {
-    height: 160px; /* Adjust based on your logo size */
+    height: 160px;
     width: auto;
 }
 
-.login-button {
+.login-btn {
     position: absolute;
     right: 50px;
     top: 20px;
 }
 
-/* Main Navigation */
-.main-nav {
-    background-color: var(--secondary-blue);
-    padding: 15px 50px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+/* Bootstrap Navbar Styling */
+.navbar {
+    background-color: var(--secondary-blue) !important;
 }
 
-.main-nav ul {
-    list-style: none;
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    text-align: center;
-}
-
-.main-nav a {
-    color: white;
-    text-decoration: none;
+.navbar-nav .nav-link {
+    color: white !important;
     font-size: 16px;
     padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease-in-out;
 }
 
-.main-nav a:hover {
+.navbar-nav .nav-link:hover {
     background-color: var(--light-blue);
+    border-radius: 5px;
 }
 
-/* Main Content Area */
+/* Page Title */
 .main-content {
     padding: 30px 50px;
-    min-height: calc(100vh - 200px);
-    align-items: center;
+    min-height: calc(100vh - 250px);
 }
 
 .page-title {
-    text-align: center;
-    margin-bottom: 30px;
-    color: var(--primary-dark-blue);
-}
-.welcomeMessage{
     text-align: center;
     margin-bottom: 30px;
     color: var(--primary-dark-blue);
@@ -112,72 +87,132 @@
     text-align: center;
 }
 
-
-.account-dropdown {
-    position: relative;
-    display: inline-block;
+/* Bootstrap Button Customization */
+.btn-primary {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
 }
 
-.account-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: var(--accent-blue);
+.btn-primary:hover {
+    background-color: var(--light-blue);
+    border-color: var(--light-blue);
+}
+
+/* Data Table Styling */
+.data-container {
+    padding: 20px;
+    margin: 20px;
+}
+
+table.dataTable {
+    width: 100%;
+    margin: 20px 0;
+    background: white;
+    border-collapse: collapse;
+}
+
+table.dataTable th,
+table.dataTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table.dataTable thead th {
+    background-color: var(--primary-dark-blue);
     color: white;
-    border: none;
-    padding: 8px 16px;
+}
+
+table.dataTable tbody tr:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+/* DataTables Specific Styling */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 15px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
     cursor: pointer;
 }
 
-.account-btn i {
-    margin: 0 4px;
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: var(--primary-dark-blue);
+    color: white;
+    border-color: var(--primary-dark-blue);
 }
 
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: white;
-    min-width: 200px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    z-index: 1;
-    border-radius: 4px;
-    overflow: hidden;
+.clock-widget {
+    font-family: Arial, sans-serif;
+    font-size: 1.5rem;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: inline-block;
 }
 
-.dropdown-content.show {
-    display: block;
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
+/* For Bootstrap centering */
+.clock-container {
     display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.mini-chart {
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    transition: transform 0.2s;
+    background: white;
+}
+.mini-chart:hover {
+    transform: scale(1.05);
+}
+.chart-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+#expandedChartContainer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
     align-items: center;
-    gap: 10px;
+    z-index: 1000;
 }
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
+#expandedChart {
+    width: 80%;
+    height: 80%;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
 }
-
-.dropdown-separator {
-    height: 1px;
-    background-color: #ddd;
-    margin: 8px 0;
-}
-
-/* Dark mode styles */
-[data-theme="dark"] .dropdown-content {
-    background-color: #333;
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
     color: white;
-}
-
-[data-theme="dark"] .dropdown-content a {
-    color: white;
-}
-
-[data-theme="dark"] .dropdown-content a:hover {
-    background-color: #444;
 }
