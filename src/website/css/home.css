@@ -67,6 +67,70 @@
     border-radius: 5px;
 }
 
+/* Account Dropdown Styling */
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.account-btn {
+    background-color: var(--accent-blue);
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.account-btn:hover {
+    background-color: var(--light-blue);
+}
+
+.account-btn i {
+    margin-right: 5px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    min-width: 200px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    z-index: 1000;
+    margin-top: 5px;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-content a {
+    color: var(--primary-dark-blue);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.dropdown-content a:hover {
+    background-color: #f5f5f5;
+    color: var(--accent-blue);
+}
+
+.dropdown-content a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
 /* Page Title */
 .main-content {
     padding: 30px 50px;
