@@ -51,16 +51,23 @@ function initializeCharts(line) {
         const chartDiv = document.createElement("div");
         chartDiv.classList.add("col-md-3", "mb-4", "mini-chart");
         chartDiv.innerHTML = `
-            <div class="chart-title">${sensor}</div>
+            <div class="chart-title">
+                <a href="pages/sensor-data.html?sensor=${sensor}&line=${line}" class="sensor-link">${sensor}</a>
+            </div>
             <div id="chart-${sensor}" style="height: 150px;"></div>
         `;
-        chartDiv.addEventListener("click", () => expandChart(sensor));
+
+        // Redirect when clicking on the entire chart box
+        chartDiv.addEventListener("click", () => {
+            window.location.href = `pages/sensor-data.html?sensor=${sensor}&line=${line}`;
+        });
+
         chartsContainer.appendChild(chartDiv);
 
         charts[sensor] = new ApexCharts(document.querySelector(`#chart-${sensor}`), {
             chart: { type: "line", height: 150, animations: { enabled: false } },
             series: [{ name: sensor, data: [] }],
-            colors: ['#00E396'],    // --------- This is the code that defines the colour - Traffic light system 
+            colors: ['#00E396'],
             xaxis: { labels: { show: false } },
             yaxis: { labels: { show: false } }
         });
@@ -68,6 +75,7 @@ function initializeCharts(line) {
         charts[sensor].render();
     });
 }
+
 
 // Updates all charts with new sensor data
 function updateCharts(liveData) {
