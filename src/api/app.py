@@ -3,7 +3,11 @@ from flask_cors import CORS
 import mysql.connector
 from config import Config
 import pandas as pd
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash   
+import logging
+import threading
+import time
+import random
 
 app = Flask(__name__)
 
@@ -572,6 +576,194 @@ def deleteEmployee():
         print(f"Error in retrieving user accounts: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
 
-# Main
+
+LINE_4_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
+LINE_5_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]
+
+SENSOR_RANGES_LINE4 = {
+    "r01": {"avg": 46.80, "min": 43.00, "max": 50.00},
+    "r02": {"avg": 67.40, "min": 60.00, "max": 75.00},
+    "r03": {"avg": 94.02, "min": 84.00, "max": 105.00},
+    "r04": {"avg": 101.59, "min": 91.00, "max": 113.00},
+    "r05": {"avg": 112.76, "min": 101.00, "max": 127.00},
+    "r06": {"avg": 103.85, "min": 92.00, "max": 117.00},
+    "r07": {"avg": 87.29, "min": 74.00, "max": 99.00},
+    "r08": {"avg": 72.88, "min": 58.00, "max": 84.00}
+}
+
+SENSOR_RANGES_LINE5 = {
+    "r01": {"avg": 52.50, "min": 45.00, "max": 62.00},
+    "r02": {"avg": 87.82, "min": 73.00, "max": 106.00},
+    "r03": {"avg": 87.00, "min": 72.00, "max": 105.00},
+    "r04": {"avg": 102.60, "min": 85.00, "max": 125.00},
+    "r05": {"avg": 101.77, "min": 84.00, "max": 123.00},
+    "r06": {"avg": 117.30, "min": 96.00, "max": 144.00},
+    "r07": {"avg": 138.00, "min": 113.00, "max": 167.00},
+    "r08": {"avg": 126.88, "min": 104.00, "max": 154.00},
+    "r09": {"avg": 157.84, "min": 133.00, "max": 185.00},
+    "r10": {"avg": 147.75, "min": 123.00, "max": 174.00},
+    "r11": {"avg": 120.03, "min": 99.00, "max": 145.00},
+    "r12": {"avg": 169.08, "min": 140.00, "max": 202.00},
+    "r13": {"avg": 161.60, "min": 134.00, "max": 192.00},
+    "r14": {"avg": 133.23, "min": 108.00, "max": 165.00},
+    "r15": {"avg": 80.32, "min": 66.00, "max": 99.00},
+    "r16": {"avg": 80.48, "min": 62.00, "max": 107.00},
+    "r17": {"avg": 61.15, "min": 50.00, "max": 75.00}
+}
+# Set initial temperatures to typical operating values
+sensor_temps = {}
+for sensor in LINE_4_SENSORS:
+    sensor_temps[sensor] = SENSOR_RANGES_LINE4[sensor]["avg"]
+for sensor in LINE_5_SENSORS:
+    sensor_temps[sensor] = SENSOR_RANGES_LINE5[sensor]["avg"]
+
+def get_db_connection():
+    try:
+        connection = mysql.connector.connect(
+            host=Config.DB_HOST,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD,
+            database=Config.DB_NAME
+        )
+        return connection
+    except Exception as e:
+        print(f"DB Connection failed: {str(e)}")
+        return None
+
+def generate_temperature_readings():
+    while True:
+        try:
+            connection = get_db_connection()
+            cursor = connection.cursor()
+
+            # Line 4 sensor readings
+            line4_values = []
+            for sensor in LINE_4_SENSORS:
+                temp = sensor_temps[sensor]
+                limits = SENSOR_RANGES_LINE4[sensor]
+                
+                # Small random fluctuation
+                delta = random.uniform(-0.2, 0.2)
+                new_temp = temp + delta
+                
+                # Keep within sensor limits
+                new_temp = max(limits["min"], min(limits["max"], new_temp))
+                sensor_temps[sensor] = round(new_temp, 2)
+                line4_values.append(sensor_temps[sensor])
+
+            # Store line 4 data
+            cursor.execute(f"""
+                INSERT INTO line4 (timestamp, {', '.join(LINE_4_SENSORS)})
+                VALUES (NOW(), {', '.join(['%s'] * len(LINE_4_SENSORS))})
+            """, line4_values)
+
+            # Line 5 sensor readings  
+            line5_values = []
+            for sensor in LINE_5_SENSORS:
+                temp = sensor_temps[sensor]
+                limits = SENSOR_RANGES_LINE5[sensor]
+                
+                delta = random.uniform(-0.2, 0.2)
+                new_temp = temp + delta
+                new_temp = max(limits["min"], min(limits["max"], new_temp))
+                sensor_temps[sensor] = round(new_temp, 2)
+                line5_values.append(sensor_temps[sensor])
+
+            # Store line 5 data
+            cursor.execute(f"""
+                INSERT INTO line5 (timestamp, {', '.join(LINE_5_SENSORS)})
+                VALUES (NOW(), {', '.join(['%s'] * len(LINE_5_SENSORS))})
+            """, line5_values)
+
+            connection.commit()
+            print(f"Line 4: {dict(zip(LINE_4_SENSORS, line4_values))}")
+            print(f"Line 5: {dict(zip(LINE_5_SENSORS, line5_values))}")
+
+            cursor.close()
+            connection.close()
+            time.sleep(2)
+
+        except Exception as e:
+            print(f"Simulation error: {e}")
+            time.sleep(5)
+
+@app.route('/')
+def home():
+    return jsonify({
+        'message': 'Rakusens API is running',
+        'endpoints': {
+            'available_dates': '/api/available-dates/<line>',
+            'live_data': '/api/live-data/<line>'
+        }
+    })
+
+@app.route('/api/live-data/<line>', methods=['GET'])
+def get_live_data(line):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        query = f"SELECT * FROM {line} ORDER BY timestamp DESC LIMIT 1"
+        cursor.execute(query)
+        data = cursor.fetchone()
+
+        if not data:
+            return jsonify({'error': 'No live data available'}), 404
+
+        data["timestamp"] = data["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching live data: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+            
+@app.route('/api/sensor-data/<line>/<sensor>', methods=['GET'])
+def get_sensor_data(line, sensor):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        # Fetch the most recent reading for the specified sensor
+        query = f"SELECT timestamp, {sensor} FROM {line} ORDER BY timestamp DESC LIMIT 1"
+        cursor.execute(query)
+        data = cursor.fetchone()
+
+        if not data:
+            return jsonify({'error': 'No data available for this sensor'}), 404
+
+        # Format the timestamp
+        data["timestamp"] = data["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching sensor data: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+
+@app.route('/sensor/<line>/<sensor>')
+def sensor_page(line, sensor):
+    return render_template('sensor-data.html', line=line, sensor=sensor)
+
 if __name__ == '__main__':
-    app.run(debug=Config.DEBUG)
+    simulation_thread = threading.Thread(target=generate_temperature_readings, daemon=True)
+    simulation_thread.start()
+    app.run(debug=True, use_reloader=False)
