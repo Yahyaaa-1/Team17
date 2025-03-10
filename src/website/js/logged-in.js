@@ -52,7 +52,15 @@ document.addEventListener('DOMContentLoaded', function() {
             accountPageLink.href = `${basePath}account.html`;
             accountPageLink.innerHTML = '<i class="fas fa-user-circle"></i> My Account';
             dropdownContent.appendChild(accountPageLink);
-            
+
+             // Add admin link if user is admin
+            if (admin === 1) {
+                const adminLink = document.createElement('a');
+                adminLink.href = `${basePath}admin.html`;
+                adminLink.innerHTML = '<i class="fas fa-user-shield"></i> Admin Panel';
+                dropdownContent.appendChild(adminLink);
+            }
+                    
             // Logout link
             const logoutLink = document.createElement('a');
             logoutLink.href = '#';
