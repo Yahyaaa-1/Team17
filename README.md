@@ -29,8 +29,6 @@ Create a virtual environment:
 
 python -m venv venv
 
-Activate the virtual environment:
-
 venv\Scripts\activate.bat
 
 4. Install Required Packages
