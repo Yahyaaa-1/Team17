@@ -30,11 +30,14 @@ Create a virtual environment:
 python -m venv venv
 
 Activate the virtual environment:
+
 venv\Scripts\activate.bat
 
 4. Install Required Packages
+
 pip install -r requirements.txt
 
 5. Start the Flask API
 Run the Flask application:
+
 python app.py
