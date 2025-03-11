@@ -45,3 +45,26 @@ pip install -r requirements.txt
 Run the Flask application:
 
 python app.py
+
+esting
+Open these links in your web browser:
+
+Check if the API is running:
+http://localhost:5000/
+Test Database Connection:
+http://localhost:5000/api/test
+Important Notes
+Keep XAMPP MySQL running.
+Keep the Command Prompt window (with the virtual environment activated) open.
+To stop the server, press Ctrl + C in the Command Prompt.
+To close the virtual environment, type deactivate and press Enter.
+Troubleshooting
+If database connection fails:
+
+Make sure XAMPP MySQL is running.
+Check your .env file settings (e.g., database credentials, host, and port).
+To restart the API:
+
+Press Ctrl + C to stop the server.
+Run python app.py again.
+
