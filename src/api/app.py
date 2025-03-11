@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 import mysql.connector
 from config import Config
@@ -581,35 +581,27 @@ LINE_4_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
 LINE_5_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]
 
 SENSOR_RANGES_LINE4 = {
-    "r01": {"avg": 46.80, "min": 43.00, "max": 50.00},
-    "r02": {"avg": 67.40, "min": 60.00, "max": 75.00},
-    "r03": {"avg": 94.02, "min": 84.00, "max": 105.00},
-    "r04": {"avg": 101.59, "min": 91.00, "max": 113.00},
-    "r05": {"avg": 112.76, "min": 101.00, "max": 127.00},
-    "r06": {"avg": 103.85, "min": 92.00, "max": 117.00},
-    "r07": {"avg": 87.29, "min": 74.00, "max": 99.00},
-    "r08": {"avg": 72.88, "min": 58.00, "max": 84.00}
+    "r01": {"avg": 126.91, "min": 88.84, "max": 165.00},
+    "r02": {"avg": 260.24, "min": 182.17, "max": 338.32},
+    "r03": {"avg": 251.79, "min": 176.25, "max": 327.32},
+    "r04": {"avg": 303.01, "min": 212.11, "max": 393.91},
+    "r05": {"avg": 249.60, "min": 174.72, "max": 324.48},
+    "r06": {"avg": 263.55, "min": 184.49, "max": 342.62},
+    "r07": {"avg": 258.81, "min": 181.17, "max": 336.45},
+    "r08": {"avg": 207.50, "min": 145.25, "max": 269.75}
 }
 
 SENSOR_RANGES_LINE5 = {
-    "r01": {"avg": 52.50, "min": 45.00, "max": 62.00},
-    "r02": {"avg": 87.82, "min": 73.00, "max": 106.00},
-    "r03": {"avg": 87.00, "min": 72.00, "max": 105.00},
-    "r04": {"avg": 102.60, "min": 85.00, "max": 125.00},
-    "r05": {"avg": 101.77, "min": 84.00, "max": 123.00},
-    "r06": {"avg": 117.30, "min": 96.00, "max": 144.00},
-    "r07": {"avg": 138.00, "min": 113.00, "max": 167.00},
-    "r08": {"avg": 126.88, "min": 104.00, "max": 154.00},
-    "r09": {"avg": 157.84, "min": 133.00, "max": 185.00},
-    "r10": {"avg": 147.75, "min": 123.00, "max": 174.00},
-    "r11": {"avg": 120.03, "min": 99.00, "max": 145.00},
-    "r12": {"avg": 169.08, "min": 140.00, "max": 202.00},
-    "r13": {"avg": 161.60, "min": 134.00, "max": 192.00},
-    "r14": {"avg": 133.23, "min": 108.00, "max": 165.00},
-    "r15": {"avg": 80.32, "min": 66.00, "max": 99.00},
-    "r16": {"avg": 80.48, "min": 62.00, "max": 107.00},
-    "r17": {"avg": 61.15, "min": 50.00, "max": 75.00}
+    "r01": {"avg": 75.73, "min": 53.01, "max": 98.45},
+    "r02": {"avg": 116.33, "min": 81.43, "max": 151.23},
+    "r03": {"avg": 115.54, "min": 80.88, "max": 150.20},
+    "r04": {"avg": 136.63, "min": 95.64, "max": 177.62},
+    "r05": {"avg": 131.59, "min": 92.11, "max": 171.07},
+    "r06": {"avg": 166.70, "min": 116.69, "max": 216.71},
+    "r07": {"avg": 166.44, "min": 116.51, "max": 216.37},
+    "r08": {"avg": 144.39, "min": 101.07, "max": 187.71}
 }
+
 # Set initial temperatures to typical operating values
 sensor_temps = {}
 for sensor in LINE_4_SENSORS:
@@ -699,6 +691,7 @@ def get_live_data(line):
         if line not in valid_lines:
             return jsonify({'error': 'Invalid line selected'}), 400
 
+        # Fetch latest sensor data
         query = f"SELECT * FROM {line} ORDER BY timestamp DESC LIMIT 1"
         cursor.execute(query)
         data = cursor.fetchone()
@@ -708,7 +701,20 @@ def get_live_data(line):
 
         data["timestamp"] = data["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
 
-        return jsonify({'success': True, 'data': data}), 200
+        # Include min, max, and avg values
+        sensor_ranges = SENSOR_RANGES_LINE4 if line == "line4" else SENSOR_RANGES_LINE5
+
+        formatted_data = {}
+        for sensor in sensor_ranges:
+            if sensor in data:  # Ensure the sensor exists in the database row
+                formatted_data[sensor] = {
+                    "avg": sensor_ranges[sensor]["avg"],
+                    "min": sensor_ranges[sensor]["min"],
+                    "max": sensor_ranges[sensor]["max"],
+                    "current": data[sensor]  # Latest sensor reading
+                }
+
+        return jsonify({'success': True, 'data': formatted_data}), 200
 
     except Exception as e:
         print(f"Error fetching live data: {e}")
@@ -716,7 +722,7 @@ def get_live_data(line):
     finally:
         if connection:
             connection.close()
-            
+
 @app.route('/api/sensor-data/<line>/<sensor>', methods=['GET'])
 def get_sensor_data(line, sensor):
     try:
