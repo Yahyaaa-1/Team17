@@ -1,11 +1,17 @@
 Rakusen’s Interactive, real-time visualisation dashboard
 
 Yahya Ashfak 23011246
+
 Aadam Ahmed 23018946
+
 Barirah Irfan 23043808
+
 Saiful-Islam-Waheed 23018692
+
 Osman Talib 23017617
+
 Mohammed Ramzan Iqbal 23016117
+
 Harris Khan 23011221
 
 A simple guide to set up the RAKUSENS Dashboard API using Python (Flask) and MySQL.
