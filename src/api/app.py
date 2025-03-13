@@ -8,6 +8,7 @@ import logging
 import threading
 import time
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -94,9 +95,7 @@ def verify_employee():
 
 # user registration
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
-def register():
-    print(f"Received {request.method} request to register")  # Debug print
-    
+def register():    
     if request.method == "OPTIONS":
         return jsonify({"success": True})
     
@@ -105,7 +104,6 @@ def register():
         
     try:
         data = request.get_json()
-        print(f"Received data: {data}")  # Debug print
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
@@ -162,7 +160,7 @@ def register():
 
             connection.commit()
         except mysql.connector.Error as err:
-            print(f"Database error: {err}")  # Debug print
+          
             return jsonify({'success': False, 'error': 'Database error occurred'}), 500
         finally:
             cursor.close()
@@ -171,13 +169,11 @@ def register():
         return jsonify({'success': True, 'message': 'Registration successful'})
 
     except Exception as e:
-        print(f"Error in register: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
 
 # user Login
 @app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
-    print(f"Received {request.method} request to login")  # Debug print
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -187,7 +183,7 @@ def login():
         
     try:
         data = request.get_json()
-        print(f"Received login data: {data}")  # Debug print
+        
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
@@ -249,14 +245,12 @@ def login():
         })
 
     except Exception as e:
-        print(f"Error in login: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
     
 # Admin Routes
 # Get all user accounts
 @app.route('/api/admin/user-accounts', methods=['GET', 'OPTIONS'])
 def get_user_accounts():
-    print(f"Received {request.method} request to retrieve admin details")  # Debug print
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -278,7 +272,6 @@ def get_user_accounts():
         connection.close()
 
     except Exception as e:
-        print(f"Error in retrieving user accounts: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
     
     return jsonify({
@@ -290,7 +283,6 @@ def get_user_accounts():
 # Get all employees
 @app.route('/api/admin/employee-reg', methods=['GET', 'OPTIONS'])
 def get_employee_reg():
-    print(f"Received {request.method} request to retrieve admin details")  # Debug print
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -312,7 +304,6 @@ def get_employee_reg():
         connection.close()
 
     except Exception as e:
-        print(f"Error in retrieving user accounts: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
     
     return jsonify({
@@ -324,7 +315,6 @@ def get_employee_reg():
 # Get user status
 @app.route('/api/admin/toggle-user-status', methods=['POST', 'OPTIONS'])
 def toggleUserStatus():
-    print(f"Received {request.method} request to change user active status")  # Debug print
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -334,7 +324,6 @@ def toggleUserStatus():
         
     try:
         data = request.get_json()
-        print(f"Received data: {data}")  # Debug print
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
@@ -403,13 +392,11 @@ def toggleUserStatus():
             if connection:
                 connection.close()
     except Exception as e:
-        print(f"Error in retrieving user accounts: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
     
 # Delete user account
 @app.route('/api/admin/delete-user', methods=['POST', 'OPTIONS'])
 def deleteUser():
-    print(f"Received {request.method} request to delete user")  # Debug print
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -419,7 +406,6 @@ def deleteUser():
         
     try:
         data = request.get_json()
-        print(f"Received data: {data}")  # Debug print
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
@@ -488,13 +474,11 @@ def deleteUser():
             cursor.close()
             connection.close()
     except Exception as e:
-        print(f"Error in retrieving user accounts: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
 
 # Delete employee
 @app.route('/api/admin/delete-employee', methods=['POST', 'OPTIONS'])
 def deleteEmployee():
-    print(f"Received {request.method} request to delete user")  # Debug print
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -504,7 +488,6 @@ def deleteEmployee():
         
     try:
         data = request.get_json()
-        print(f"Received data: {data}")  # Debug print
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
@@ -573,7 +556,6 @@ def deleteEmployee():
                 connection.close()
 
     except Exception as e:
-        print(f"Error in retrieving user accounts: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 400
 
 
@@ -581,34 +563,34 @@ LINE_4_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
 LINE_5_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]
 
 SENSOR_RANGES_LINE4 = {
-    "r01": {"avg": 46.80, "min": 43.00, "max": 50.00},
-    "r02": {"avg": 67.40, "min": 60.00, "max": 75.00},
-    "r03": {"avg": 94.02, "min": 84.00, "max": 105.00},
-    "r04": {"avg": 101.59, "min": 91.00, "max": 113.00},
-    "r05": {"avg": 112.76, "min": 101.00, "max": 127.00},
-    "r06": {"avg": 103.85, "min": 92.00, "max": 117.00},
-    "r07": {"avg": 87.29, "min": 74.00, "max": 99.00},
-    "r08": {"avg": 72.88, "min": 58.00, "max": 84.00}
+    "r01": {"avg": 129.10, "min": 16.00, "max": 258.00},
+    "r02": {"avg": 264.81, "min": 18.00, "max": 526.00},
+    "r03": {"avg": 255.77, "min": 17.00, "max": 476.00},
+    "r04": {"avg": 309.04, "min": 13.00, "max": 554.00},
+    "r05": {"avg": 253.94, "min": 10.00, "max": 440.00},
+    "r06": {"avg": 268.39, "min": 8.00, "max": 485.00},
+    "r07": {"avg": 263.18, "min": 9.00, "max": 525.00},
+    "r08": {"avg": 210.97, "min": 8.00, "max": 434.00}
 }
 
 SENSOR_RANGES_LINE5 = {
-    "r01": {"avg": 52.50, "min": 45.00, "max": 62.00},
-    "r02": {"avg": 87.82, "min": 73.00, "max": 106.00},
-    "r03": {"avg": 87.00, "min": 72.00, "max": 105.00},
-    "r04": {"avg": 102.60, "min": 85.00, "max": 125.00},
-    "r05": {"avg": 101.77, "min": 84.00, "max": 123.00},
-    "r06": {"avg": 117.30, "min": 96.00, "max": 144.00},
-    "r07": {"avg": 138.00, "min": 113.00, "max": 167.00},
-    "r08": {"avg": 126.88, "min": 104.00, "max": 154.00},
-    "r09": {"avg": 157.84, "min": 133.00, "max": 185.00},
-    "r10": {"avg": 147.75, "min": 123.00, "max": 174.00},
-    "r11": {"avg": 120.03, "min": 99.00, "max": 145.00},
-    "r12": {"avg": 169.08, "min": 140.00, "max": 202.00},
-    "r13": {"avg": 161.60, "min": 134.00, "max": 192.00},
-    "r14": {"avg": 133.23, "min": 108.00, "max": 165.00},
-    "r15": {"avg": 80.32, "min": 66.00, "max": 99.00},
-    "r16": {"avg": 80.48, "min": 62.00, "max": 107.00},
-    "r17": {"avg": 61.15, "min": 50.00, "max": 75.00}
+    "r01": {"avg": 133.31, "min": 18.00, "max": 226.00},
+    "r02": {"avg": 203.01, "min": 18.00, "max": 308.00},
+    "r03": {"avg": 164.63, "min": 16.00, "max": 262.00},
+    "r04": {"avg": 223.17, "min": 17.00, "max": 354.00},
+    "r05": {"avg": 183.02, "min": 16.00, "max": 278.00},
+    "r06": {"avg": 280.04, "min": 16.00, "max": 430.00},
+    "r07": {"avg": 277.71, "min": 17.00, "max": 415.00},
+    "r08": {"avg": 229.20, "min": 16.00, "max": 364.00},
+    "r09": {"avg": 227.06, "min": 16.00, "max": 307.00},
+    "r10": {"avg": 321.24, "min": 15.00, "max": 489.00},
+    "r11": {"avg": 225.51, "min": 14.00, "max": 357.00},
+    "r12": {"avg": 297.59, "min": 15.00, "max": 403.00},
+    "r13": {"avg": 238.31, "min": 16.00, "max": 330.00},
+    "r14": {"avg": 284.27, "min": 15.00, "max": 421.00},
+    "r15": {"avg": 174.30, "min": 15.00, "max": 255.00},
+    "r16": {"avg": 220.43, "min": 13.00, "max": 365.00},
+    "r17": {"avg": 151.66, "min": 0.00, "max": 241.00}
 }
 # Set initial temperatures to typical operating values
 sensor_temps = {}
@@ -636,8 +618,23 @@ def generate_temperature_readings():
             connection = get_db_connection()
             cursor = connection.cursor()
 
+            # Get current timestamp
+            current_timestamp = datetime.now().replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')
+
+            # Get timezone offset from month
+            def get_timezone_offset():
+                current_month = time.localtime().tm_mon
+
+                # Daylight savings from end march to Oct
+                if 4 <= current_month <= 10:
+                    return "+01"
+                else:
+                    return "+00"
+
+            timezone_offset = get_timezone_offset()
+
             # Line 4 sensor readings
-            line4_values = []
+            line4_values = [current_timestamp, timezone_offset]
             for sensor in LINE_4_SENSORS:
                 temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE4[sensor]
@@ -651,14 +648,19 @@ def generate_temperature_readings():
                 sensor_temps[sensor] = round(new_temp, 2)
                 line4_values.append(sensor_temps[sensor])
 
-            # Store line 4 data
-            cursor.execute(f"""
-                INSERT INTO line4 (timestamp, {', '.join(LINE_4_SENSORS)})
-                VALUES (NOW(), {', '.join(['%s'] * len(LINE_4_SENSORS))})
-            """, line4_values)
-
+            try:
+                cursor.execute(f"""
+                    INSERT INTO line4 (timestamp, timezone, {', '.join(LINE_4_SENSORS)})
+                    VALUES (%s, %s, {', '.join(['%s'] * len(LINE_4_SENSORS))})
+                """, line4_values)
+            except Exception as e:
+                print(f"Error inserting line 4 data: {e}")
+                print("Parameters:", line4_values)
+                print("Number of parameters:", len(line4_values))
+                raise
+                        
             # Line 5 sensor readings  
-            line5_values = []
+            line5_values = [current_timestamp, timezone_offset]
             for sensor in LINE_5_SENSORS:
                 temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE5[sensor]
@@ -669,19 +671,24 @@ def generate_temperature_readings():
                 sensor_temps[sensor] = round(new_temp, 2)
                 line5_values.append(sensor_temps[sensor])
 
-            # Store line 5 data
-            cursor.execute(f"""
-                INSERT INTO line5 (timestamp, {', '.join(LINE_5_SENSORS)})
-                VALUES (NOW(), {', '.join(['%s'] * len(LINE_5_SENSORS))})
-            """, line5_values)
+            try:
+                cursor.execute(f"""
+                    INSERT INTO line5 (timestamp, timezone, {', '.join(LINE_5_SENSORS)})
+                    VALUES (%s, %s, {', '.join(['%s'] * len(LINE_5_SENSORS))})
+                """, line5_values)
+            except Exception as e:
+                print(f"Error inserting line 5 data: {e}")
+                print("Parameters:", line5_values)
+                print("Number of parameters:", len(line5_values))
+                raise
 
             connection.commit()
-            print(f"Line 4: {dict(zip(LINE_4_SENSORS, line4_values))}")
-            print(f"Line 5: {dict(zip(LINE_5_SENSORS, line5_values))}")
+            print(f"Line 4: {dict(zip(LINE_4_SENSORS, line4_values[2:]))}")
+            print(f"Line 5: {dict(zip(LINE_5_SENSORS, line5_values[2:]))}")
 
             cursor.close()
             connection.close()
-            time.sleep(2)
+            time.sleep(30)
 
         except Exception as e:
             print(f"Simulation error: {e}")
