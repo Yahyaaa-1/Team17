@@ -8,6 +8,7 @@ import logging
 import threading
 import time
 import random
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -617,24 +618,23 @@ def generate_temperature_readings():
             connection = get_db_connection()
             cursor = connection.cursor()
 
-              # Determine timezone offset based on the season
+            # Get current timestamp
+            current_timestamp = datetime.now().replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')
+
+            # Get timezone offset from month
             def get_timezone_offset():
-                
-                # You can customize this logic based on your specific requirements
                 current_month = time.localtime().tm_mon
-                
-                # Typically, daylight saving time (summer time) is from March to October
+
+                # Daylight savings from end march to Oct
                 if 4 <= current_month <= 10:
                     return "+01"
                 else:
                     return "+00"
 
-            # Store line 5 data with hardcoded timestamp and timezone
             timezone_offset = get_timezone_offset()
-            
 
             # Line 4 sensor readings
-            line4_values = []
+            line4_values = [current_timestamp, timezone_offset]
             for sensor in LINE_4_SENSORS:
                 temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE4[sensor]
@@ -660,7 +660,7 @@ def generate_temperature_readings():
                 raise
                         
             # Line 5 sensor readings  
-            line5_values = []
+            line5_values = [current_timestamp, timezone_offset]
             for sensor in LINE_5_SENSORS:
                 temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE5[sensor]
@@ -682,14 +682,9 @@ def generate_temperature_readings():
                 print("Number of parameters:", len(line5_values))
                 raise
 
-            print("LINE_5_SENSORS:", LINE_5_SENSORS)
-            print("Number of sensors:", len(LINE_5_SENSORS))
-            print("line5_values:", line5_values)
-            print("Number of values:", len(line5_values))
-
             connection.commit()
-            print(f"Line 4: {dict(zip(LINE_4_SENSORS, line4_values))}")
-            print(f"Line 5: {dict(zip(LINE_5_SENSORS, line5_values))}")
+            print(f"Line 4: {dict(zip(LINE_4_SENSORS, line4_values[2:]))}")
+            print(f"Line 5: {dict(zip(LINE_5_SENSORS, line5_values[2:]))}")
 
             cursor.close()
             connection.close()
