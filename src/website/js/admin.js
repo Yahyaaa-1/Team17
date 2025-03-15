@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleUserStatus(this, 'active')">
                             ${user.active ? 'Deactivate' : 'Activate'}
                         </button>
+                        <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleUserAdmin(this, 'active')">
+                            ${user.admin ? 'Demote' : 'Promote'}
+                        </button>
                         <button class="delete-btn" data-id="${user.operator_id}" onclick="deleteUser(this)">
                             Delete
                         </button>
@@ -135,6 +138,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     }
+
+     // Save edit changes
+     window.savechanges = async function(button) {
+
+        var operatorId = document.getElementById('edit_operator_id').value
+        var email = document.getElementById('edit_email').value
+        var fullname = document.getElementById('edit_full_name').value
+        var tempPass = document.getElementById('edit_temp_password').value
+
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/admin/update-user-details`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ operator_id: operatorId , Nemail: email, Nfullname:fullname, NtempPass:tempPass})
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error:', errorData.error);
+                    return;
+                }
+                else{
+                    location.reload();
+                }
+                const data = await response.json();
+                if (data.success) {
+                    //fetchEmployeeRegistry(); // Refresh table
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+            }
+    }
+
+
     
     // COMMENTED OUT FOR NOW ----------------------------------- ADD BACK IF ERRORS WITH DATA LOADING INTO TABLES
     // Call both functions when the page loads
@@ -142,6 +181,33 @@ document.addEventListener('DOMContentLoaded', function() {
     //     fetchUserAccounts();
     //     fetchEmployeeRegistry();
     // });
+
+
+
+    
+
+    // Toggle user admin
+    window.toggleUserAdmin = async function(button, type) {
+
+        const operatorId = button.dataset.id;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/toggle-user-admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ operator_id: operatorId, type: type })
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchUserAccounts(); // Refresh table
+            }
+        } catch (error) {
+            console.error('Error toggling user admin:', error);
+        }
+    }
+
 
     // Toggle user status
     window.toggleUserStatus = async function(button, type) {

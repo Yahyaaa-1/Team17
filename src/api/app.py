@@ -312,9 +312,10 @@ def get_employee_reg():
             'employee_registry': employee_registry
         })
 
-# Get user status
-@app.route('/api/admin/toggle-user-status', methods=['POST', 'OPTIONS'])
-def toggleUserStatus():
+    
+
+@app.route('/api/admin/toggle-user-admin', methods=['POST', 'OPTIONS'])
+def toggleUserAdmin():
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
@@ -347,16 +348,16 @@ def toggleUserStatus():
 
             cursor = connection.cursor(dictionary=True)
             
-            # Get user active status
-            cursor.execute("""SELECT active 
+            # Get user admin status
+            cursor.execute("""SELECT admin 
                            FROM user_accounts 
                            WHERE operator_id = %s""", (operator_id,))
             
             user = cursor.fetchone()
-            print("Current user status:", user['active'], "Type:", type(user['active']))
+            print("Current user status:", user['admin'], "Type:", type(user['admin']))
 
-            # Overwrite user active status
-            current_status = int(user['active'])  # Convert to int if it's a string
+            # Overwrite user admin status
+            current_status = int(user['admin'])  # Convert to int if it's a string
             if current_status == 0:
                 new_status = 1
             else:
@@ -368,7 +369,7 @@ def toggleUserStatus():
             # Update query
             query = """
                 UPDATE user_accounts
-                SET active = %s
+                SET admin = %s
                 WHERE operator_id = %s
             """
             # print("Query:", query)
@@ -379,7 +380,7 @@ def toggleUserStatus():
 
             return jsonify({
                 'success': True, 
-                'message': f'User status updated to {"active" if new_status == 1 else "inactive"}',
+                'message': f'User status updated to {"admin" if new_status == 1 else "not admin"}',
                 'new_status': new_status
             })
 
@@ -555,6 +556,181 @@ def deleteEmployee():
             if connection:
                 connection.close()
 
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
+    # Get user status
+@app.route('/api/admin/toggle-user-status', methods=['POST', 'OPTIONS'])
+def toggleUserStatus():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        operator_id = data.get('operator_id')
+
+        print(operator_id)
+       
+
+        if not all([operator_id]):
+            return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
+        
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        
+        try:
+            data = request.get_json()
+            operator_id = data.get('operator_id')
+
+            cursor = connection.cursor(dictionary=True)
+            
+            # Get user active status
+            cursor.execute("""SELECT active 
+                           FROM user_accounts 
+                           WHERE operator_id = %s""", (operator_id,))
+            
+            user = cursor.fetchone()
+            print("Current user status:", user['active'], "Type:", type(user['active']))
+
+            # Overwrite user active status
+            current_status = int(user['active'])  # Convert to int if it's a string
+            if current_status == 0:
+                new_status = 1
+            else:
+                new_status = 0
+
+            # new_status = 0 if current_status == 1 else 1
+            # print(f"Current status: {current_status} -> New status: {new_status}")
+
+            # Update query
+            query = """
+                UPDATE user_accounts
+                SET active = %s
+                WHERE operator_id = %s
+            """
+            # print("Query:", query)
+            # print("Parameters:", (new_status, operator_id))
+            
+            cursor.execute(query, (new_status, operator_id))
+            connection.commit()
+
+            return jsonify({
+                'success': True, 
+                'message': f'User status updated to {"active" if new_status == 1 else "inactive"}',
+                'new_status': new_status
+            })
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': 'Database error occurred'}), 500
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
+# Update User details
+@app.route('/api/admin/update-user-details', methods=['POST', 'OPTIONS'])
+def updateUserDetails():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        operator_id = data.get('operator_id')
+        email = data.get('Nemail')
+        password = data.get('NtempPass')
+        fullname = data.get('Nfullname')
+
+        print("New user details to update")
+        print(email)
+        print(password)
+        print(fullname)
+
+       # Check for missing fields
+        if not all([operator_id, email, password, fullname]):
+            missing_fields = []
+            if not operator_id:
+                missing_fields.append('Operator ID')
+            if not email:
+                missing_fields.append('Email')
+            if not password:
+                missing_fields.append('Password')
+            if not fullname:
+                missing_fields.append('Fullname')
+        
+            return jsonify({'success': False, 'error': f'Missing fields: {", ".join(missing_fields)}'}), 400
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        
+        try:
+
+            cursor = connection.cursor(dictionary=True)
+            
+            # Get user active status
+            cursor.execute("""SELECT * 
+                           FROM employee_registry 
+                           WHERE operator_id = %s""", (operator_id,))
+            
+            user = cursor.fetchone()
+
+            if user:
+                    # new_status = 0 if current_status == 1 else 1
+                    # print(f"Current status: {current_status} -> New status: {new_status}")
+
+                    # Update query
+                    query = """
+                        UPDATE employee_registry
+                        SET email = %s,
+                        full_name = %s,
+                        temp_password = %s
+                        WHERE operator_id = %s
+                    """
+                    # print("Query:", query)
+                    # print("Parameters:", (new_status, operator_id))
+                    
+                    cursor.execute(query, (email,fullname,password, operator_id))
+                    connection.commit()
+
+                    return jsonify({
+                        'success': True, 
+                        'message': f'User details updated',
+                    })
+            else:
+                print(f"Database error: {err}")
+                return jsonify({'success': False, 'error': 'User doesnt exist'}), 500
+
+            
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': 'Database error occurred'}), 500
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
@@ -810,3 +986,86 @@ if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)
 
     
+
+    # 
+# # Get user status
+# @app.route('/api/admin/toggle-user-status', methods=['POST', 'OPTIONS'])
+# def toggleUserStatus():
+    
+#     if request.method == "OPTIONS":
+#         return jsonify({"success": True})
+    
+#     if request.method != "POST":
+#         return jsonify({"error": "Method not allowed"}), 405
+        
+#     try:
+#         data = request.get_json()
+        
+#         if not data:
+#             return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+#         operator_id = data.get('operator_id')
+
+#         print(operator_id)
+       
+
+#         if not all([operator_id]):
+#             return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
+        
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        
+#         try:
+#             data = request.get_json()
+#             operator_id = data.get('operator_id')
+
+#             cursor = connection.cursor(dictionary=True)
+            
+#             # Get user active status
+#             cursor.execute("""SELECT active 
+#                            FROM user_accounts 
+#                            WHERE operator_id = %s""", (operator_id,))
+            
+#             user = cursor.fetchone()
+#             print("Current user status:", user['active'], "Type:", type(user['active']))
+
+#             # Overwrite user active status
+#             current_status = int(user['active'])  # Convert to int if it's a string
+#             if current_status == 0:
+#                 new_status = 1
+#             else:
+#                 new_status = 0
+
+#             # new_status = 0 if current_status == 1 else 1
+#             # print(f"Current status: {current_status} -> New status: {new_status}")
+
+#             # Update query
+#             query = """
+#                 UPDATE user_accounts
+#                 SET active = %s
+#                 WHERE operator_id = %s
+#             """
+#             # print("Query:", query)
+#             # print("Parameters:", (new_status, operator_id))
+            
+#             cursor.execute(query, (new_status, operator_id))
+#             connection.commit()
+
+#             return jsonify({
+#                 'success': True, 
+#                 'message': f'User status updated to {"active" if new_status == 1 else "inactive"}',
+#                 'new_status': new_status
+#             })
+
+#         except mysql.connector.Error as err:
+#             print(f"Database error: {err}")
+#             return jsonify({'success': False, 'error': 'Database error occurred'}), 500
+#         finally:
+#             if cursor:
+#                 cursor.close()
+#             if connection:
+#                 connection.close()
+#     except Exception as e:
+#         return jsonify({'success': False, 'error': str(e)}), 400
