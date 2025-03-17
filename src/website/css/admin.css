@@ -116,6 +116,47 @@ table th {
     cursor: pointer;
 }
 
-.edit-btn:hover {
-    background-color: #0056b3;
+#line4-headers-table, #line5-headers-table {
+    width: 10%;
+    border-collapse: collapse;
+    font-size: 12px; /* Smaller font size */
+}
+
+#line4-headers-table th, #line5-headers-table th,
+#line4-headers-table td, #line5-headers-table td {
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+/* Sensor Name Column */
+#line4-headers-table td:first-child, 
+#line5-headers-table td:first-child {
+    width: 20px; /* Fixed width for sensor name */
+    max-width: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Actions Column */
+#line4-headers-table td:last-child, 
+#line5-headers-table td:last-child {
+    width: 20px; /* Fixed width for actions */
+    text-align: center;
+}
+
+/* Delete Button */
+.delete-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover {
+    background-color: #ff1a1a;
 }
