@@ -65,8 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Add any authentication headers if needed
-                    // 'Authorization': `Bearer ${token}`
                 }
             });
     
@@ -114,6 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Failed to fetch employee registry. Please try again.');
         }
 
+
+        
+
          // Modified openEditModal to use stored data
     window.openEditModal = function(operatorId) {
         const employee = employeeData.find(emp => emp.operator_id === operatorId);
@@ -135,14 +136,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     }
-    
-    // COMMENTED OUT FOR NOW ----------------------------------- ADD BACK IF ERRORS WITH DATA LOADING INTO TABLES
-    // Call both functions when the page loads
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     fetchUserAccounts();
-    //     fetchEmployeeRegistry();
-    // });
+    async function fetchTableHeaders(tableId) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/table-headers?tableID=${tableId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
 
+            if (!response.ok) {
+                throw new Error('Failed to fetch table headers');
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+            // Get the table body to populate
+            const tableBody = document.getElementById(`${tableId}-headers-body`);
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            // Filter out timestamp and timezone columns
+            const filteredHeaders = data.headers.filter(header => 
+                header !== 'timestamp' && header !== 'timezone'
+            );
+
+            // Create a row for each sensor header
+            filteredHeaders.forEach(header => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${header}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm delete-btn" onclick="deleteSensor('${header}','${tableId}')">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error fetching table headers:', error);
+            alert('Failed to fetch table headers. Please try again.');
+        }
+    }
+    window.deleteSensor = async function(sensorName,tableID) {
+
+        if (confirm(`Are you sure you want to delete ${sensorName} sensor?`)) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/admin/delete-sensor`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sensorName: sensorName, tableID:tableID })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchTableHeaders(tableId); // Refresh table
+                }
+            } catch (error) {
+                console.error('Error deleting sensor:', error);
+            }
+        }
+    }
+    
     // Toggle user status
     window.toggleUserStatus = async function(button, type) {
 
@@ -212,4 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial fetch
     fetchUserAccounts();
     fetchEmployeeRegistry();
+    fetchTableHeaders('line4');
+    fetchTableHeaders('line5');
 });
