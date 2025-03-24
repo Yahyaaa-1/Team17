@@ -798,6 +798,99 @@ def deleteEmployee():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
+@app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
+def get_table_headers():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    try:
+        connection = get_db_connection()
+        
+
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        tableID = request.args.get('tableID')
+
+        cursor = connection.cursor()
+
+        # Query to get column names
+        cursor.execute(f"SHOW COLUMNS FROM {tableID}")
+        columns = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        # Extract column names
+        headers = [column[0] for column in columns]
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+    return jsonify({
+        'success': True,
+        'headers': headers
+    })
+
+
+
+# Delete user account
+@app.route('/api/admin/delete-sensor', methods=['POST', 'OPTIONS'])
+def deleteSensor():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        sensor = data.get('sensorName')
+        tableID = data.get('tableID')
+       
+
+        if not [sensor]:
+            return jsonify({'success': False, 'error': 'Missing Sensor Name'}), 400
+        
+        if not [tableID]:
+            return jsonify({'success': False, 'error': 'Missing Table id'}), 400
+        
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+
+             # Check if the column exists using SHOW COLUMNS
+            cursor.execute(f"SHOW COLUMNS FROM {tableID} LIKE %s", (sensor,))
+            column_exists = cursor.fetchone()
+            
+            if not column_exists:
+                cursor.close()
+                connection.close()
+                return jsonify({'success': False, 'error': f'Sensor {sensor} does not exist in the table'}), 400
+
+           # Delete the sensor column
+            cursor.execute(f"ALTER TABLE {tableID} DROP COLUMN {sensor}")
+            connection.commit()
+            
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': f'Sensor {sensor} deleted from {tableID}'})
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': str(err)}), 500
+        finally:
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 LINE_4_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
 LINE_5_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]
