@@ -71,9 +71,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionStorage.removeItem('isLoggedIn');
                 sessionStorage.removeItem('user');
                 sessionStorage.removeItem('isAdmin');
-                
-                // Redirect to login page
-                window.location.href = `${basePath}login.html`;
+
+                // Log logout event directly to the existing log-message endpoint
+                fetch('http://localhost:5000/api/log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `User ${user.email} logged out`,
+                        type: 'INFO',
+                        level: 'admin'
+                    })
+                }).then(response => {                    
+                    // Redirect to login page
+                    window.location.href = `${basePath}login.html`;
+                }).catch(error => {
+                    console.error('Logout logging error:', error);
+                });
             });
             dropdownContent.appendChild(logoutLink);
             

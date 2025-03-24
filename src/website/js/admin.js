@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Check admin access
     const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    const adminID = user.operator_id;
+
     if (!isAdmin) {
         alert('Access Denied: Admin privileges required');
         window.location.href = '../home.html';
@@ -42,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="action-buttons">
                         <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleUserStatus(this, 'active')">
                             ${user.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleAdminStatus(this, 'admin')">
+                            ${user.admin ? 'Demote' : 'Promote'}
                         </button>
                         <button class="delete-btn" data-id="${user.operator_id}" onclick="deleteUser(this)">
                             Delete
@@ -154,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ operator_id: operatorId, type: type })
+                body: JSON.stringify({ operator_id: operatorId, type: type , admin_ID:adminID})
             });
             const data = await response.json();
             if (data.success) {
@@ -162,6 +168,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error toggling user status:', error);
+        }
+    }
+
+    // Toggle admin status
+    window.toggleAdminStatus = async function(button, type) {
+
+        const operatorId = button.dataset.id;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/toggle-admin-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ operator_id: operatorId, type: type , admin_ID:adminID})
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchUserAccounts(); // Refresh table
+            }
+        } catch (error) {
+            console.error('Error toggling admin status:', error);
         }
     }
 
@@ -175,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId })
+                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -197,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId })
+                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID})
                 });
                 const data = await response.json();
                 if (data.success) {
