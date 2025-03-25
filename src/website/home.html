@@ -40,28 +40,56 @@
         </div>
     </nav>
     <div class="container my-5">
-
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-auto text-center">
-                        <div class="clock-container">
-                            <div class="clock-widget" id="clock"></div>
-                        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-auto text-center">
+                    <div class="clock-container">
+                        <div class="clock-widget" id="clock"></div>
                     </div>
                 </div>
             </div>
-
-        <h2 class="text-center mb-4">Simulated Temperature Sensors</h2>
-
-        <!-- Line Selector -->
-        <div class="text-center mb-3">
-            <select id="lineSelector" class="form-select w-50 mx-auto">
-                <option value="line4">Line 4</option>
-                <option value="line5">Line 5</option>
-            </select>
         </div>
-
-        <div class="row" id="chartsContainer"></div>
+    
+        <div class="main-content">
+            <h2 class="text-center mb-4">Simulated Temperature Sensors</h2>
+    
+            <!-- Line Selector -->
+            <div class="text-center mb-3">
+                <select id="lineSelector" class="form-select w-50 mx-auto">
+                    <option value="line4">Line 4</option>
+                    <option value="line5">Line 5</option>
+                </select>
+            </div>
+    
+            <!-- Analytics Section -->
+            <div class="analytics">
+                <div class="card">
+                    <h4>Total Sensors</h4>
+                    <p id="totalSensors">0</p>
+                </div>
+                <div class="card">
+                    <h4>Average Temperature</h4>
+                    <p id="averageTemperature">0°C</p>
+                </div>
+                <div class="card">
+                    <h4>Traffic Light Summary</h4>
+                    <div id="trafficLightPieChart" style="width: 100%; height: 300px;"></div>
+                </div>
+                
+            </div>
+            <div class="text-center mb-3">
+                <select id="periodSelector" class="form-select w-50 mx-auto">
+                    <option value="day">Past Day</option>
+                    <option value="week">Past Week</option>
+                    <option value="month">Past Month</option>
+                </select>
+            </div>
+            
+            <h3 class="text-center mb-4">Averages for Each Sensor</h3>
+            <div id="averageContainer" class="average-container text-center mb-4"></div>
+    
+            <div class="dashboard-grid" id="chartsContainer"></div>
+        </div>
     </div>
 
     <!-- Full Screen Expanded Chart -->
@@ -75,14 +103,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
     <script src="js/live-data.js"></script>
     <script src="js/logged-in.js"></script>
-    <script src="js/clock.js"></script>
-    <a href="sensor-data.html" id="r01">R01</a>
-    <script>
-        document.getElementById("r01").addEventListener("click", function() {
-            window.location.href = "sensor-data.html";
-        });
-    </script>
-    
+    <script src="js/clock.js"></script>   
 
 </body>
 </html>

@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.querySelector('.register-btn');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const forgotPasswordLink = document.querySelector('.forgot-password-link');
+    const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+    const validateButton = document.getElementById('validateForgotPassword');
 
     // Function to show messages
     function showMessage(message, isError = false) {
@@ -106,11 +109,77 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Forgot Password Link
-    const forgotPasswordLink = document.querySelector('.forgot-password-link');
     if (forgotPasswordLink) {
         forgotPasswordLink.addEventListener('click', function(e) {
             e.preventDefault();
-            alert('Password reset functionality coming soon!');
+            forgotPasswordModal.show();
         });
     }
+
+    validateButton.addEventListener('click', async function() {
+        // Get input values
+        const operatorId = document.getElementById('operatorId').value;
+        const email = document.getElementById('Femail').value;
+    
+        try {
+    
+            // Show confirmation modal or proceed with password reset
+            Swal.fire({
+                title: 'Confirm Password Reset',
+                text: 'Are you sure you want to reset your password? This will remove all your account preferences.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, reset my password'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    // Proceed with password reset
+                    try {
+                        const resetResponse = await fetch('http://localhost:5000/api/forgot-password', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                operator_id: operatorId,
+                                email: email
+                            })
+                        });
+
+                        const resetData = await resetResponse.json();
+
+                        if (resetData.success) {
+                            Swal.fire({
+                                title: 'Password Reset',
+                                text: 'Your password has been reset. Please contact and admin for your temporary credentials.',
+                                icon: 'success'
+                            });
+                            forgotPasswordModal.hide();
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: resetData.error || 'Failed to reset password',
+                                icon: 'error'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Password reset error:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'An unexpected error occurred',
+                            icon: 'error'
+                        });
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Validation error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'An unexpected error occurred',
+                icon: 'error'
+            });
+        }
+    });
 });

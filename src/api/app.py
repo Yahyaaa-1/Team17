@@ -4,9 +4,9 @@ import mysql.connector
 from config import Config
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash   
-import logging
 import threading
 import time
+import logging
 import random
 from datetime import datetime
 
@@ -32,26 +32,75 @@ def get_db_connection():
     except Exception as e:
         print(f"Database connection error: {str(e)}")
         return None
+    
+# Test removal - redundant code - no value -----------------------
+# # Root route
+# @app.route('/')
+# def home():
+#     return jsonify({
+#         "message": "Welcome to the API",
+#         "status": "running"
+#     })
 
-# Root route
-@app.route('/')
-def home():
-    return jsonify({
-        "message": "Welcome to the API",
-        "status": "running"
-    })
+# # Test route
+# @app.route('/api/test')
+# def test_route():
+#     return jsonify({
+#         "message": "API is working correctly",
+#         "status": "success"
+#     })
+    
+# log event
+@app.route('/api/log', methods=['POST', 'OPTIONS'])
+def trigger_log():
 
-# Test route
-@app.route('/api/test')
-def test_route():
-    return jsonify({
-        "message": "API is working correctly",
-        "status": "success"
-    })
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+    
+    try:
+        data = request.get_json()
+        message = data.get('message')
+        type = data.get('type', 'INFO')
+        log_level = data.get('level', 'admin')
+        
+        # Call the log_event function directly
+        log_event(message, type=type, log_level=log_level)
+        
+        return jsonify({'success': True, 'message': 'Log event triggered'})
+    except Exception as e:
+        print(f"Logging error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+def log_event(message, type, log_level):
+    try:
+        print("Reached log_event method")
+
+        try:
+            # Direct database insertion instead of HTTP call
+            connection = get_db_connection()
+            if connection:
+                cursor = connection.cursor()
+                cursor.execute("""
+                    INSERT INTO logs 
+                    (level, type, message) 
+                    VALUES (%s, %s, %s)
+                """, (log_level, type, message))
+                connection.commit()
+                cursor.close()
+                connection.close()
+        except Exception as e:
+            print(f"Failed to log event directly: {e}")
+
+    except Exception as e:
+        print(f"Failed to log event: {e}")
 
 # Verify employee
 @app.route('/api/verify-employee', methods=['POST', 'OPTIONS'])
 def verify_employee():
+
     if request.method == "OPTIONS":
         response = jsonify({"success": True})
         return response
@@ -93,9 +142,79 @@ def verify_employee():
         print(f"Error in verify_employee: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/forgot-password', methods=['POST', 'OPTIONS'])
+def forgot_password():    
+
+    try:
+        data = request.get_json()
+        operator_id = data.get('operator_id')
+        email = data.get('email')
+
+        # Validate input
+        if not operator_id or not email:
+            return jsonify({
+                'success': False, 
+                'error': 'Operator ID and Email are required'
+            }), 400
+
+        # Database connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({
+                'success': False, 
+                'error': 'Database connection failed'
+            }), 500
+
+        cursor = connection.cursor(dictionary=True)
+
+        # Check if operator ID and email match
+        cursor.execute("""
+            SELECT * FROM user_accounts
+            WHERE operator_id = %s AND email = %s
+        """, (operator_id, email))
+
+        user = cursor.fetchone()
+
+        if user:
+            try:
+                cursor.execute("""
+                DELETE FROM user_accounts 
+                WHERE operator_id = %s
+                """, (operator_id,))
+
+                connection.commit()
+                
+                return jsonify({
+                    'success': True, 
+                    'message': 'Password reset successfully'
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False, 
+                    'error': str(e)
+                }), 500
+        else:
+            return jsonify({
+                'success': False, 
+                'error': 'Invalid Operator ID or Email'
+            }), 400
+
+    except Exception as e:
+        return jsonify({
+            'success': False, 
+            'error': str(e)
+        }), 500
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+    
 # user registration
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():    
+
     if request.method == "OPTIONS":
         return jsonify({"success": True})
     
@@ -132,9 +251,11 @@ def register():
         if not employee:
             cursor.close()
             connection.close()
+            log_event(f"Registration failed for {email}: Invalid Credentials", type='WARNING', log_level='admin')
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
         else:
             print(f"Employee details: {employee}")
+
         # Check if user already exists in user_accounts
         cursor.execute("""
             SELECT * FROM user_accounts 
@@ -166,85 +287,119 @@ def register():
             cursor.close()
             connection.close()
 
+        log_event(f"New user registered: {email}", type='INFO', log_level='admin')
         return jsonify({'success': True, 'message': 'Registration successful'})
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
-# user Login
 @app.route('/api/login', methods=['POST', 'OPTIONS'])
 def login():
-    
     if request.method == "OPTIONS":
         return jsonify({"success": True})
-    
+
     if request.method != "POST":
         return jsonify({"error": "Method not allowed"}), 405
-        
+    
     try:
         data = request.get_json()
         
-        
         if not data:
+            # Log empty data attempt
+            log_event("Login attempt with no data", type='warning', log_level='admin')
             return jsonify({'success': False, 'error': 'No data received'}), 400
             
         email = data.get('email')
         password = data.get('password')
 
         if not all([email, password]):
+            # Log missing credentials
+            log_event(f"Login attempt with missing credentials. Email: {email}", 
+                      type='WARNING', 
+                      log_level='admin')
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
         connection = get_db_connection()
         if not connection:
+            # Log database connection failure
+            log_event("Database connection failed during login", 
+                      type='ERROR', 
+                      log_level='admin')
             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        cursor = connection.cursor(dictionary=True)
-        
-        # Check if user exists and verify password
-        cursor.execute("""
-            SELECT * FROM user_accounts 
-            WHERE email = %s
-        """, (email,))
-        
-        user = cursor.fetchone()
+        try:
+            cursor = connection.cursor(dictionary=True)
+            
+            # Check if user exists and verify password
+            cursor.execute("""
+                SELECT * FROM user_accounts 
+                WHERE email = %s
+            """, (email,))
+            
+            user = cursor.fetchone()
 
-        if not user:
+            if not user:
+                cursor.close()
+                connection.close()
+                # Log non-existent email attempt
+                log_event(f"Login attempt for non-existent email: {email}", type='WARNING', log_level='admin')
+                return jsonify({'success': False, 'error': 'Invalid email'}), 401
+
+            # Check password
+            if not check_password_hash(user['password'], password):
+                cursor.close()
+                connection.close()
+                # Log failed password attempt
+                log_event(f"Failed password attempt for email: {email}", type='WARNING',log_level='admin')
+                return jsonify({'success': False, 'error': 'Invalid password'}), 401
+
+            # Check if user is active
+            if not user['active']:
+                cursor.close()
+                connection.close()
+                # Log inactive user login attempt
+                log_event(f"Login attempt for inactive user: {email}", type='INFO', log_level='admin')
+                return jsonify({
+                    'success': False, 
+                    'error': 'Account not yet approved. Please contact administrator.',
+                    'active': False
+                }), 403
+
+            # Successful login
             cursor.close()
             connection.close()
-            return jsonify({'success': False, 'error': 'Invalid email'}), 401
 
-        # Check password
-        if not check_password_hash(user['password'], password):
-            cursor.close()
-            connection.close()
-            return jsonify({'success': False, 'error': 'Invalid password'}), 401
+            # Log successful login
+            log_event(f"User {email} logged in successfully", type='INFO', log_level='admin')
 
-        # Check if user is active
-        if not user['active']:
-            cursor.close()
-            connection.close()
             return jsonify({
-                'success': False, 
-                'error': 'Account not yet approved. Please contact administrator.',
-                'active': False
-            }), 403
+                'success': True, 
+                'message': 'Login successful',
+                'active': True,
+                'operator_id': user['operator_id'],
+                'email': user['email'],
+                'full_name': user['full_name'],
+                'dark_mode': user['dark_mode'],
+                'is_admin': user['admin']
+            })
 
-        # Successful login
-        cursor.close()
-        connection.close()
+        except Exception as inner_error:
+            # Log any unexpected inner errors
+            log_event(f"Unexpected error during login: {str(inner_error)}", type='ERROR', log_level='admin')
+            print(f"Login inner error details: {inner_error}")
+            
+            # Ensure connection is closed
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connection' in locals():
+                connection.close()
+            
+            return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
 
-        return jsonify({
-            'success': True, 
-            'message': 'Login successful',
-            'active': True,
-            'operator_id': user['operator_id'],
-            'email' : user['email'],
-            'full_name': user['full_name'],
-            'dark_mode': user['dark_mode'],
-            'is_admin': user['admin']
-        })
-
-    except Exception as e:
+    except Exception as outer_error:
+        # Log any unexpected outer errors
+        log_event(f"Unexpected outer error during login: {str(outer_error)}", type='ERROR', log_level='admin')
+        
         return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
     
 # Admin Routes
@@ -254,6 +409,7 @@ def get_user_accounts():
     
     if request.method == "OPTIONS":
         return jsonify({"success": True})
+    
     try:
         
         connection = get_db_connection()
@@ -283,9 +439,10 @@ def get_user_accounts():
 # Get all employees
 @app.route('/api/admin/employee-reg', methods=['GET', 'OPTIONS'])
 def get_employee_reg():
-    
+
     if request.method == "OPTIONS":
         return jsonify({"success": True})
+    
     try:
         
         connection = get_db_connection()
@@ -330,6 +487,7 @@ def toggleUserAdmin():
             return jsonify({'success': False, 'error': 'No data received'}), 400
             
         operator_id = data.get('operator_id')
+        admin_ID = data.get('admin_ID')
 
         print(operator_id)
        
@@ -345,6 +503,7 @@ def toggleUserAdmin():
         try:
             data = request.get_json()
             operator_id = data.get('operator_id')
+            admin_ID = data.get('admin_ID')
 
             cursor = connection.cursor(dictionary=True)
             
@@ -357,14 +516,11 @@ def toggleUserAdmin():
             print("Current user status:", user['admin'], "Type:", type(user['admin']))
 
             # Overwrite user admin status
-            current_status = int(user['admin'])  # Convert to int if it's a string
+            current_status = int(user['admin'])  
             if current_status == 0:
                 new_status = 1
             else:
                 new_status = 0
-
-            # new_status = 0 if current_status == 1 else 1
-            # print(f"Current status: {current_status} -> New status: {new_status}")
 
             # Update query
             query = """
@@ -372,12 +528,11 @@ def toggleUserAdmin():
                 SET admin = %s
                 WHERE operator_id = %s
             """
-            # print("Query:", query)
-            # print("Parameters:", (new_status, operator_id))
             
             cursor.execute(query, (new_status, operator_id))
             connection.commit()
 
+            log_event(f"User {operator_id} status changed to {new_status} by Admin - {admin_ID}", type='INFO', log_level='admin')
             return jsonify({
                 'success': True, 
                 'message': f'User status updated to {"admin" if new_status == 1 else "not admin"}',
@@ -395,6 +550,85 @@ def toggleUserAdmin():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
     
+# Get admin status
+@app.route('/api/admin/toggle-admin-status', methods=['POST', 'OPTIONS'])
+def toggleAdminStatus():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        operator_id = data.get('operator_id')
+        admin_ID = data.get('admin_ID')
+
+        print(operator_id)
+       
+
+        if not all([operator_id]):
+            return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
+        
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        
+        try:
+            data = request.get_json()
+            operator_id = data.get('operator_id')
+            admin_ID = data.get('admin_ID')
+
+            cursor = connection.cursor(dictionary=True)
+            
+            # Get admin status
+            cursor.execute("""SELECT admin 
+                           FROM user_accounts 
+                           WHERE operator_id = %s""", (operator_id,))
+            
+            user = cursor.fetchone()
+            
+            # Overwrite user active status
+            current_status = int(user['admin'])  
+
+            if current_status == 0:
+                new_status = 1
+            else:
+                new_status = 0
+
+            # Update query
+            query = """
+                UPDATE user_accounts
+                SET admin = %s
+                WHERE operator_id = %s
+            """
+            
+            cursor.execute(query, (new_status, operator_id))
+            connection.commit()
+
+            log_event(f"User {operator_id} Admin status changed to {new_status} by Admin - {admin_ID}", type='INFO', log_level='admin')
+            return jsonify({
+                'success': True, 
+                'message': f'User admin status updated to {"admin" if new_status == 1 else "operator"}',
+                'admin': new_status
+            })
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': 'Database error occurred'}), 500
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 # Delete user account
 @app.route('/api/admin/delete-user', methods=['POST', 'OPTIONS'])
 def deleteUser():
@@ -412,6 +646,7 @@ def deleteUser():
             return jsonify({'success': False, 'error': 'No data received'}), 400
             
         operator_id = data.get('operator_id')
+        admin_ID = data.get('admin_ID')
 
         print(operator_id)
        
@@ -456,6 +691,9 @@ def deleteUser():
             print(f"User after deletion attempt: {verify}")
 
             if affected_rows > 0 and verify is None:
+
+                log_event(f"User {operator_id} deleted by admin - {admin_ID}", type='WARNING', log_level='admin')
+
                 return jsonify({
                     'success': True,
                     'message': f'User {operator_id} has been deleted',
@@ -480,13 +718,13 @@ def deleteUser():
 # Delete employee
 @app.route('/api/admin/delete-employee', methods=['POST', 'OPTIONS'])
 def deleteEmployee():
-    
+        
     if request.method == "OPTIONS":
         return jsonify({"success": True})
     
     if request.method != "POST":
         return jsonify({"error": "Method not allowed"}), 405
-        
+    
     try:
         data = request.get_json()
         
@@ -494,6 +732,8 @@ def deleteEmployee():
             return jsonify({'success': False, 'error': 'No data received'}), 400
             
         operator_id = data.get('operator_id')
+        admin_ID = data.get('admin_ID')
+
 
         print(operator_id)
        
@@ -536,6 +776,7 @@ def deleteEmployee():
             verify = cursor.fetchone()
 
             if verify is None:
+                log_event(f"Employee Reg {operator_id} deleted by admin - {admin_ID}", type='WARNING', log_level='admin')
                 return jsonify({
                     'success': True,
                     'message': f'User {operator_id} has been deleted',
@@ -734,6 +975,99 @@ def updateUserDetails():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
+@app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
+def get_table_headers():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    try:
+        connection = get_db_connection()
+        
+
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        tableID = request.args.get('tableID')
+
+        cursor = connection.cursor()
+
+        # Query to get column names
+        cursor.execute(f"SHOW COLUMNS FROM {tableID}")
+        columns = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        # Extract column names
+        headers = [column[0] for column in columns]
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+    return jsonify({
+        'success': True,
+        'headers': headers
+    })
+
+
+
+# Delete user account
+@app.route('/api/admin/delete-sensor', methods=['POST', 'OPTIONS'])
+def deleteSensor():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        sensor = data.get('sensorName')
+        tableID = data.get('tableID')
+       
+
+        if not [sensor]:
+            return jsonify({'success': False, 'error': 'Missing Sensor Name'}), 400
+        
+        if not [tableID]:
+            return jsonify({'success': False, 'error': 'Missing Table id'}), 400
+        
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+
+             # Check if the column exists using SHOW COLUMNS
+            cursor.execute(f"SHOW COLUMNS FROM {tableID} LIKE %s", (sensor,))
+            column_exists = cursor.fetchone()
+            
+            if not column_exists:
+                cursor.close()
+                connection.close()
+                return jsonify({'success': False, 'error': f'Sensor {sensor} does not exist in the table'}), 400
+
+           # Delete the sensor column
+            cursor.execute(f"ALTER TABLE {tableID} DROP COLUMN {sensor}")
+            connection.commit()
+            
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': f'Sensor {sensor} deleted from {tableID}'})
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': str(err)}), 500
+        finally:
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 LINE_4_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
 LINE_5_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]
@@ -774,19 +1108,6 @@ for sensor in LINE_4_SENSORS:
     sensor_temps[sensor] = SENSOR_RANGES_LINE4[sensor]["avg"]
 for sensor in LINE_5_SENSORS:
     sensor_temps[sensor] = SENSOR_RANGES_LINE5[sensor]["avg"]
-
-def get_db_connection():
-    try:
-        connection = mysql.connector.connect(
-            host=Config.DB_HOST,
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-            database=Config.DB_NAME
-        )
-        return connection
-    except Exception as e:
-        print(f"DB Connection failed: {str(e)}")
-        return None
 
 def generate_temperature_readings():
     while True:
@@ -883,6 +1204,7 @@ def get_live_data(line):
             return jsonify({'error': 'Invalid line selected'}), 400
 
         query = f"SELECT * FROM {line} ORDER BY timestamp DESC LIMIT 1"
+
         cursor.execute(query)
         data = cursor.fetchone()
 
@@ -939,6 +1261,7 @@ def sensor_page(line, sensor):
   
 @app.route('/api/historical/<line>', methods=['POST'])
 def get_historical_data(line):
+    
     try:
         connection = get_db_connection()
         if not connection:
@@ -958,6 +1281,7 @@ def get_historical_data(line):
         date_filter = data.get("dateFilter", "")
 
         query = f"SELECT * FROM {line} WHERE 1=1"
+
 
         if date_filter:
             query += f" AND DATE(timestamp) = '{date_filter}'"
@@ -980,6 +1304,105 @@ def get_historical_data(line):
         if connection:
             connection.close()
 
+
+@app.route('/api/logs', methods=['POST'])
+def get_logs():
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+
+        if request.content_type != "application/json":
+            return jsonify({'error': "Unsupported Media Type: Request must be JSON"}), 415
+
+        data = request.get_json()
+        length = int(data.get("length", 50))
+        search_value = data.get("searchValue", "")
+        date_filter = data.get("dateFilter", "")
+
+        # Base query
+        query = "SELECT * FROM logs WHERE 1=1"
+
+        # Apply filters
+        if date_filter:
+            query += f" AND DATE(timestamp) = '{date_filter}'"
+        if search_value:
+            query += f" AND (message LIKE '%{search_value}%' OR type LIKE '%{search_value}%' OR level LIKE '%{search_value}%')"
+
+        # Sorting and limiting
+        query += " ORDER BY id DESC LIMIT %s"
+        
+        cursor.execute(query, (length,))
+        data = cursor.fetchall()
+
+        # Format timestamp
+        for record in data:
+            record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching historical logs: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+
+@app.route('/api/average-temperature/<line>', methods=['POST'])
+def get_average_temperature(line):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        if request.content_type != "application/json":
+            return jsonify({'error': "Unsupported Media Type: Request must be JSON"}), 415
+
+        data = request.get_json()
+        period = data.get("period", "day")  # Default to 'day'
+
+        # Determine the time range based on the period
+        if period == "day":
+            time_condition = "timestamp >= NOW() - INTERVAL 1 DAY"
+        elif period == "week":
+            time_condition = "timestamp >= NOW() - INTERVAL 1 WEEK"
+        elif period == "month":
+            time_condition = "timestamp >= NOW() - INTERVAL 1 MONTH"
+        else:
+            return jsonify({'error': 'Invalid period selected'}), 400
+
+        # Get the column names for the sensors
+        cursor.execute(f"SHOW COLUMNS FROM {line}")
+        columns = cursor.fetchall()
+        sensor_columns = [col['Field'] for col in columns if col['Field'].startswith('r')]
+
+        # Construct the query to calculate averages
+        avg_query_parts = [f"AVG({sensor}) as avg_{sensor}" for sensor in sensor_columns]
+        avg_query = ", ".join(avg_query_parts)
+
+        query = f"SELECT {avg_query} FROM {line} WHERE {time_condition}"
+
+           # Debugging: Print the final query
+        print(f"Executing query: {query}")
+
+        cursor.execute(query)
+        averages = cursor.fetchone()
+
+        return jsonify({'success': True, 'averages': averages}), 200
+
+    except Exception as e:
+        print(f"Error fetching average temperature: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
 if __name__ == '__main__':
     simulation_thread = threading.Thread(target=generate_temperature_readings, daemon=True)
     simulation_thread.start()

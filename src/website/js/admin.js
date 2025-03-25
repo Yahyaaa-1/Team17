@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Check admin access
     const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    const adminID = user.operator_id;
+
     if (!isAdmin) {
         alert('Access Denied: Admin privileges required');
         window.location.href = '../home.html';
@@ -43,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleUserStatus(this, 'active')">
                             ${user.active ? 'Deactivate' : 'Activate'}
                         </button>
-                        <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleUserAdmin(this, 'active')">
+                        <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleAdminStatus(this, 'admin')">
                             ${user.admin ? 'Demote' : 'Promote'}
                         </button>
                         <button class="delete-btn" data-id="${user.operator_id}" onclick="deleteUser(this)">
@@ -68,8 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Add any authentication headers if needed
-                    // 'Authorization': `Bearer ${token}`
                 }
             });
     
@@ -116,6 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Optionally show an error message to the user
             alert('Failed to fetch employee registry. Please try again.');
         }
+
+
+        
 
          // Modified openEditModal to use stored data
     window.openEditModal = function(operatorId) {
@@ -209,6 +213,75 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+
+    async function fetchTableHeaders(tableId) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/table-headers?tableID=${tableId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch table headers');
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+            // Get the table body to populate
+            const tableBody = document.getElementById(`${tableId}-headers-body`);
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            // Filter out timestamp and timezone columns
+            const filteredHeaders = data.headers.filter(header => 
+                header !== 'timestamp' && header !== 'timezone'
+            );
+
+            // Create a row for each sensor header
+            filteredHeaders.forEach(header => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${header}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm delete-btn" onclick="deleteSensor('${header}','${tableId}')">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error fetching table headers:', error);
+            alert('Failed to fetch table headers. Please try again.');
+        }
+    }
+    window.deleteSensor = async function(sensorName,tableID) {
+
+        if (confirm(`Are you sure you want to delete ${sensorName} sensor?`)) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/admin/delete-sensor`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sensorName: sensorName, tableID:tableID })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchTableHeaders(tableId); // Refresh table
+                }
+            } catch (error) {
+                console.error('Error deleting sensor:', error);
+            }
+        }
+    }
+    
     // Toggle user status
     window.toggleUserStatus = async function(button, type) {
 
@@ -220,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ operator_id: operatorId, type: type })
+                body: JSON.stringify({ operator_id: operatorId, type: type , admin_ID:adminID})
             });
             const data = await response.json();
             if (data.success) {
@@ -228,6 +301,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error toggling user status:', error);
+        }
+    }
+
+    // Toggle admin status
+    window.toggleAdminStatus = async function(button, type) {
+
+        const operatorId = button.dataset.id;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/toggle-admin-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ operator_id: operatorId, type: type , admin_ID:adminID})
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchUserAccounts(); // Refresh table
+            }
+        } catch (error) {
+            console.error('Error toggling admin status:', error);
         }
     }
 
@@ -241,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId })
+                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -263,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId })
+                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID})
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -278,4 +373,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial fetch
     fetchUserAccounts();
     fetchEmployeeRegistry();
+    fetchTableHeaders('line4');
+    fetchTableHeaders('line5');
 });
