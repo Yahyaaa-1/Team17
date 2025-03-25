@@ -1411,6 +1411,96 @@ def get_average_temperature(line):
     finally:
         if connection:
             connection.close()
+            
+def get_user_details():
+    try:
+        # Get user ID from session (or pass it directly for testing)
+        user_id = session.get('user_id')  # Assuming user is logged in
+        
+        if not user_id:
+            return jsonify({'error': 'User not logged in'}), 401
+        
+        conn = db_config.get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query to get user details
+        query = "SELECT username, email, created_at FROM users WHERE id = %s"
+        cursor.execute(query, (user_id,))
+        user = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if user:
+            return jsonify(user), 200
+        else:
+            return jsonify({'error': 'User not found'}), 404
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
+from flask import render_template, session
+from db_config import get_db_connection
+
+@app.route('/account')
+def account():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute('SELECT operator_id, email, full_name, admin, active FROM user_accounts WHERE operator_id = %s', (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if user:
+        return render_template('account.html', user=user)
+    else:
+        flash('User not found', 'danger')
+        return redirect(url_for('login'))
+    
+# Password Update
+@app.route('/api/update-password', methods=['POST', 'OPTIONS'])
+def update_password():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    try:
+        data = request.get_json()
+        operator_id = data.get('operator_id')
+        new_password = data.get('new_password')
+
+        if not operator_id or not new_password:
+            return jsonify({'success': False, 'error': 'Missing parameters'}), 400
+
+        if len(new_password) < 8:
+            return jsonify({'success': False, 'error': 'Password must be at least 8 characters'}), 400
+
+        hashed_pw = generate_password_hash(new_password)
+
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE user_accounts 
+            SET password = %s 
+            WHERE operator_id = %s
+        """, (hashed_pw, operator_id))
+        connection.commit()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        if 'connection' in locals(): connection.close()
+    
+
 if __name__ == '__main__':
     simulation_thread = threading.Thread(target=generate_temperature_readings, daemon=True)
     simulation_thread.start()
