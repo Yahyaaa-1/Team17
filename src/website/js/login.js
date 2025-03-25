@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const forgotPasswordLink = document.querySelector('.forgot-password-link');
     const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
     const validateButton = document.getElementById('validateForgotPassword');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
 
     // Function to show messages
     function showMessage(message, isError = false) {
@@ -16,6 +17,35 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.style.display = 'block';
         }
     }
+    function toggleDarkMode() {
+        const isDarkMode = document.body.classList.toggle('dark-mode');
+        // Save the preference in sessionStorage
+        sessionStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+
+        // Optionally, send the preference to the backend (if needed)
+        fetch('/toggle_dark_mode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ dark_mode: isDarkMode ? 'enabled' : 'disabled' }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    console.log('Dark mode preference saved:', isDarkMode ? 'enabled' : 'disabled');
+                }
+            })
+            .catch((error) => {
+                console.error('Error saving dark mode preference:', error);
+            });
+    }
+
+    // Event listener for dark mode toggle button
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+    }
+
 
     if (emailInput) {
         emailInput.addEventListener('input', function() {
@@ -76,6 +106,17 @@ document.addEventListener('DOMContentLoaded', function() {
                          fullName: data.full_name
                      })                    
                     );
+                    // Store dark mode preference in session storage
+                    const darkModePreference = data.dark_mode || 'disabled'; // Default to 'disabled' if not provided
+                    sessionStorage.setItem('darkMode', darkModePreference);
+
+                    // Apply dark mode preference immediately
+                    if (darkModePreference === 'enabled') {
+                        document.body.classList.add('dark-mode');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                    }
+
 
                     // Redirect to dashboard
                     setTimeout(() => {

@@ -1,0 +1,456 @@
+/* Root variables for easy theme management */
+:root {
+    --primary-bg: #121212; /* Dark background */
+    --secondary-bg: #1e1e1e; /* Slightly lighter dark background */
+    --text-color: #ffffff; /* White text */
+    --border-color: #333; /* Dark borders */
+    --card-bg: #1c1c1c; /* Dark card backgrounds */
+    --button-bg: #007bff; /* Primary button color */
+    --button-hover: #0056b3; /* Primary button hover color */
+    --input-bg: #252525; /* Dark input backgrounds */
+    --input-border: #444; /* Dark input borders */
+    --link-color: #1e90ff; /* Link color */
+    --link-hover: #00bfff; /* Link hover color */
+    --header-bg: #222; /* Header background */
+    --shadow-color: rgba(0, 0, 0, 0.3); /* Shadow color */
+}
+
+/* Dark mode base styles */
+body.dark-mode {
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure all text is white in dark mode */
+body.dark-mode * {
+    color: var(--text-color) !important;
+}
+
+/* Links */
+body.dark-mode a {
+    color: var(--link-color);
+}
+
+body.dark-mode a:hover {
+    color: var(--link-hover);
+}
+
+/* Headers */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: var(--text-color);
+}
+
+/* Cards & Containers */
+body.dark-mode .card,
+body.dark-mode .table-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* Tables */
+body.dark-mode table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--secondary-bg);
+}
+
+body.dark-mode table th,
+body.dark-mode table td {
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    text-align: left;
+    color: var(--text-color);
+}
+
+body.dark-mode table th {
+    background-color: var(--header-bg);
+}
+
+/* Buttons */
+body.dark-mode button {
+    background-color: var(--button-bg);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+body.dark-mode button:hover {
+    background-color: var(--button-hover);
+}
+
+/* Forms */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #bbb; /* Slightly dimmed white for contrast */
+}
+
+/* Navbar */
+body.dark-mode .navbar {
+    background-color: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode .navbar .nav-link {
+    color: var(--text-color);
+}
+
+body.dark-mode .navbar .nav-link:hover {
+    color: var(--link-hover);
+}
+
+/* Footer */
+body.dark-mode footer {
+    background-color: var(--secondary-bg);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Dark mode toggle button */
+body.dark-mode .dark-mode-toggle-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 2px 10px var(--shadow-color);
+}
+
+body.dark-mode .dark-mode-toggle .slider {
+    background-color: var(--input-bg);
+}
+
+body.dark-mode .dark-mode-toggle .slider::before {
+    background-color: var(--text-color);
+}
+
+/* Modals */
+body.dark-mode .modal-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    border-color: var(--border-color);
+}
+
+/* Alerts */
+body.dark-mode .alert {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+/* Dropdowns */
+body.dark-mode .dropdown-menu {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .dropdown-item {
+    color: var(--text-color);
+}
+
+body.dark-mode .dropdown-item:hover {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+}
+
+/* Tooltips */
+body.dark-mode .tooltip-inner {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .tooltip.bs-tooltip-top .tooltip-arrow::before,
+body.dark-mode .tooltip.bs-tooltip-bottom .tooltip-arrow::before,
+body.dark-mode .tooltip.bs-tooltip-start .tooltip-arrow::before,
+body.dark-mode .tooltip.bs-tooltip-end .tooltip-arrow::before {
+    border-top-color: var(--card-bg);
+    border-bottom-color: var(--card-bg);
+    border-left-color: var(--card-bg);
+    border-right-color: var(--card-bg);
+}
+
+/* Help Page Specific Styles */
+body.dark-mode .help-container {
+    background-color: var(--primary-bg);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+body.dark-mode .help-section {
+    background-color: var(--card-bg);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .guide-list li {
+    color: var(--text-color);
+}
+
+body.dark-mode .process-steps .step {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+body.dark-mode .step-icon {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+body.dark-mode .note-box {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+body.dark-mode .note-box .fa-exclamation-circle {
+    color: var(--button-bg);
+}
+
+body.dark-mode .traffic-lights .status-item {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+body.dark-mode .light {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+body.dark-mode .light.green {
+    background-color: green;
+}
+
+body.dark-mode .light.yellow {
+    background-color: yellow;
+}
+
+body.dark-mode .light.red {
+    background-color: red;
+}
+
+body.dark-mode .contact-list li {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+body.dark-mode .faq-accordion .accordion-item {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+body.dark-mode .accordion-button {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .accordion-button:not(.collapsed) {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .accordion-body {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+/* Home Page Specific Styles */
+body.dark-mode .main-header {
+    background-color: var(--primary-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode .navbar {
+    background-color: var(--secondary-bg) !important;
+}
+
+body.dark-mode .navbar-nav .nav-link {
+    color: var(--text-color) !important;
+}
+
+body.dark-mode .navbar-nav .nav-link:hover {
+    background-color: var(--button-bg);
+}
+
+body.dark-mode .account-dropdown {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .account-btn {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .account-btn:hover {
+    background-color: var(--button-hover);
+}
+
+body.dark-mode .dropdown-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .dropdown-content a {
+    color: var(--text-color);
+}
+
+body.dark-mode .dropdown-content a:hover {
+    background-color: var(--secondary-bg);
+}
+
+body.dark-mode .main-content {
+    background-color: var(--primary-bg);
+}
+
+body.dark-mode .page-title {
+    color: var(--text-color);
+}
+
+body.dark-mode .footer {
+    background-color: var(--secondary-bg);
+    border-top: 1px solid var(--border-color);
+}
+
+body.dark-mode .btn-primary {
+    background-color: var(--button-bg);
+    border-color: var(--button-bg);
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: var(--button-hover);
+    border-color: var(--button-hover);
+}
+
+body.dark-mode .data-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode table.dataTable {
+    background-color: var(--secondary-bg);
+}
+
+body.dark-mode table.dataTable th,
+body.dark-mode table.dataTable td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode table.dataTable thead th {
+    background-color: var(--header-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode table.dataTable tbody tr:nth-child(even) {
+    background-color: var(--card-bg);
+}
+
+body.dark-mode table.dataTable tbody tr:hover {
+    background-color: var(--secondary-bg);
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border-color: var(--button-bg);
+}
+
+body.dark-mode .clock-widget {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .mini-chart {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .mini-chart:hover {
+    background-color: var(--secondary-bg);
+}
+
+body.dark-mode #expandedChartContainer {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode #expandedChart {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .close-btn {
+    color: var(--text-color);
+}
+/* ApexCharts Tooltip Override */
+.apexcharts-tooltip {
+    color: #000000 !important; /* Black text color */
+    background-color: #ffffff !important; /* White background */
+    border: 1px solid #ddd !important; /* Light border */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important; /* Optional: Add a subtle shadow */
+}
+
+.apexcharts-tooltip-title {
+    color: #000000 !important; /* Black text color for title */
+    background-color: #f5f5f5 !important; /* Light gray background for title */
+    font-weight: bold !important; /* Make the title bold */
+    border-bottom: 1px solid #ddd !important; /* Add a border below the title */
+}
+
+.apexcharts-tooltip-series-group {
+    padding: 4px 8px !important; /* Add some padding for better spacing */
+}
+
+.apexcharts-tooltip-marker {
+    margin-right: 8px !important; /* Add spacing between the marker and text */
+}
