@@ -332,9 +332,10 @@ def login():
             
             # Check if user exists and verify password
             cursor.execute("""
-                SELECT * FROM user_accounts 
-                WHERE email = %s
-            """, (email,))
+            SELECT operator_id, email, full_name, password, admin, active, dark_mode 
+            FROM user_accounts 
+            WHERE email = %s
+        """, (email,))
             
             user = cursor.fetchone()
 
@@ -401,6 +402,44 @@ def login():
         log_event(f"Unexpected outer error during login: {str(outer_error)}", type='ERROR', log_level='admin')
         
         return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
+    
+@app.route('/api/update-dark-mode', methods=['POST', 'OPTIONS'])
+def update_dark_mode():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+
+        operator_id = data.get('operator_id')
+        dark_mode = data.get('dark_mode', 'disabled')  # Default to 'disabled' if not provided
+
+        if not operator_id:
+            return jsonify({'success': False, 'error': 'Missing operator ID'}), 400
+
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor()
+
+        # Update the dark mode preference in the database
+        cursor.execute("""
+            UPDATE user_accounts
+            SET dark_mode = %s
+            WHERE operator_id = %s
+        """, (dark_mode, operator_id))
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        return jsonify({'success': True, 'message': 'Dark mode preference updated'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
     
 # Admin Routes
 # Get all user accounts
