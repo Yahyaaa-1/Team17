@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Check admin access
     const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    const adminID = user.operator_id;
+
     if (!isAdmin) {
         alert('Access Denied: Admin privileges required');
         window.location.href = '../home.html';
@@ -42,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="action-buttons">
                         <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleUserStatus(this, 'active')">
                             ${user.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button class="approve-btn" data-id="${user.operator_id}" onclick="toggleAdminStatus(this, 'admin')">
+                            ${user.admin ? 'Demote' : 'Promote'}
                         </button>
                         <button class="delete-btn" data-id="${user.operator_id}" onclick="deleteUser(this)">
                             Delete
@@ -136,6 +142,78 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     }
+
+     // Save edit changes
+     window.savechanges = async function(button) {
+
+        var operatorId = document.getElementById('edit_operator_id').value
+        var email = document.getElementById('edit_email').value
+        var fullname = document.getElementById('edit_full_name').value
+        var tempPass = document.getElementById('edit_temp_password').value
+
+
+            try {
+                const response = await fetch(`http://localhost:5000/api/admin/update-user-details`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ operator_id: operatorId , Nemail: email, Nfullname:fullname, NtempPass:tempPass})
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error:', errorData.error);
+                    return;
+                }
+                else{
+                    location.reload();
+                }
+                const data = await response.json();
+                if (data.success) {
+                    //fetchEmployeeRegistry(); // Refresh table
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+            }
+    }
+
+
+    
+    // COMMENTED OUT FOR NOW ----------------------------------- ADD BACK IF ERRORS WITH DATA LOADING INTO TABLES
+    // Call both functions when the page loads
+    // document.addEventListener('DOMContentLoaded', () => {
+    //     fetchUserAccounts();
+    //     fetchEmployeeRegistry();
+    // });
+
+
+
+    
+
+    // Toggle user admin
+    window.toggleUserAdmin = async function(button, type) {
+
+        const operatorId = button.dataset.id;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/toggle-user-admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ operator_id: operatorId, type: type })
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchUserAccounts(); // Refresh table
+            }
+        } catch (error) {
+            console.error('Error toggling user admin:', error);
+        }
+    }
+
+
+
     async function fetchTableHeaders(tableId) {
         try {
             const response = await fetch(`http://localhost:5000/api/admin/table-headers?tableID=${tableId}`, {
@@ -215,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ operator_id: operatorId, type: type })
+                body: JSON.stringify({ operator_id: operatorId, type: type , admin_ID:adminID})
             });
             const data = await response.json();
             if (data.success) {
@@ -223,6 +301,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error toggling user status:', error);
+        }
+    }
+
+    // Toggle admin status
+    window.toggleAdminStatus = async function(button, type) {
+
+        const operatorId = button.dataset.id;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/toggle-admin-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ operator_id: operatorId, type: type , admin_ID:adminID})
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchUserAccounts(); // Refresh table
+            }
+        } catch (error) {
+            console.error('Error toggling admin status:', error);
         }
     }
 
@@ -236,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId })
+                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -258,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId })
+                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID})
                 });
                 const data = await response.json();
                 if (data.success) {

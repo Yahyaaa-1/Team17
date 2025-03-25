@@ -39,6 +39,14 @@ const sensorThresholds = {
 document.addEventListener("DOMContentLoaded", function () {
     initializeCharts(selectedLine);
     fetchLiveData();
+    // Initial chart creation 
+    function initTrafficLightChart() {
+        updateTrafficLightPieChart(0, 0, 0);
+    }
+
+    // Call this when the page loads
+    document.addEventListener('DOMContentLoaded', initTrafficLightChart);
+
 
     document.getElementById("lineSelector").addEventListener("change", function () {
         selectedLine = this.value;
@@ -55,6 +63,7 @@ function fetchLiveData() {
         .then(data => {
             if (data.success) {
                 updateCharts(data.data);
+                updateAnalytics(data.data);
             } else {
                 console.error("Failed to fetch live data");
             }
@@ -161,6 +170,77 @@ function closeExpandedChart() {
     document.getElementById("expandedChartContainer").style.display = "none";
     expandedChart = null;
 }
+let trafficLightChart;
+
+function updateAnalytics(liveData) {
+    // Filter out non-sensor fields
+    const sensors = Object.keys(liveData).filter(key => key !== "timestamp" && key !== "timezone");
+    const totalSensors = sensors.length;
+    let totalTemperature = 0;
+    let greenCount = 0;
+    let amberCount = 0;
+    let redCount = 0;
+
+    sensors.forEach(sensor => {
+        const value = liveData[sensor];
+        totalTemperature += value;
+
+        const color = getTrafficLightColor(sensor, value);
+        if (color === '#00E396') greenCount++;
+        else if (color === '#FFA500') amberCount++;
+        else if (color === '#FF0000') redCount++;
+    });
+
+    const averageTemperature = (totalTemperature / totalSensors).toFixed(2);
+
+    document.getElementById("totalSensors").textContent = totalSensors;
+    document.getElementById("averageTemperature").textContent = `${averageTemperature}°C`;
+    updateTrafficLightPieChart(greenCount, amberCount, redCount);
+}
+
+
+function updateTrafficLightPieChart(greenCount, amberCount, redCount) {
+    const options = {
+        series: [greenCount, amberCount, redCount],
+        chart: {
+            type: 'pie',
+            height: 300,
+        },
+        labels: ['Green', 'Amber', 'Red'], colors: ['#00E396', '#FFA500', '#FF0000'],
+        responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }],
+        plotOptions: {
+            pie: {
+                donut: {
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total Sensors',
+                            formatter: function (w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        legend: { position: 'right', offsetY: 0, height: 230, }, title: { text: 'Sensor Status Distribution', align: 'center' }
+    };
+
+    // If chart doesn't exist, create it
+    if (!trafficLightChart) {
+        trafficLightChart = new ApexCharts(
+            document.querySelector("#trafficLightPieChart"), 
+            options
+        );
+        trafficLightChart.render();
+    } else {
+        // Update existing chart
+        trafficLightChart.updateSeries([greenCount, amberCount, redCount]);
+    }
+}
+
+
 
 function getTrafficLightColor(sensor, value) {
     const thresholds = sensorThresholds[sensor];
@@ -178,3 +258,61 @@ function getTrafficLightColor(sensor, value) {
         return '#FF0000';  //  Red: Far outside the normal range
     }
 }
+
+function fetchAverageTemperature(line, period) {
+    const apiUrl = `http://localhost:5000/api/average-temperature/${line}`;
+    
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ period: period })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayAverages(data.averages);
+        } else {
+            console.error("Failed to fetch average temperature:", data.error);
+        }
+    })
+    .catch(error => console.error("API error:", error));
+}
+
+function displayAverages(averages) {
+    const averageContainer = document.getElementById('averageContainer');
+    averageContainer.innerHTML = '';
+
+    for (const [sensor, avg] of Object.entries(averages)) {
+        const card = document.createElement('div');
+        card.classList.add('average-card');
+
+        // Format sensor name
+        const sensorName = document.createElement('h4');
+        sensorName.textContent = sensor.replace('avg_', '').toUpperCase();
+
+        const avgValue = document.createElement('p');
+        avgValue.textContent = `${avg.toFixed(2)}°C`;
+
+        card.appendChild(sensorName);
+        card.appendChild(avgValue);
+        averageContainer.appendChild(card);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const lineSelector = document.getElementById('lineSelector');
+    const periodSelector = document.getElementById('periodSelector');
+
+    lineSelector.addEventListener('change', function () {
+        fetchAverageTemperature(this.value, periodSelector.value);
+    });
+
+    periodSelector.addEventListener('change', function () {
+        fetchAverageTemperature(lineSelector.value, this.value);
+    });
+
+    // Initial fetch
+    fetchAverageTemperature(lineSelector.value, periodSelector.value);
+});
