@@ -10,12 +10,12 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
-# Database configuration (update credentials as needed)
+# Database configuration 
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
     "password": "",  # Set your MySQL password here if needed
-    "database": "rakusensdatabasefinal"
+    "database": "rakusensdatabase"
 }
 
 def get_db_connection():
@@ -47,6 +47,10 @@ def fetch_latest_data(line):
 # Process a sensor's actual value against its Prophet model predictions
 def process_sensor(sensor, line, actual):
     model_path = os.path.join("models", line, f"prophet_{sensor}.pkl")
+    print(f"Looking for model at: {model_path}")
+    print(os.path.abspath(model_path))  # Full absolute path for debugging
+
+
     if not os.path.exists(model_path):
         return {
             "value": round(actual, 2),
