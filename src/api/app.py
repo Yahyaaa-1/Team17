@@ -1135,10 +1135,8 @@ def get_sensor_data(line, sensor):
 def sensor_page(line, sensor):
     return render_template('sensor-data.html', line=line, sensor=sensor)
 
-  
-@app.route('/api/historical/<line>', methods=['POST'])
+  @app.route('/api/historical/<line>', methods=['POST'])
 def get_historical_data(line):
-    
     try:
         connection = get_db_connection()
         if not connection:
@@ -1156,16 +1154,23 @@ def get_historical_data(line):
         length = int(data.get("length", 50))
         search_value = data.get("searchValue", "")
         date_filter = data.get("dateFilter", "")
+        start_date_time = data.get("startDateTime", "")
+        end_date_time = data.get("endDateTime", "")
 
         query = f"SELECT * FROM {line} WHERE 1=1"
 
-
         if date_filter:
             query += f" AND DATE(timestamp) = '{date_filter}'"
+        if start_date_time and end_date_time:
+            query += f" AND timestamp BETWEEN '{start_date_time}' AND '{end_date_time}'"
         if search_value:
             query += f" AND (timestamp LIKE '%{search_value}%')"
 
         query += f" ORDER BY timestamp DESC LIMIT {length}"
+
+        # Debug: Print the constructed SQL query
+        print("Executing SQL Query:", query)
+
         cursor.execute(query)
         data = cursor.fetchall()
 
@@ -1180,7 +1185,6 @@ def get_historical_data(line):
     finally:
         if connection:
             connection.close()
-
 
 @app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
 def get_table_headers():
