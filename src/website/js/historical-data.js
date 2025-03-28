@@ -2,6 +2,65 @@ document.addEventListener('DOMContentLoaded', function () {
     let lineSelector = document.getElementById('lineSelector');
     let apiUrlBase = 'http://localhost:5000/api/historical/';
     // let availableDatesUrlBase = 'http://localhost:5000/api/available-dates/';
+    let tableTab = document.getElementById('table-tab');
+    let graphTab = document.getElementById('graph-tab');
+    let tableView = document.getElementById('tableView');
+    let graphView = document.getElementById('graphView');
+    let graphCanvas = document.getElementById('dataChart');
+    let chartTypeSelector = document.getElementById('chartTypeSelector');
+
+    if (!graphCanvas) {
+        console.error("Graph canvas not found!");
+        return;
+    }
+
+    let startDateTimeFilter = document.getElementById('startDateTimeFilter');
+    let endDateTimeFilter = document.getElementById('endDateTimeFilter');
+
+    let graphContext = graphCanvas.getContext('2d');
+    let graphInstance = null;
+    let currentGraphData = null; // Store the fetched data
+
+    // Event listeners to toggle views
+    tableTab.addEventListener('click', function () {
+        tableView.classList.add('show', 'active');
+        graphView.classList.remove('show', 'active');
+    });
+
+    graphTab.addEventListener('click', function () {
+        graphView.classList.add('show', 'active');
+        tableView.classList.remove('show', 'active');
+        if (!currentGraphData) {
+            fetchGraphData(lineSelector.value); // Fetch only if no data yet
+        } else {
+            plotGraph(currentGraphData); // Re-plot with existing data
+        }
+    });
+
+    document.getElementById('dateFilter').addEventListener('change', function() {
+        console.log("Date filter changed to:", this.value);
+        fetchGraphData(lineSelector.value);
+    });
+
+    // Chart type change listener
+    chartTypeSelector.addEventListener('change', function () {
+        if (currentGraphData) {
+            plotGraph(currentGraphData); // Immediately re-plot with stored data
+        } else {
+            fetchGraphData(lineSelector.value); // Fetch if no data yet
+        }
+    });
+
+    // Add filter change listeners to refresh graph data
+    dateFilter.addEventListener('change', function () {
+        console.log("Date filter changed to:", this.value);
+        fetchGraphData(lineSelector.value);
+    });
+
+    searchBox.addEventListener('keyup', function () {
+        console.log("Search value changed to:", this.value);
+        fetchGraphData(lineSelector.value);
+    });
     
     let availableColumns = {
         "line4": ["timestamp", "r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"],
@@ -29,6 +88,89 @@ document.addEventListener('DOMContentLoaded', function () {
     //         .catch(error => console.error("API error:", error));
     // }
 
+
+    // Set default date range (e.g., last 7 days)
+    function setDefaultDateRange() {
+        let now = new Date();
+        let sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        
+        // Format dates for datetime-local input
+        startDateTimeFilter.value = formatDateTimeLocal(sevenDaysAgo);
+        endDateTimeFilter.value = formatDateTimeLocal(now);
+    }
+
+    // Helper function to format date for datetime-local input
+    function formatDateTimeLocal(date) {
+        const pad = (num) => num.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    // Set default date range on page load
+    setDefaultDateRange();
+
+    // Add event listeners for datetime range filters
+    startDateTimeFilter.addEventListener('change', function() {
+        console.log("Start datetime changed:", this.value);
+        fetchGraphData(lineSelector.value);
+    });
+
+    endDateTimeFilter.addEventListener('change', function() {
+        console.log("End datetime changed:", this.value);
+        fetchGraphData(lineSelector.value);
+    });
+
+    function fetchGraphData(line) {
+    let apiUrl = `${apiUrlBase}${line}`;
+    console.log(`Fetching graph data from ${apiUrl}`);
+
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            dateFilter: document.getElementById('dateFilter').value,
+            startDateTime: startDateTimeFilter.value,
+            endDateTime: endDateTimeFilter.value,
+            searchValue: document.getElementById('searchBox').value
+        })
+    })
+    .then(response => response.json())
+    .then(response => {
+        console.log("Raw API Response:", response);
+
+        if (!response || !response.success || !Array.isArray(response.data)) {
+            console.error("Invalid data format received:", response);
+            alert("Error: API did not return expected data format.");
+            return;
+        }
+
+        currentGraphData = response.data; // Store the data
+
+        if (currentGraphData.length === 0) {
+            console.warn("No data available for graph.");
+            alert("No data available for this selection.");
+            return;
+        }
+
+        plotGraph(currentGraphData); // Plot immediately with fetched data
+    })
+    .catch(error => console.error("Graph API error:", error));
+}
+
+document.getElementById('dateFilter').addEventListener('change', function() {
+    console.log("Date filter changed to:", this.value);
+    table.ajax.reload();
+});
+
+startDateTimeFilter.addEventListener('change', function() {
+    console.log("Start datetime changed:", this.value);
+    table.ajax.reload();
+});
+
+endDateTimeFilter.addEventListener('change', function() {
+    console.log("End datetime changed:", this.value);
+    table.ajax.reload();
+});
+
     // Populates the date picker dropdown
     function updateDatePicker() {
         let dateInput = document.getElementById('dateFilter');
@@ -52,59 +194,276 @@ document.addEventListener('DOMContentLoaded', function () {
     // Sets up the data table with historical data
     function initializeTable(line) {
         let apiUrl = apiUrlBase + line;
-        let columns = availableColumns[line].map(col => ({ data: col }));
-
+    
+        // Define column types: 'timestamp' as date, others as numeric
+        let columns = availableColumns[line].map(col => {
+            if (col === "timestamp") {
+                return { data: col, type: "date" };
+            }
+            return { data: col, type: "num" };
+        });
+    
         console.log(`Setting up table for ${line}`);
-
+    
         if ($.fn.DataTable.isDataTable("#lineTable")) {
             console.log("Clearing existing table");
             table.destroy();
             $('#lineTable').empty();
         }
-
+    
+        // Create thead and tbody
         $('#lineTable').html(`<thead><tr>${columns.map(col => `<th>${col.data}</th>`).join("")}</tr></thead><tbody></tbody>`);
-
+    
         table = $('#lineTable').DataTable({
             processing: true,
             serverSide: true,
+            searching: false,
             ajax: {
                 url: apiUrl,
                 type: 'POST',
                 contentType: "application/json",
                 data: function (d) {
-                    return JSON.stringify({
+                    const requestData = {
                         length: d.length,
                         dateFilter: $('#dateFilter').val(),
+                        startDateTime: $('#startDateTimeFilter').val(),
+                        endDateTime: $('#endDateTimeFilter').val(),
                         searchValue: $('#searchBox').val()
-                    });
+                    };
+                    console.log("Request Data:", requestData);
+                    return JSON.stringify(requestData);
                 },
                 error: function (xhr, error, thrown) {
                     console.error("Table error: ", xhr.responseText, error, thrown);
                 }
             },
-            order: [[0, 'desc']],
+            order: [[0, 'desc']], // Sort timestamp by default, newest first
             responsive: true,
             autoWidth: false,
             columns: columns
         });
-
+    
         // Refresh table when filters change
         $('#dateFilter, #searchBox').off('change keyup').on('change keyup', function () {
             console.log("Refreshing table data");
             table.ajax.reload();
         });
+    }    
 
-        // fetchAvailableDates(line);
+
+    // Fetch and plot graph data
+    function fetchGraphData(line) {
+        let apiUrl = `${apiUrlBase}${line}`;
+        console.log(`Fetching graph data from ${apiUrl}`);
+    
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                dateFilter: document.getElementById('dateFilter').value,
+                searchValue: document.getElementById('searchBox').value
+            })
+        })
+        .then(response => response.json())
+        .then(response => {
+            console.log("Raw API Response:", response);
+    
+            if (!response || !response.success || !Array.isArray(response.data)) {
+                console.error("Invalid data format received:", response);
+                alert("Error: API did not return expected data format.");
+                return;
+            }
+    
+            currentGraphData = response.data; // Store the data
+    
+            if (currentGraphData.length === 0) {
+                console.warn("No data available for graph.");
+                alert("No data available for this selection.");
+                return;
+            }
+    
+            plotGraph(currentGraphData); // Plot immediately with fetched data
+        })
+        .catch(error => console.error("Graph API error:", error));
     }
+    
+    
+    function plotGraph(data) {
+        if (!graphContext) {
+            console.error("Graph context is null!");
+            return;
+        }
+
+        const chartType = chartTypeSelector.value;
+
+        if (graphInstance) {
+            graphInstance.destroy();
+        }
+
+        if (chartType === 'line') {
+            let timestamps = data.map(item => item.timestamp);
+            let sensors = Object.keys(data[0]).filter(key => key.startsWith('r'));
+
+            let datasets = sensors.map(sensor => ({
+                label: sensor.toUpperCase(),
+                data: data.map(item => item[sensor] || 0),
+                borderColor: getRandomColor(),
+                fill: false
+            }));
+
+            graphInstance = new Chart(graphContext, {
+                type: 'line',
+                data: { labels: timestamps, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Timestamp' }, ticks: { maxRotation: 45, minRotation: 45 } },
+                        y: { title: { display: true, text: 'Sensor Value' }, beginAtZero: true, suggestedMax: Math.max(...datasets.flatMap(d => d.data)) * 1.1 }
+                    }
+                }
+            });
+        } else if (chartType === 'pie') {
+            let sensors = Object.keys(data[0]).filter(key => key.startsWith('r'));
+            let averages = sensors.map(sensor => {
+                const total = data.reduce((sum, item) => sum + (item[sensor] || 0), 0);
+                return total / data.length;
+            });
+
+            graphInstance = new Chart(graphContext, {
+                type: 'pie',
+                data: {
+                    labels: sensors.map(sensor => sensor.toUpperCase()),
+                    datasets: [{ data: averages, backgroundColor: sensors.map(() => getRandomColor()), borderColor: '#fff', borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { size: 14 }, color: '#333' } },
+                        tooltip: { callbacks: { label: context => `${context.label}: ${context.raw.toFixed(2)}` } }
+                    }
+                }
+            });
+        } else if (chartType === 'bar') {
+            let sensors = Object.keys(data[0]).filter(key => key.startsWith('r'));
+            let averages = sensors.map(sensor => {
+                const total = data.reduce((sum, item) => sum + (item[sensor] || 0), 0);
+                return total / data.length;
+            });
+
+            graphInstance = new Chart(graphContext, {
+                type: 'bar',
+                data: {
+                    labels: sensors.map(sensor => sensor.toUpperCase()),
+                    datasets: [{ label: 'Average Sensor Values', data: averages, backgroundColor: sensors.map(() => getRandomColor()), borderColor: '#333', borderWidth: 1 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Sensors' }, ticks: { color: '#333' } },
+                        y: { title: { display: true, text: 'Average Value' }, beginAtZero: true, ticks: { color: '#333' } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { size: 14 }, color: '#333' } },
+                        tooltip: { callbacks: { label: context => `${context.label}: ${context.raw.toFixed(2)}` } }
+                    }
+                }
+            });
+        } else if (chartType === 'area') {
+            let timestamps = data.map(item => item.timestamp);
+            let sensors = Object.keys(data[0]).filter(key => key.startsWith('r'));
+
+            let datasets = sensors.map(sensor => ({
+                label: sensor.toUpperCase(),
+                data: data.map(item => item[sensor] || 0),
+                backgroundColor: getRandomColor(), // Fill color
+                borderColor: getRandomColor(), // Line color
+                fill: true, // Enable area fill
+                tension: 0.3 // Smooth lines
+            }));
+
+            graphInstance = new Chart(graphContext, {
+                type: 'line', // Area chart is a line chart with fill
+                data: { labels: timestamps, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Timestamp' }, ticks: { maxRotation: 45, minRotation: 45 } },
+                        y: { 
+                            title: { display: true, text: 'Sensor Value' }, 
+                            beginAtZero: true, 
+                            suggestedMax: Math.max(...datasets.flatMap(d => d.data)) * 1.1,
+                            stacked: true // Stack areas (optional, set to false for overlap)
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { size: 14 }, color: '#333' } },
+                        tooltip: { callbacks: { label: context => `${context.dataset.label}: ${context.raw.toFixed(2)}` } }
+                    }
+                }
+            });
+        } else if (chartType === 'scatter') {
+            let timestamps = data.map(item => item.timestamp);
+            let sensors = Object.keys(data[0]).filter(key => key.startsWith('r'));
+
+            let datasets = sensors.map(sensor => ({
+                label: sensor.toUpperCase(),
+                data: data.map(item => ({
+                    x: item.timestamp,
+                    y: item[sensor] || 0
+                })),
+                backgroundColor: getRandomColor(),
+                pointRadius: 5, // Size of points
+                pointHoverRadius: 7 // Size on hover
+            }));
+
+            graphInstance = new Chart(graphContext, {
+                type: 'scatter',
+                data: { datasets }, // No labels here, timestamps are in data points
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            type: 'category', // Treat timestamps as categories
+                            title: { display: true, text: 'Timestamp' }, 
+                            ticks: { maxRotation: 45, minRotation: 45 } 
+                        },
+                        y: { 
+                            title: { display: true, text: 'Sensor Value' }, 
+                            beginAtZero: true, 
+                            suggestedMax: Math.max(...datasets.flatMap(d => d.data.map(p => p.y))) * 1.1 
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { size: 14 }, color: '#333' } },
+                        tooltip: { callbacks: { label: context => `${context.dataset.label}: ${context.raw.y.toFixed(2)}` } }
+                    }
+                }
+            });
+        }
+
+        console.log(`${chartType} chart updated successfully!`);
+    }
+
+    function getRandomColor() {
+        return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+    }
+
 
     // Initial table setup with delay
     setTimeout(() => {
         initializeTable(lineSelector.value);
+        fetchGraphData(lineSelector.value);
     }, 500);
 
     // Handle line selection changes
     lineSelector.addEventListener("change", function () {
         console.log(`Switching to line: ${this.value}`);
         initializeTable(this.value);
+        fetchGraphData(this.value);
     });
 });
