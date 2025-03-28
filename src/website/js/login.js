@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     // Store user info in session storage
                     sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('isAdmin', data.is_admin);
                     sessionStorage.setItem('user', JSON.stringify({
                         operator_id: data.operator_id,
                         email: data.email,
