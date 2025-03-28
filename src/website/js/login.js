@@ -94,22 +94,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Successful login
-                    showMessage('Login successful! Redirecting...');
+                    // Store user info in session storage
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('user', JSON.stringify({
+                        operator_id: data.operator_id,
+                        email: data.email,
+                        fullName: data.full_name
+                    }));
                     
-                     // Store user info in session storage
-                     sessionStorage.setItem('isLoggedIn', 'true');
-                     sessionStorage.setItem('isAdmin', data.is_admin);
-                     sessionStorage.setItem('user', JSON.stringify({
-                         operator_id: data.operator_id,
-                         email: data.email,
-                         fullName: data.full_name
-                     })                    
-                    );
-                    // Store dark mode preference in session storage
-                    const darkModePreference = data.dark_mode || 'disabled'; // Default to 'disabled' if not provided
+                    // Set dark mode preference from database response
+                    const darkModePreference = data.dark_mode || 'disabled';
                     sessionStorage.setItem('darkMode', darkModePreference);
-
+                    localStorage.setItem('darkMode', darkModePreference);
+                
+                    // Apply immediately
+                    if (darkModePreference === 'enabled') {
+                        document.body.classList.add('dark-mode');
+                        document.documentElement.setAttribute('data-bs-theme', 'dark');
+                    }
                     // Apply dark mode preference immediately
                     if (darkModePreference === 'enabled') {
                         document.body.classList.add('dark-mode');
