@@ -345,7 +345,7 @@ def update_dark_mode():
             return jsonify({'success': False, 'error': 'No data received'}), 400
 
         operator_id = data.get('operator_id')
-        dark_mode = data.get('dark_mode', 'disabled')  # Default to 'disabled' if not provided
+        dark_mode = data.get('dark_mode', 0)  # Default to 0 (disabled) if not provided
 
         if not operator_id:
             return jsonify({'success': False, 'error': 'Missing operator ID'}), 400
@@ -356,7 +356,7 @@ def update_dark_mode():
 
         cursor = connection.cursor()
 
-        # Update the dark mode preference in the database
+        # Update the dark mode preference in the database (0 or 1)
         cursor.execute("""
             UPDATE user_accounts
             SET dark_mode = %s
@@ -1280,6 +1280,100 @@ def deleteSensor():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
+@app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
+def get_table_headers():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    try:
+        connection = get_db_connection()
+        
+
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        tableID = request.args.get('tableID')
+
+        cursor = connection.cursor()
+
+        # Query to get column names
+        cursor.execute(f"SHOW COLUMNS FROM {tableID}")
+        columns = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        # Extract column names
+        headers = [column[0] for column in columns]
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+    return jsonify({
+        'success': True,
+        'headers': headers
+    })
+
+
+
+# Delete user account
+@app.route('/api/admin/delete-sensor', methods=['POST', 'OPTIONS'])
+def deleteSensor():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        sensor = data.get('sensorName')
+        tableID = data.get('tableID')
+       
+
+        if not [sensor]:
+            return jsonify({'success': False, 'error': 'Missing Sensor Name'}), 400
+        
+        if not [tableID]:
+            return jsonify({'success': False, 'error': 'Missing Table id'}), 400
+        
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+
+             # Check if the column exists using SHOW COLUMNS
+            cursor.execute(f"SHOW COLUMNS FROM {tableID} LIKE %s", (sensor,))
+            column_exists = cursor.fetchone()
+            
+            if not column_exists:
+                cursor.close()
+                connection.close()
+                return jsonify({'success': False, 'error': f'Sensor {sensor} does not exist in the table'}), 400
+
+           # Delete the sensor column
+            cursor.execute(f"ALTER TABLE {tableID} DROP COLUMN {sensor}")
+            connection.commit()
+            
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': f'Sensor {sensor} deleted from {tableID}'})
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': str(err)}), 500
+        finally:
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
 @app.route('/api/logs', methods=['POST'])
 def get_logs():
     try:
@@ -1481,9 +1575,6 @@ def get_user_details():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'Server error'}), 500
-
-from flask import render_template, session
-from db_config import get_db_connection
 
 @app.route('/account')
 def account():
