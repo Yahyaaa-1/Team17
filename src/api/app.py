@@ -1135,10 +1135,8 @@ def get_sensor_data(line, sensor):
 def sensor_page(line, sensor):
     return render_template('sensor-data.html', line=line, sensor=sensor)
 
-  
-@app.route('/api/historical/<line>', methods=['POST'])
+  @app.route('/api/historical/<line>', methods=['POST'])
 def get_historical_data(line):
-    
     try:
         connection = get_db_connection()
         if not connection:
@@ -1156,16 +1154,23 @@ def get_historical_data(line):
         length = int(data.get("length", 50))
         search_value = data.get("searchValue", "")
         date_filter = data.get("dateFilter", "")
+        start_date_time = data.get("startDateTime", "")
+        end_date_time = data.get("endDateTime", "")
 
         query = f"SELECT * FROM {line} WHERE 1=1"
 
-
         if date_filter:
             query += f" AND DATE(timestamp) = '{date_filter}'"
+        if start_date_time and end_date_time:
+            query += f" AND timestamp BETWEEN '{start_date_time}' AND '{end_date_time}'"
         if search_value:
             query += f" AND (timestamp LIKE '%{search_value}%')"
 
         query += f" ORDER BY timestamp DESC LIMIT {length}"
+
+        # Debug: Print the constructed SQL query
+        print("Executing SQL Query:", query)
+
         cursor.execute(query)
         data = cursor.fetchall()
 
@@ -1181,6 +1186,99 @@ def get_historical_data(line):
         if connection:
             connection.close()
 
+@app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
+def get_table_headers():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    try:
+        connection = get_db_connection()
+        
+
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        tableID = request.args.get('tableID')
+
+        cursor = connection.cursor()
+
+        # Query to get column names
+        cursor.execute(f"SHOW COLUMNS FROM {tableID}")
+        columns = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        # Extract column names
+        headers = [column[0] for column in columns]
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+    return jsonify({
+        'success': True,
+        'headers': headers
+    })
+
+
+
+# Delete user account
+@app.route('/api/admin/delete-sensor', methods=['POST', 'OPTIONS'])
+def deleteSensor():
+    
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    if request.method != "POST":
+        return jsonify({"error": "Method not allowed"}), 405
+        
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+            
+        sensor = data.get('sensorName')
+        tableID = data.get('tableID')
+       
+
+        if not [sensor]:
+            return jsonify({'success': False, 'error': 'Missing Sensor Name'}), 400
+        
+        if not [tableID]:
+            return jsonify({'success': False, 'error': 'Missing Table id'}), 400
+        
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+
+             # Check if the column exists using SHOW COLUMNS
+            cursor.execute(f"SHOW COLUMNS FROM {tableID} LIKE %s", (sensor,))
+            column_exists = cursor.fetchone()
+            
+            if not column_exists:
+                cursor.close()
+                connection.close()
+                return jsonify({'success': False, 'error': f'Sensor {sensor} does not exist in the table'}), 400
+
+           # Delete the sensor column
+            cursor.execute(f"ALTER TABLE {tableID} DROP COLUMN {sensor}")
+            connection.commit()
+            
+            cursor.close()
+            connection.close()
+            return jsonify({'success': True, 'message': f'Sensor {sensor} deleted from {tableID}'})
+
+        except mysql.connector.Error as err:
+            print(f"Database error: {err}")
+            return jsonify({'success': False, 'error': str(err)}), 500
+        finally:
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 @app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
 def get_table_headers():

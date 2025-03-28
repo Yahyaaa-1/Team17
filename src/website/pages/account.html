@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
     <link rel="stylesheet" href="../css/account.css">
     <link rel="stylesheet" href="../css/dark-mode.css">
 </head>
-
 <body>
     <!-- Header Section -->
     <header class="main-header position-relative bg-gradient-primary">
@@ -39,6 +37,10 @@
                             </li>
                 <li class="nav-item"><a class="nav-link active" href="account.html"><i
                             class="fas fa-user-cog me-2"></i>Account</a></li>
+                <li class="nav-item"><a class="nav-link" href="../home.html"><i class="fas fa-chart-line me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="historical.html"><i class="fas fa-database me-2"></i>Historical Data</a></li>
+                <li class="nav-item"><a class="nav-link" href="help.html"><i class="fas fa-question-circle me-2"></i>Help</a></li>
+                <li class="nav-item"><a class="nav-link active" href="account.html"><i class="fas fa-user-cog me-2"></i>Account</a></li>
             </ul>
         </div>
     </nav>
@@ -46,7 +48,6 @@
     <!-- Main Content -->
     <main class="container mt-5">
         <h2 class="mb-4">Account Settings</h2>
-
         <div class="row g-4">
             <!-- Account Overview -->
             <div class="col-lg-4">
@@ -69,7 +70,6 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
                         <h3 class="mb-4"><i class="fas fa-lock me-2"></i>Security Settings</h3>
-
                         <!-- Password Update -->
                         <form id="passwordForm" class="needs-validation" novalidate>
                             <div class="mb-3">
@@ -78,14 +78,12 @@
                                     <input type="password" class="form-control" id="newPassword" required minlength="8">
                                     <span class="input-group-text"><i class="fas fa-key"></i></span>
                                 </div>
-                                <div class="form-text">Minimum 8 characters with at least one number and special
-                                    character</div>
+                                <div class="form-text">Minimum 8 characters with at least one number and special character</div>
                             </div>
                             <div class="mb-4">
                                 <label class="form-label">Confirm Password</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="confirmPassword" required
-                                        minlength="8">
+                                    <input type="password" class="form-control" id="confirmPassword" required minlength="8">
                                     <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
                                 </div>
                             </div>
@@ -142,4 +140,34 @@
     <script src="../js/dark-mode.js"></script>
 </body>
 
+</html>
+    <script>
+        // Dark Mode Toggle Functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const htmlElement = document.documentElement;
+
+        // Check local storage for dark mode setting
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            htmlElement.setAttribute('data-bs-theme', 'dark');
+            darkModeToggle.checked = true;
+        }
+
+        darkModeToggle.addEventListener('change', () => {
+            if (darkModeToggle.checked) {
+                htmlElement.setAttribute('data-bs-theme', 'dark');
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                htmlElement.setAttribute('data-bs-theme', 'light');
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+
+        // Logout Functionality
+        function logout() {
+            // Example of logging out (you can add more logic)
+            alert('Logged out successfully!');
+            window.location.href = '../login.html'; // Redirect to login page
+        }
+    </script>
+</body>
 </html>

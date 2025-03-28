@@ -1,6 +1,6 @@
-/* account.css - Updated with header/navigation styles from home.css */
+/* account.css - Consolidated with dark mode preferences */
 
-/* Bootstrap Variables Override (from home.css) */
+/* Bootstrap Variables Override */
 :root {
     --primary-dark-blue: #1B355D;
     --secondary-blue: #005095;
@@ -8,14 +8,13 @@
     --light-blue: #3B5998;
     --accent-blue: #0c3c84;
 
-    /* Original account.css variables */
     --primary-color: #2a4d69;
     --secondary-color: #4b86b4;
     --success-color: #28a745;
     --danger-color: #dc3545;
 }
 
-/* Main Header Styles (from home.css) */
+/* Main Header Styles */
 .main-header {
     height: 200px;
     background-image: url('../images/rakusens_header.png');
@@ -44,7 +43,7 @@
     width: auto;
 }
 
-/* Main Navigation Styles (from home.css) */
+/* Main Navigation Styles */
 .main-nav {
     padding: 0.5rem 0;
     position: relative;
@@ -84,13 +83,6 @@
     border-bottom: 1px solid var(--secondary-blue);
 }
 
-/* Original account.css styles below */
-body {
-    background-color: var(--body-bg);
-    color: var(--body-color);
-    transition: all 0.3s ease;
-}
-
 /* Dark Mode Variables */
 [data-bs-theme="dark"] {
     --primary-color: #1a365d;
@@ -134,6 +126,12 @@ body {
 }
 
 /* Account Page Specific Styles */
+body {
+    background-color: var(--body-bg);
+    color: var(--body-color);
+    transition: all 0.3s ease;
+}
+
 .avatar-placeholder {
     width: 120px;
     height: 120px;
@@ -191,7 +189,7 @@ body {
     border-color: var(--accent-blue);
 }
 
-/* Footer Styles (from home.css) */
+/* Footer Styles */
 .footer {
     background-color: var(--deep-navy);
     color: white;
@@ -205,104 +203,6 @@ body {
 
 .footer .nav-link:hover {
     color: #3498db;
-}
-
-/* Dark mode specific styles */
-[data-bs-theme="dark"] {
-    background-color: #1a1a1a;
-    color: #f8f9fa;
-}
-
-[data-bs-theme="dark"] .card {
-    background-color: #2d2d2d;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* Dark Mode Variables */
-[data-bs-theme="dark"] {
-    --primary-color: #1a365d;
-    --secondary-color: #2c5282;
-    --body-bg: #1a1a1a;
-    --body-color: #f8f9fa;
-
-    /* Additional dark mode overrides */
-    .card {
-        background-color: #2d2d2d;
-        border-color: #404040;
-    }
-
-    .form-control {
-        background-color: #333;
-        border-color: #444;
-        color: #fff;
-    }
-
-    .input-group-text {
-        background-color: #444;
-        border-color: #555;
-    }
-
-    .alert {
-        background-color: #333;
-        border-color: #444;
-        color: #fff;
-    }
-
-    .btn {
-        background-color: var(--secondary-color);
-        border-color: var(--secondary-color);
-        color: #fff;
-    }
-
-    .btn:hover {
-        background-color: #1c3d5a;
-        border-color: #1c3d5a;
-    }
-}
-
-body {
-    background-color: var(--body-bg);
-    color: var(--body-color);
-    transition: all 0.3s ease;
-}
-
-.avatar-placeholder {
-    width: 120px;
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.card {
-    border-radius: 12px;
-    transition: transform 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-}
-
-.form-control {
-    border-radius: 8px;
-    padding: 12px;
-}
-
-.input-group-text {
-    background-color: rgba(var(--primary-color), 0.1);
-    border-color: rgba(var(--primary-color), 0.2);
-}
-
-.alert {
-    border-radius: 8px;
-    padding: 1rem;
-}
-
-.btn {
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-weight: 500;
-    transition: all 0.2s ease;
 }
 
 /* Invert filter for dark mode images */
@@ -331,149 +231,7 @@ body {
 
 .form-group,
 .mb-3 {
-    position: relative;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--primary-dark-blue);
-    font-weight: 500;
-    font-size: 14px;
-}
-
-.form-control {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--border-gray);
-    border-radius: 4px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: var(--accent-blue);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(27, 53, 93, 0.1);
-}
-
-/* Error and Success States */
-.form-control.error {
-    border-color: var(--error-red);
-}
-
-.form-control.success {
-    border-color: var(--success-green);
-}
-
-/* Message Styling */
-#message {
-    padding: 12px 15px;
-    border-radius: 4px;
-    margin: 10px 0;
-    font-size: 14px;
-    display: none;
-}
-
-.error-message {
-    background-color: #fff2f2;
-    color: var(--error-red);
-    border: 1px solid #ffcdd2;
-}
-
-.success-message {
-    background-color: #f0fff4;
-    color: var(--success-green);
-    border: 1px solid #c3e6cb;
-}
-
-/* Password Strength and Match */
-.password-strength {
-    margin-top: 5px;
-    height: 5px;
-    background-color: #e0e0e0;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.match-message {
-    font-size: 12px;
-    margin-top: 5px;
-    padding-left: 5px;
-}
-
-.match-message.success {
-    color: var(--success-green);
-}
-
-.match-message.error {
-    color: var(--error-red);
-}
-
-/* Helper Text */
-.helper-text {
-    display: block;
-    margin-top: 5px;
-    font-size: 12px;
-    color: #666;
-}
-
-/* Register and Login Buttons */
-.register-btn {
-    background-color: var(--accent-blue);
-    border-color: var(--accent-blue);
-    color: white;
-    transition: background-color 0.3s ease;
-    width: 100%;
-    padding: 12px 15px;
-}
-
-.register-btn:hover {
-    background-color: var(--light-blue);
-    border-color: var(--light-blue);
-}
-
-.register-btn:disabled {
-    background-color: var(--border-gray);
-    cursor: not-allowed;
-}
-
-/* Loading State */
-.register-btn.loading {
-    position: relative;
-    color: transparent;
-}
-
-.register-btn.loading::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-/* Links */
-.signup-link,
-.forgot-password-link {
-    color: var(--accent-blue);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.signup-link a {
-    color: var(--accent-blue);
+    margin-bottom: 1rem;
 }
 
 .forgot-password-link {
@@ -488,120 +246,3 @@ body {
     text-align: center;
     margin-top: 15px;
 }
-
-/* Main Header Styles (from home.css) */
-.main-header {
-    height: 200px;
-    background-color: #2c3e50;
-    position: relative;
-    overflow: hidden;
-}
-
-.header-content {
-    position: relative;
-    height: 100%;
-}
-.logo-container {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.logo-svg {
-    height: 160px;
-    width: auto;
-}
-/* Main Navigation Styles (from home.css) */
-.main-nav {
-    background-color: #34495e;
-    padding: 0.5rem 0;
-}
-
-.main-nav .navbar-nav {
-    gap: 1.5rem;
-}
-
-.main-nav .nav-link {
-    color: #ecf0f1;
-    font-size: 1.1rem;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.main-nav .nav-link:hover,
-.main-nav .nav-link.active {
-    color: #3498db;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-}
-
-.main-nav .nav-link i {
-    margin-right: 8px;
-}
-
-/* Footer Styles (from home.css) */
-.footer {
-    background-color: #2c3e50;
-    color: white;
-}
-
-.footer .nav-link {
-    padding: 0.5rem 1rem;
-}
-
-.footer .nav-link:hover {
-    color: #3498db;
-}
-
-/* Account Page Specific Styles */
-.card {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-.avatar-placeholder {
-    width: 120px;
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.form-check-input:checked {
-    background-color: #3498db;
-    border-color: #3498db;
-}
-
-.btn-primary {
-    background-color: #3498db;
-    border-color: #3498db;
-}
-
-.btn-primary:hover {
-    background-color: #2980b9;
-    border-color: #2980b9;
-}
-
-/* Dark mode styles (if you're keeping this functionality) */
-[data-bs-theme="dark"] {
-    background-color: #1a1a1a;
-    color: #f8f9fa;
-}
-
-[data-bs-theme="dark"] .card {
-    background-color: #2d2d2d;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
-}
-
-/* Add other dark mode styles as needed */
