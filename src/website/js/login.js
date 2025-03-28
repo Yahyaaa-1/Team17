@@ -8,6 +8,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
     const validateButton = document.getElementById('validateForgotPassword');
     const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const togglePassword = document.getElementById('togglePassword');
+
+    togglePassword.addEventListener('click', function () {
+        // Toggle the type attribute
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // Toggle the eye icon emoji (optional)
+        this.textContent = type === 'password' ? '👁️' : '🙈';
+    });
 
     // Function to show messages
     function showMessage(message, isError = false) {

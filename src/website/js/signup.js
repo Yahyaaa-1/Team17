@@ -7,6 +7,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordMatchMessage = document.getElementById('passwordMatch');
     const emailInput = document.getElementById('email');
 
+    const toggleNewPassword = document.querySelector("#toggleNewPassword");
+    const newPassword = document.querySelector("#newPassword");
+
+    const toggleConfirmPassword = document.querySelector("#toggleConfirmPassword");
+    const confirmPassword = document.querySelector("#confirmPassword");
+
+    toggleNewPassword.addEventListener("click", function () {
+        const type = newPassword.getAttribute("type") === "password" ? "text" : "password";
+        newPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
+
+    toggleConfirmPassword.addEventListener("click", function () {
+        const type = confirmPassword.getAttribute("type") === "password" ? "text" : "password";
+        confirmPassword.setAttribute("type", type);
+        this.classList.toggle("fa-eye-slash");
+    });
+    
+
     // Function to show messages
     function showMessage(message, isError = false) {
         if (messageDiv) {

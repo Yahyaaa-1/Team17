@@ -240,6 +240,11 @@ body {
     margin-top: 5px;
     font-size: 12px;
 }
+.eye-icon {
+    font-size: 18px;
+    color: #333;
+}
+
 
 /* Signup and Login Link Styling */
 .signup-link {
