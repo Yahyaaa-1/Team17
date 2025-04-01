@@ -511,4 +511,4 @@ function getTrafficLightColor(sensor, value) {
 function closeExpandedChart() {
     document.getElementById("expandedChartContainer").style.display = "none";
 
-  
+}
