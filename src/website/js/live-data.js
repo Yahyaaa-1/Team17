@@ -76,6 +76,11 @@ function initializeDonutSlider(line) {
         const chartDiv = document.createElement('div');
         chartDiv.className = 'donut-chart';
         chartDiv.id = `donut-chart-${sensor}`;
+
+        // Redirect when clicking on the entire chart box
+        chartDiv.addEventListener("click", () => {
+            window.location.href = `pages/sensor-data.html?sensor=${sensor}&line=${line}`;
+        });
         
         chartContainer.appendChild(title);
         chartContainer.appendChild(chartDiv);

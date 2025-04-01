@@ -56,6 +56,53 @@
     background: var(--deep-navy);
     border-bottom: 1px solid var(--secondary-blue);
 }
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: black;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #004080; /* Adjust based on theme */
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-content a:hover {
+    background-color: #003366;
+}
+
+.show {
+    display: block;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 38px;
+    cursor: pointer;
+}
+
 
 /* Header/Nav Spacing */
 .main-header {
