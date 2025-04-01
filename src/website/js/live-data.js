@@ -308,7 +308,7 @@ function updateScatterChart() {
     liveScatterData = { normal: [], warning: [], critical: [] };
 
     // First load historical data
-    fetch(`http://127.0.0.1:5000/api/historical-data/${selectedLine}/${selectedSensor}`)
+    fetch(`http://127.0.0.1:5000/api/historical/${selectedLine}/${selectedSensor}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {

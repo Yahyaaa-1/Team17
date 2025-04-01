@@ -1,125 +1,148 @@
 import os
 import pandas as pd
 import joblib
-import numpy as np
 import mysql.connector
 from flask import Flask, jsonify
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 
+# Flask App Configuration
 app = Flask(__name__)
 CORS(app)
 
-# Database configuration (update credentials as needed)
+# Database Configuration
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
-    "password": "",  # Set your MySQL password here if needed
-    "database": "rakusensdatabasefinal"
+    "password": "",
+    "database": "rakusensdatabase"
 }
 
+# Constants
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+START_TIME = datetime(2024, 5, 20, 14, 30, 0)
+INTERVAL = timedelta(seconds=30)
+DURATION = timedelta(hours=0.25)
+
 def get_db_connection():
+    """Establish connection to MySQL database"""
     try:
-        conn = mysql.connector.connect(**DB_CONFIG)
-        return conn
+        return mysql.connector.connect(**DB_CONFIG)
     except mysql.connector.Error as err:
         print(f"DB Connection Error: {err}")
         return None
 
-# Fetch the latest row from the specified table (line4 or line5)
-def fetch_latest_data(line):
-    conn = get_db_connection()
-    if not conn:
-        return None
-    try:
-        cursor = conn.cursor(dictionary=True)
-        query = f"SELECT * FROM `{line}` ORDER BY timestamp DESC LIMIT 1"
-        cursor.execute(query)
-        row = cursor.fetchone()
-        return row
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-        return None
-    finally:
-        cursor.close()
-        conn.close()
+def detect_sensors(line):
+    """Detect available sensor models for a line"""
+    model_dir = os.path.join(SCRIPT_DIR, "models", line)
+    sensors = []
+    if os.path.exists(model_dir):
+        for file in os.listdir(model_dir):
+            if file.startswith("prophet_r") and file.endswith(".pkl"):
+                sensor_num = file.split("_r")[1].split(".pkl")[0]
+                sensors.append(f"r{sensor_num}")
+    return sorted(sensors)
 
-# Process a sensor's actual value against its Prophet model predictions
-def process_sensor(sensor, line, actual):
-    model_path = os.path.join("models", line, f"prophet_{sensor}.pkl")
-    if not os.path.exists(model_path):
-        return {
-            "value": round(actual, 2),
-            "status": "no-model"
-        }
+def setup_forecast_table(conn, line):
+    """Create or clear forecast table for a line"""
+    cursor = conn.cursor()
+    table_name = f"forecasted{line}"
+    
+    # Check if table exists
+    cursor.execute(f"SHOW TABLES LIKE '{table_name}'")
+    exists = cursor.fetchone()
+    
+    if exists:
+        # Clear existing table
+        cursor.execute(f"TRUNCATE TABLE {table_name}")
+        print(f"Cleared existing table: {table_name}")
+    else:
+        # Create new table
+        cursor.execute(f"""
+        CREATE TABLE {table_name} (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            sensor VARCHAR(10) NOT NULL,
+            forecast_time DATETIME NOT NULL,
+            forecast_value FLOAT NOT NULL,
+            lower_bound FLOAT NOT NULL,
+            upper_bound FLOAT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY (sensor, forecast_time)
+        )
+        """)
+        print(f"Created new table: {table_name}")
+    
+    conn.commit()
+    cursor.close()
+
+def load_model_and_forecast(model_path, timestamp):
+    """Load a Prophet model and forecast for a given timestamp"""
     try:
         model = joblib.load(model_path)
-        now = datetime.now()
-        df_future = pd.DataFrame({"ds": [now]})
-        df_future["ds"] = df_future["ds"].dt.tz_localize(None)
-        forecast = model.predict(df_future)
-        expected = forecast.iloc[0]["yhat"]
-        lower = forecast.iloc[0]["yhat_lower"]
-        upper = forecast.iloc[0]["yhat_upper"]
-        # Determine traffic light status dynamically
-        if lower <= actual <= upper:
-            status = "green"
-        elif abs(actual - upper) <= 10 or abs(actual - lower) <= 10:
-            status = "amber"
-        else:
-            status = "red"
-        return {
-            "value": round(actual, 2),
-            "expected": round(expected, 2),
-            "lower": round(lower, 2),
-            "upper": round(upper, 2),
-            "status": status
-        }
+        future_df = pd.DataFrame({"ds": [timestamp]})
+        forecast = model.predict(future_df)
+        return forecast[["yhat", "yhat_lower", "yhat_upper"]].iloc[0]
     except Exception as e:
-        print(f"Error processing sensor {sensor}: {e}")
-        return {
-            "value": round(actual, 2),
-            "status": "error"
-        }
+        print(f"Forecast error for {model_path}: {str(e)}")
+        return None
 
-# API endpoint to get live data with ML anomaly detection for the selected line
-@app.route('/api/live-data/<line>', methods=['GET'])
-def live_data(line):
-    if line not in ["line4", "line5"]:
-        return jsonify({"success": False, "error": "Invalid line specified"}), 400
+def store_forecasts(conn, line, sensor, timestamp, forecast):
+    """Store forecast in database"""
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            f"INSERT INTO forecasted{line} "
+            "(sensor, forecast_time, forecast_value, lower_bound, upper_bound) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            (sensor, timestamp, forecast['yhat'], 
+             forecast['yhat_lower'], forecast['yhat_upper'])
+        )
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Database insert error: {err}")
+    finally:
+        cursor.close()
 
-    row = fetch_latest_data(line)
-    if not row:
-        return jsonify({"success": False, "error": "No data available"}), 404
+def generate_and_store_forecasts():
+    """Generate forecasts for all lines and store in database"""
+    conn = get_db_connection()
+    if not conn:
+        return
+    
+    # Process both lines
+    for line in ["line4", "line5"]:
+        sensors = detect_sensors(line)
+        if not sensors:
+            print(f"No sensor models found for {line}")
+            continue
+            
+        # Setup table for this line
+        setup_forecast_table(conn, line)
+        
+        # Generate timestamps
+        timestamps = [START_TIME + i * INTERVAL 
+                     for i in range(int(DURATION / INTERVAL) + 1)]
+        
+        print(f"\nProcessing {len(sensors)} sensors for {line}...")
+        
+        for sensor in sensors:
+            model_path = os.path.join(SCRIPT_DIR, "models", line, 
+                                    f"prophet_{sensor}.pkl")
+            
+            for timestamp in timestamps:
+                forecast = load_model_and_forecast(model_path, timestamp)
+                if forecast is not None:
+                    store_forecasts(conn, line, sensor, timestamp, forecast)
+    
+    conn.close()
+    print("\nForecast generation complete!")
 
-    timestamp = row.get("timestamp")
-    result = {
-        "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S") if isinstance(timestamp, datetime) else timestamp
-    }
+@app.route('/forecast', methods=['GET'])
+def get_forecast():
+    """API endpoint to trigger forecast generation"""
+    generate_and_store_forecasts()
+    return jsonify({"status": "success", "message": "Forecasts generated and stored"})
 
-    # Process all sensor columns that start with "r"
-    sensors = [col for col in row.keys() if col.startswith("r")]
-    for sensor in sensors:
-        raw_val = row.get(sensor)
-        if raw_val is None:
-            result[sensor] = {"value": None, "status": "no-data"}
-        else:
-            try:
-                actual = float(raw_val)
-                result[sensor] = process_sensor(sensor, line, actual)
-            except Exception as e:
-                print(f"Error converting sensor {sensor} value: {e}")
-                result[sensor] = {"value": None, "status": "error"}
-    return jsonify({"success": True, "data": result})
-
-@app.route('/')
-def home():
-    return jsonify({
-        "message": "Rakusens ML API is running",
-        "endpoints": {
-            "/api/live-data/<line>": "Returns live sensor values with ML anomaly detection"
-        }
-    })
-
-if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+if __name__ == "__main__":
+    generate_and_store_forecasts()
+    # To run as API: app.run(debug=True, use_reloader=False)
