@@ -18,11 +18,11 @@ DB_CONFIG = {
     "database": "rakusensdatabase"
 }
 
-# Constants
+# Constants - Change the START_TIME and DURATION values before running
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-START_TIME = datetime(2024, 5, 20, 14, 30, 0)
+START_TIME = datetime(2025, 4, 1, 21, 52, 0)
 INTERVAL = timedelta(seconds=30)
-DURATION = timedelta(hours=0.25)
+DURATION = timedelta(hours=0.5)
 
 def get_db_connection():
     """Establish connection to MySQL database"""

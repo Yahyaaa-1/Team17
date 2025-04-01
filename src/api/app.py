@@ -1286,6 +1286,94 @@ def get_table_headers():
         'headers': headers
     })
 
+@app.route('/api/latest-forecast/<line>/<sensor>', methods=['GET', 'OPTIONS'])
+def get_latest_forecast(line, sensor):
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+
+        table_name = f"forecasted{line}"
+        
+        cursor = connection.cursor(dictionary=True)
+        
+        # Get most recent forecast (last 30 seconds)
+        query = """
+            SELECT * FROM {} 
+            WHERE sensor = %s 
+            AND forecast_time >= NOW() - INTERVAL 30 SECOND
+            ORDER BY forecast_time DESC 
+            LIMIT 1
+        """.format(table_name)
+        
+        cursor.execute(query, (sensor,))
+        result = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+
+        if result:
+            return jsonify({
+                'success': True,
+                'forecast': {
+                    'sensor': result['sensor'],
+                    'forecast_value': float(result['forecast_value']),
+                    'lower_bound': float(result['lower_bound']),
+                    'upper_bound': float(result['upper_bound']),
+                    'forecast_time': result['forecast_time'].strftime('%Y-%m-%d %H:%M:%S') if result['forecast_time'] else None
+                }
+            })
+        else:
+            return jsonify({'success': False, 'message': 'No recent forecast found'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
+
+@app.route('/api/bulk-forecast/<line>', methods=['POST'])
+def get_bulk_forecast(line):
+    try:
+        sensors = request.json.get('sensors', [])
+        if not sensors:
+            return jsonify({'success': False, 'error': 'No sensors provided'}), 400
+            
+        connection = get_db_connection()
+        table_name = f"forecasted{line}"
+        
+        # Create a query for multiple sensors
+        placeholders = ','.join(['%s'] * len(sensors))
+        query = f"""
+            WITH latest AS (
+                SELECT sensor, MAX(forecast_time) as latest_time
+                FROM {table_name}
+                WHERE sensor IN ({placeholders})
+                AND forecast_time >= NOW() - INTERVAL 30 SECOND
+                GROUP BY sensor
+            )
+            SELECT f.* FROM {table_name} f
+            JOIN latest l ON f.sensor = l.sensor AND f.forecast_time = l.latest_time
+        """
+        
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query, sensors)
+        results = cursor.fetchall()
+        
+        return jsonify({
+            'success': True,
+            'data': {r['sensor']: {
+                'forecast_value': float(r['forecast_value']),
+                'lower_bound': float(r['lower_bound']),
+                'upper_bound': float(r['upper_bound'])
+            } for r in results}
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    
+    
 @app.route('/api/logs', methods=['POST'])
 def get_logs():
     try:
