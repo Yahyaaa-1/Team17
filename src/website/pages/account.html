@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rakusens - Account</title>
+    <link rel="icon" type="image/x-icon" href="images/rakusens_tab_logo.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/account.css">
+    <link rel="stylesheet" href="../css/dark-mode.css">
 </head>
 <body>
     <!-- Header Section -->
@@ -14,7 +16,7 @@
         <div class="header-overlay"></div>
         <div class="header-content container-fluid h-100">
             <div class="logo-container position-absolute top-50 start-50 translate-middle">
-                <img src="../images/rakusens_logo.svg" alt="Rakusens Logo" class="logo-svg filter-invert">
+                <img src="../images/rakusens_logo.svg" alt="Rakusens Logo" class="logo-svg">
             </div>
         </div>
     </header>
@@ -23,10 +25,13 @@
     <nav class="main-nav navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container-fluid justify-content-center">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="../home.html"><i class="fas fa-chart-line me-2"></i>Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="historical.html"><i class="fas fa-database me-2"></i>Historical Data</a></li>
-                <li class="nav-item"><a class="nav-link" href="help.html"><i class="fas fa-question-circle me-2"></i>Help</a></li>
-                <li class="nav-item"><a class="nav-link active" href="account.html"><i class="fas fa-user-cog me-2"></i>Account</a></li>
+                <li class="nav-item"><a class="nav-link" href="../home.html"><i
+                            class="fas fa-chart-line me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="historical.html"><i
+                            class="fas fa-database me-2"></i>Historical Data</a></li>
+                <li class="nav-item"><a class="nav-link" href="help.html"><i
+                            class="fas fa-question-circle me-2"></i>Help</a></li>
+                <li class="nav-item"><a class="nav-link" href="../pages/logs.html"><i class="fa fa-file-alt"></i> Logs</a></li>
             </ul>
         </div>
     </nav>
@@ -34,7 +39,6 @@
     <!-- Main Content -->
     <main class="container mt-5">
         <h2 class="mb-4">Account Settings</h2>
-        
         <div class="row g-4">
             <!-- Account Overview -->
             <div class="col-lg-4">
@@ -57,7 +61,6 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
                         <h3 class="mb-4"><i class="fas fa-lock me-2"></i>Security Settings</h3>
-                        
                         <!-- Password Update -->
                         <form id="passwordForm" class="needs-validation" novalidate>
                             <div class="mb-3">
@@ -89,8 +92,8 @@
                     <div class="card-body">
                         <h3 class="mb-3"><i class="fas fa-cogs me-2"></i>Preferences</h3>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="darkModeToggle">
-                            <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+                            <input class="form-check-input" type="checkbox" id="dark-mode-toggle">
+                            <label class="form-check-label" for="dark-mode-toggle">Dark Mode</label>
                         </div>
                     </div>
                 </div>
@@ -125,6 +128,10 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dark-mode.js"></script>
+</body>
+
+</html>
     <script>
         // Dark Mode Toggle Functionality
         const darkModeToggle = document.getElementById('darkModeToggle');

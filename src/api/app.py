@@ -73,15 +73,15 @@ def trigger_log():
     except Exception as e:
         print(f"Logging error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-    
 def log_event(message, type, log_level):
     try:
         print("Reached log_event method")
+        print(f"Logging message: {message}, Type: {type}, Level: {log_level}")
 
-        try:
-            # Direct database insertion instead of HTTP call
-            connection = get_db_connection()
-            if connection:
+        # Direct database insertion
+        connection = get_db_connection()
+        if connection:
+            try:
                 cursor = connection.cursor()
                 cursor.execute("""
                     INSERT INTO logs 
@@ -89,10 +89,14 @@ def log_event(message, type, log_level):
                     VALUES (%s, %s, %s)
                 """, (log_level, type, message))
                 connection.commit()
+                print("Log event inserted successfully")
+            except mysql.connector.Error as db_err:
+                print(f"Database error: {db_err}")
+            finally:
                 cursor.close()
                 connection.close()
-        except Exception as e:
-            print(f"Failed to log event directly: {e}")
+        else:
+            print("Failed to establish database connection")
 
     except Exception as e:
         print(f"Failed to log event: {e}")
@@ -345,7 +349,7 @@ def update_dark_mode():
             return jsonify({'success': False, 'error': 'No data received'}), 400
 
         operator_id = data.get('operator_id')
-        dark_mode = data.get('dark_mode', 'disabled')  # Default to 'disabled' if not provided
+        dark_mode = data.get('dark_mode', 0)  # Default to 0 (disabled) if not provided
 
         if not operator_id:
             return jsonify({'success': False, 'error': 'Missing operator ID'}), 400
@@ -356,7 +360,7 @@ def update_dark_mode():
 
         cursor = connection.cursor()
 
-        # Update the dark mode preference in the database
+        # Update the dark mode preference in the database (0 or 1)
         cursor.execute("""
             UPDATE user_accounts
             SET dark_mode = %s
@@ -1135,10 +1139,8 @@ def get_sensor_data(line, sensor):
 def sensor_page(line, sensor):
     return render_template('sensor-data.html', line=line, sensor=sensor)
 
-  
 @app.route('/api/historical/<line>', methods=['POST'])
 def get_historical_data(line):
-    
     try:
         connection = get_db_connection()
         if not connection:
@@ -1156,16 +1158,23 @@ def get_historical_data(line):
         length = int(data.get("length", 50))
         search_value = data.get("searchValue", "")
         date_filter = data.get("dateFilter", "")
+        start_date_time = data.get("startDateTime", "")
+        end_date_time = data.get("endDateTime", "")
 
         query = f"SELECT * FROM {line} WHERE 1=1"
 
-
         if date_filter:
             query += f" AND DATE(timestamp) = '{date_filter}'"
+        if start_date_time and end_date_time:
+            query += f" AND timestamp BETWEEN '{start_date_time}' AND '{end_date_time}'"
         if search_value:
             query += f" AND (timestamp LIKE '%{search_value}%')"
 
         query += f" ORDER BY timestamp DESC LIMIT {length}"
+
+        # Debug: Print the constructed SQL query
+        print("Executing SQL Query:", query)
+
         cursor.execute(query)
         data = cursor.fetchall()
 
@@ -1182,38 +1191,6 @@ def get_historical_data(line):
             connection.close()
 
 
-@app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
-def get_table_headers():
-    if request.method == "OPTIONS":
-        return jsonify({"success": True})
-    try:
-        connection = get_db_connection()
-        
-
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
-        
-        tableID = request.args.get('tableID')
-
-        cursor = connection.cursor()
-
-        # Query to get column names
-        cursor.execute(f"SHOW COLUMNS FROM {tableID}")
-        columns = cursor.fetchall()
-
-        cursor.close()
-        connection.close()
-
-        # Extract column names
-        headers = [column[0] for column in columns]
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
-
-    return jsonify({
-        'success': True,
-        'headers': headers
-    })
 
 
 
@@ -1276,6 +1253,39 @@ def deleteSensor():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
+@app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
+def get_table_headers():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    try:
+        connection = get_db_connection()
+        
+
+        if not connection:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        tableID = request.args.get('tableID')
+
+        cursor = connection.cursor()
+
+        # Query to get column names
+        cursor.execute(f"SHOW COLUMNS FROM {tableID}")
+        columns = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        # Extract column names
+        headers = [column[0] for column in columns]
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+    return jsonify({
+        'success': True,
+        'headers': headers
+    })
+
 @app.route('/api/logs', methods=['POST'])
 def get_logs():
     try:
@@ -1304,7 +1314,11 @@ def get_logs():
 
         # Sorting and limiting
         query += " ORDER BY id DESC LIMIT %s"
-        
+
+        # Debug: Print the constructed SQL query and parameters
+        print("Executing SQL Query:", query)
+        print("Query Parameters:", (length,))
+
         cursor.execute(query, (length,))
         data = cursor.fetchall()
 
@@ -1320,7 +1334,6 @@ def get_logs():
     finally:
         if connection:
             connection.close()
-
 
 @app.route('/api/forgot-password', methods=['POST', 'OPTIONS'])
 def forgot_password():    
@@ -1477,9 +1490,6 @@ def get_user_details():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'Server error'}), 500
-
-from flask import render_template, session
-from db_config import get_db_connection
 
 @app.route('/account')
 def account():

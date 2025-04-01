@@ -10,28 +10,11 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 <body>
-  <header class="main-header position-relative">
-    <div class="header-content container-fluid h-100">
-      <div class="logo-container position-absolute top-50 start-50 translate-middle">
-        <img src="../images/rakusens_logo.svg" alt="Rakusens Logo" class="logo-svg" />
-      </div>
-    </div>
-  </header>
-
-  <nav class="main-nav navbar navbar-expand-lg navbar-dark">
-    <div class="container-fluid justify-content-center">
-      <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link" href="../home.html">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="historical.html">Historical Data</a></li>
-        <li class="nav-item"><a class="nav-link" href="help.html">Help & Support</a></li>
-      </ul>
-    </div>
-  </nav>
-
   <div class="container my-5 text-center">
     <h2 class="mb-4" id="sensorTitle">Loading...</h2>
 
-    <div class="chart-container">
+    <!-- Line Chart -->
+    <div class="chart-container mb-4">
       <h3>Temperature Over Time</h3>
       <div id="sensorChart" style="height: 400px;"></div>
     </div>
@@ -39,62 +22,69 @@
     <h3 class="mt-3">Current Temperature:</h3>
     <h1 id="temperatureDisplay" class="text-primary fw-bold">-- °C</h1>
 
+    <!-- Statistics -->
     <div class="row mt-4">
-      <div class="col-md-4">
-        <h4>Mean Temperature</h4>
-        <h2 id="meanTemperature">-- °C</h2>
-      </div>
-      <div class="col-md-4">
-        <h4>Minimum Temperature</h4>
-        <h2 id="minTemperature">-- °C</h2>
-      </div>
-      <div class="col-md-4">
-        <h4>Maximum Temperature</h4>
-        <h2 id="maxTemperature">-- °C</h2>
-      </div>
+      <div class="col-md-4"><h4>Mean</h4><h2 id="meanTemperature">-- °C</h2></div>
+      <div class="col-md-4"><h4>Min</h4><h2 id="minTemperature">-- °C</h2></div>
+      <div class="col-md-4"><h4>Max</h4><h2 id="maxTemperature">-- °C</h2></div>
     </div>
 
+    <!-- Scatter Chart -->
     <div class="chart-container mt-5">
-      <h3>Temperature Data (Scatter Plot)</h3>
+      <h3>Temperature Scatter</h3>
       <div id="sensorScatterChart" style="height: 400px;"></div>
     </div>
 
+    <!-- Area Chart -->
     <div class="chart-container mt-5">
-      <h3>Temperature Trend (Area Chart)</h3>
+      <h3>Temperature Trend (Area)</h3>
       <div id="sensorAreaChart" style="height: 400px;"></div>
     </div>
   </div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const sensor = urlParams.get("sensor");
-    const line = urlParams.get("line");
+    const line = urlParams.get("line") || "line4";
+    const sensor = urlParams.get("sensor") || "r01";
     const cacheKey = `sensorData_${line}_${sensor}`;
+    let chartData = [];
     let temperatureData = [];
 
     document.getElementById("sensorTitle").textContent = `Sensor Data for ${sensor} on ${line}`;
 
-    const chartOptionsBase = {
-      height: 400,
-      animations: { enabled: false },
-      xaxis: { type: "datetime", labels: { format: "HH:mm:ss" } },
+    const baseChartOptions = {
+      chart: { animations: { enabled: false }, height: 400, toolbar: { show: false } },
+      series: [{ name: sensor, data: [] }],
+      xaxis: {
+        type: "datetime",
+        title: { text: "Time" },
+        labels: {
+          datetimeFormatter: {
+            hour: "HH:mm",
+            minute: "HH:mm",
+            second: "HH:mm:ss"
+          }
+        },
+        tooltip: { enabled: true },
+        range: 2 * 60 * 60 * 1000 // 2 hours
+      },
       yaxis: { title: { text: "Temperature (°C)" } }
     };
 
-    const sensorChart = new ApexCharts(document.getElementById("sensorChart"), {
-      chart: { type: "line", ...chartOptionsBase },
-      series: [{ name: sensor, data: [] }]
+    const sensorChart = new ApexCharts(document.querySelector("#sensorChart"), {
+      ...baseChartOptions,
+      chart: { ...baseChartOptions.chart, type: "line" }
     });
 
-    const sensorScatterChart = new ApexCharts(document.getElementById("sensorScatterChart"), {
-      chart: { type: "scatter", ...chartOptionsBase },
-      series: [{ name: sensor, data: [] }],
+    const sensorScatterChart = new ApexCharts(document.querySelector("#sensorScatterChart"), {
+      ...baseChartOptions,
+      chart: { ...baseChartOptions.chart, type: "scatter" },
       markers: { size: 5, colors: ["#FF4560"] }
     });
 
-    const sensorAreaChart = new ApexCharts(document.getElementById("sensorAreaChart"), {
-      chart: { type: "area", ...chartOptionsBase },
-      series: [{ name: sensor, data: [] }],
+    const sensorAreaChart = new ApexCharts(document.querySelector("#sensorAreaChart"), {
+      ...baseChartOptions,
+      chart: { ...baseChartOptions.chart, type: "area" },
       fill: {
         type: "gradient",
         gradient: { shadeIntensity: 0.5, opacityFrom: 0.6, opacityTo: 0.2, stops: [0, 90, 100] }
@@ -105,41 +95,18 @@
     sensorScatterChart.render();
     sensorAreaChart.render();
 
-    // Load cached or API data
     function loadInitialData() {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        temperatureData = parsed.map(p => p.y);
-        updateCharts(parsed);
-        updateStatistics(temperatureData[temperatureData.length - 1]);
-        console.log("Loaded initial data from localStorage");
-      } else {
-        fetchInitialFromAPI();
-      }
-    }
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
+      const now = Date.now();
+      const twoHoursAgo = now - 2 * 60 * 60 * 1000;
 
-    function fetchInitialFromAPI() {
-      fetch(`http://localhost:5000/api/historical/${line}`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ length: 20, searchValue: "", dateFilter: "" })
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (!result || !result.data || result.data.length === 0) return;
+      chartData = cached.filter(p => p.x >= twoHoursAgo).sort((a, b) => a.x - b.x);
+      temperatureData = chartData.map(p => p.y);
 
-        const formatted = result.data.map(row => ({
-          x: new Date(row.timestamp).getTime(),
-          y: parseFloat(row[sensor])
-        })).filter(p => !isNaN(p.y)).sort((a, b) => a.x - b.x);
+      updateCharts(chartData);
+      updateStatistics();
 
-        temperatureData = formatted.map(p => p.y);
-        updateCharts(formatted);
-        updateStatistics(temperatureData[temperatureData.length - 1]);
-        localStorage.setItem(cacheKey, JSON.stringify(formatted));
-      })
-      .catch(err => console.error("Error loading initial API data:", err));
+      setInterval(fetchLiveData, 8000);
     }
 
     function fetchLiveData() {
@@ -147,53 +114,42 @@
         .then(res => res.json())
         .then(data => {
           if (data.success && data.data[sensor]) {
-            const value = data.data[sensor];
-            const timestamp = Date.now();
-            const point = { x: timestamp, y: value };
+            const now = Date.now();
+            const point = { x: now, y: parseFloat(data.data[sensor]) };
 
-            temperatureData.push(value);
-            if (temperatureData.length > 20) temperatureData.shift();
-            appendToCharts(point);
-            updateStatistics(value);
+            chartData.push(point);
+            chartData = chartData.filter(p => p.x >= now - 2 * 60 * 60 * 1000);
+            temperatureData = chartData.map(p => p.y);
 
-            const currentData = sensorChart.w.config.series[0].data || [];
-            const updated = [...currentData, point].slice(-20);
-            localStorage.setItem(cacheKey, JSON.stringify(updated));
+            updateCharts(chartData);
+            updateStatistics();
+            localStorage.setItem(cacheKey, JSON.stringify(chartData));
           }
         })
         .catch(err => console.error("Live update error:", err));
     }
 
     function updateCharts(data) {
-      sensorChart.updateSeries([{ name: sensor, data }]);
-      sensorScatterChart.updateSeries([{ name: sensor, data }]);
-      sensorAreaChart.updateSeries([{ name: sensor, data }]);
+      const updatedSeries = [{ name: sensor, data }];
+      sensorChart.updateSeries(updatedSeries);
+      sensorScatterChart.updateSeries(updatedSeries);
+      sensorAreaChart.updateSeries(updatedSeries);
     }
 
-    function appendToCharts(point) {
-      [sensorChart, sensorScatterChart, sensorAreaChart].forEach(chart => {
-        const current = chart.w.config.series[0].data || [];
-        const updated = [...current, point].slice(-20);
-        chart.updateSeries([{ name: sensor, data: updated }]);
-      });
-
-      document.getElementById("temperatureDisplay").textContent = `${point.y.toFixed(1)} °C`;
-    }
-
-    function updateStatistics(latest) {
+    function updateStatistics() {
+      if (!temperatureData.length) return;
       const mean = (temperatureData.reduce((a, b) => a + b, 0) / temperatureData.length).toFixed(1);
       const min = Math.min(...temperatureData).toFixed(1);
       const max = Math.max(...temperatureData).toFixed(1);
+      const latest = temperatureData[temperatureData.length - 1].toFixed(1);
 
-      document.getElementById("temperatureDisplay").textContent = `${latest.toFixed(1)} °C`;
+      document.getElementById("temperatureDisplay").textContent = `${latest} °C`;
       document.getElementById("meanTemperature").textContent = `${mean} °C`;
       document.getElementById("minTemperature").textContent = `${min} °C`;
       document.getElementById("maxTemperature").textContent = `${max} °C`;
     }
 
-    
     loadInitialData();
-    setInterval(fetchLiveData, 8000);
   </script>
 </body>
 </html>

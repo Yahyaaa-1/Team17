@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     let apiUrlBase = 'http://localhost:5000/api/logs';
     let logsTable = null;
-    const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin'));
+    const isAdmin = JSON.parse(sessionStorage.getItem('isAdmin')); // Check if the user is an admin
 
     function initializeLogsTable() {
         logsTable = $('#logsTable').DataTable({
@@ -12,31 +12,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 type: 'POST',
                 contentType: "application/json",
                 data: function (d) {
-                    return JSON.stringify({
+                    const requestData = {
                         length: d.length,
                         dateFilter: $('#dateFilter').val(),
                         searchValue: $('#searchBox').val()
-                    });
+                    };
+                    console.log("Sending request data:", requestData); // Debugging line
+                    return JSON.stringify(requestData);
                 },
                 dataFilter: function(data) {
+                    console.log("Received response data:", data); // Debugging line
                     let json = JSON.parse(data);
+                    let logs = json.data;
+
+                    // Filter the logs if the user is not an admin
+                    if (!isAdmin) {
+                        logs = logs.filter(log => log.level !== 'admin');
+                    }
+
                     return JSON.stringify({
                         draw: 1,
-                        recordsTotal: json.data.length,
-                        recordsFiltered: json.data.length,
-                        data: json.data
+                        recordsTotal: logs.length,
+                        recordsFiltered: logs.length,
+                        data: logs
                     });
                 }
             },
             columns: [
-                { 
-                    data: 'id',
-                    width: '50px'
-                },
-                { 
-                    data: 'timestamp',
-                    width: '150px'
-                },
+                { data: 'id', width: '50px' },
+                { data: 'timestamp', width: '150px' },
                 { 
                     data: 'level',
                     render: function(data) {
@@ -57,12 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     width: '80px'
                 },
-                { 
-                    data: 'message',
-                    render: function(data) {
-                        return data; // Return full message without truncation
-                    }
-                }
+                { data: 'message' }
             ],
             order: [[0, 'desc']],
             pageLength: 25,

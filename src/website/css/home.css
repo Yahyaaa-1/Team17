@@ -23,6 +23,51 @@
     background-repeat: no-repeat;
 }
 
+/* Navigation Styles */
+.main-nav {
+    padding: 0.5rem 0;
+    position: relative;
+    z-index: 999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.main-nav .navbar-nav {
+    gap: 2rem;
+}
+
+.main-nav .nav-link {
+    color: white !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.main-nav .nav-link.active {
+    background: var(--primary-dark-blue);
+    color: white !important;
+}
+
+.main-nav .nav-link:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .main-nav {
+    background: var(--deep-navy);
+    border-bottom: 1px solid var(--secondary-blue);
+}
+
+/* Header/Nav Spacing */
+.main-header {
+    margin-bottom: 0;
+}
+
+.header-content {
+    position: relative;
+    height: 80px; /* Fixed height for header */
+    margin: 0 auto;
+    max-width: 1200px;
+}
 .header-content {
     display: flex;
     justify-content: space-between;
@@ -43,6 +88,32 @@
     width: auto;
 }
 
+.login-btn {
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--accent-blue);
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-btn:hover {
+    background-color: var(--light-blue);
+}
+
+.login-btn i {
+    margin-right: 5px;
+}
+
+/* Bootstrap Navbar Styling */
 .navbar {
     background-color: var(--secondary-blue) !important;
     padding: 0.5rem 1rem;

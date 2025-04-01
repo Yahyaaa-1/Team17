@@ -16,7 +16,6 @@ const sensorThresholds = {
     r06: { min: 268.39 * 0.7, max: 268.39 * 1.3 },
     r07: { min: 263.18 * 0.7, max: 263.18 * 1.3 },
     r08: { min: 210.97 * 0.7, max: 210.97 * 1.3 },
-
     // Line 5
     r01: { min: 133.31 * 0.7, max: 133.31 * 1.3 },
     r02: { min: 203.01 * 0.7, max: 203.01 * 1.3 },
@@ -45,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateSensorSelector(selectedLine);
     fetchLiveData();
 
-    document.getElementById("lineSelector").addEventListener("change", function() {
+    document.getElementById("lineSelector").addEventListener("change", function () {
         selectedLine = this.value;
         initializeDonutSlider(selectedLine);
         updateSensorSelector(selectedLine);
@@ -511,4 +510,5 @@ function getTrafficLightColor(sensor, value) {
 
 function closeExpandedChart() {
     document.getElementById("expandedChartContainer").style.display = "none";
-}
+
+  

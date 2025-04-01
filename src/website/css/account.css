@@ -1,9 +1,86 @@
-/* account.css */
+/* account.css - Consolidated with dark mode preferences */
+
+/* Bootstrap Variables Override */
 :root {
+    --primary-dark-blue: #1B355D;
+    --secondary-blue: #005095;
+    --deep-navy: #1A2C4E;
+    --light-blue: #3B5998;
+    --accent-blue: #0c3c84;
+
     --primary-color: #2a4d69;
     --secondary-color: #4b86b4;
     --success-color: #28a745;
     --danger-color: #dc3545;
+}
+
+/* Main Header Styles */
+.main-header {
+    height: 200px;
+    background-image: url('../images/rakusens_header.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-content {
+    position: relative;
+    height: 100%;
+}
+
+.logo-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.logo-svg {
+    height: 160px;
+    width: auto;
+}
+
+/* Main Navigation Styles */
+.main-nav {
+    padding: 0.5rem 0;
+    position: relative;
+    z-index: 999;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--secondary-blue) !important;
+}
+
+.main-nav .navbar-nav {
+    gap: 2rem;
+}
+
+.main-nav .nav-link {
+    color: white !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.main-nav .nav-link.active {
+    background: var(--primary-dark-blue);
+    color: white !important;
+}
+
+.main-nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.main-nav .nav-link i {
+    margin-right: 8px;
+}
+
+[data-theme="dark"] .main-nav {
+    background: var(--deep-navy);
+    border-bottom: 1px solid var(--secondary-blue);
 }
 
 /* Dark Mode Variables */
@@ -18,24 +95,24 @@
         background-color: #2d2d2d;
         border-color: #404040;
     }
-    
+
     .form-control {
         background-color: #333;
         border-color: #444;
         color: #fff;
     }
-    
+
     .input-group-text {
         background-color: #444;
         border-color: #555;
     }
-    
+
     .alert {
         background-color: #333;
         border-color: #444;
         color: #fff;
     }
-    
+
     .btn {
         background-color: var(--secondary-color);
         border-color: var(--secondary-color);
@@ -48,31 +125,11 @@
     }
 }
 
+/* Account Page Specific Styles */
 body {
     background-color: var(--body-bg);
     color: var(--body-color);
     transition: all 0.3s ease;
-}
-
-.main-header {
-    background-image: url('../images/rakusens_header.png');
-    background-color: var(--primary-color);
-    height: 280px;
-    position: relative;
-}
-
-.header-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
-}
-
-.logo-svg {
-    width: 180px;
-    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.25));
 }
 
 .avatar-placeholder {
@@ -84,12 +141,15 @@ body {
 }
 
 .card {
-    border-radius: 12px;
-    transition: transform 0.2s ease;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    background-color: #fff;
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-5px);
 }
 
 .form-control {
@@ -114,7 +174,80 @@ body {
     transition: all 0.2s ease;
 }
 
+.btn-primary {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+.btn-primary:hover {
+    background-color: var(--light-blue);
+    border-color: var(--light-blue);
+}
+
+.form-check-input:checked {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+}
+
+/* Footer Styles */
+.footer {
+    background-color: var(--deep-navy);
+    color: white;
+    padding: 20px 50px;
+}
+
+.footer .nav-link {
+    color: white;
+    padding: 0.5rem 1rem;
+}
+
+.footer .nav-link:hover {
+    color: #3498db;
+}
+
 /* Invert filter for dark mode images */
 .filter-invert {
     filter: invert(1);
+}
+
+/* Login and Signup Containers */
+.register-container,
+.signup-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Styling */
+#login-form,
+#register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group,
+.mb-3 {
+    margin-bottom: 1rem;
+}
+
+.forgot-password-link {
+    display: block;
+    text-align: right;
+    margin-top: 5px;
+    font-size: 12px;
+}
+.eye-icon {
+    font-size: 18px;
+    color: #333;
+}
+
+
+/* Signup and Login Link Styling */
+.signup-link {
+    text-align: center;
+    margin-top: 15px;
 }
