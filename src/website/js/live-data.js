@@ -1,6 +1,10 @@
 let selectedLine = "line4";
-let charts = {};
-let expandedChart = null;
+let donutCharts = {};
+let currentSlide = 0;
+let trafficLightChart;
+let barChart;
+let scatterChart;
+let liveScatterData = { normal: [], warning: [], critical: [] };
 
 const sensorThresholds = {
     // Line 4
@@ -29,29 +33,402 @@ const sensorThresholds = {
     r14: { min: 284.27 * 0.7, max: 284.27 * 1.3 },
     r15: { min: 174.30 * 0.7, max: 174.30 * 1.3 },
     r16: { min: 220.43 * 0.7, max: 220.43 * 1.3 },
-    r17: { min: 151.66 * 0.7, max: 151.66 * 1.3 },
+    r17: { min: 151.66 * 0.7, max: 151.66 * 1.3 }
 };
 
-document.addEventListener("DOMContentLoaded", function () {
-    initializeCharts(selectedLine);
+document.addEventListener("DOMContentLoaded", function() {
+    initializeDonutSlider(selectedLine);
+    initTrafficLightChart();
+    initBarChart();
+    initScatterChart();
+    updateSensorSelector(selectedLine);
     fetchLiveData();
 
     document.getElementById("lineSelector").addEventListener("change", function () {
         selectedLine = this.value;
-        initializeCharts(selectedLine);
+        initializeDonutSlider(selectedLine);
+        updateSensorSelector(selectedLine);
         fetchLiveData();
     });
 
-    setInterval(fetchLiveData, 5000); // Poll every 5 seconds
+    document.getElementById('prevDonut').addEventListener('click', slideDonutsLeft);
+    document.getElementById('nextDonut').addEventListener('click', slideDonutsRight);
+    document.getElementById("sensorSelector").addEventListener("change", updateScatterChart);
+
+    setInterval(fetchLiveData, 5000);
 });
+
+function initializeDonutSlider(line) {
+    const slider = document.getElementById('donutSlider');
+    slider.innerHTML = '';
+    currentSlide = 0;
+    donutCharts = {};
+
+    const sensors = getSensorsForLine(line);
+
+    sensors.forEach(sensor => {
+        const chartContainer = document.createElement('div');
+        chartContainer.className = 'donut-chart-container';
+        
+        const title = document.createElement('h5');
+        title.textContent = sensor.toUpperCase();
+        
+        const chartDiv = document.createElement('div');
+        chartDiv.className = 'donut-chart';
+        chartDiv.id = `donut-chart-${sensor}`;
+        
+        chartContainer.appendChild(title);
+        chartContainer.appendChild(chartDiv);
+        slider.appendChild(chartContainer);
+        
+        donutCharts[sensor] = new ApexCharts(document.querySelector(`#donut-chart-${sensor}`), {
+            series: [0],
+            chart: {
+                type: 'donut',
+                height: 180
+            },
+            labels: ['Current Value'],
+            colors: ['#00E396'],
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            name: {
+                                show: true,
+                                fontSize: '12px'
+                            },
+                            value: {
+                                show: true,
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                formatter: function(val) {
+                                    return val.toFixed(2) + '°C';
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        donutCharts[sensor].render();
+    });
+}
+
+function initBarChart() {
+    barChart = new ApexCharts(document.querySelector("#barChart"), {
+        chart: {
+            type: 'bar',
+            height: '100%',
+            toolbar: {
+                show: false
+            }
+        },
+        series: [{
+            name: 'Temperature',
+            data: []
+        }],
+        xaxis: {
+            categories: [],
+            labels: {
+                style: {
+                    fontSize: '12px'
+                }
+            }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: false
+            }
+        },
+        colors: ['#0066FF'],
+        dataLabels: {
+            enabled: false
+        }
+    });
+    barChart.render();
+}
+
+function initScatterChart() {
+    scatterChart = new ApexCharts(document.querySelector("#scatterChart"), {
+        chart: {
+            type: 'scatter',
+            height: '100%',
+            zoom: {
+                enabled: true,
+                type: 'xy'
+            },
+            toolbar: {
+                show: true,
+                tools: {
+                    download: true,
+                    selection: true,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: true,
+                    reset: true
+                }
+            },
+            animations: {
+                enabled: true,
+                easing: 'linear',
+                dynamicAnimation: {
+                    speed: 1000
+                }
+            }
+        },
+        series: [
+            { name: 'Normal', data: [] },
+            { name: 'Warning', data: [] },
+            { name: 'Critical', data: [] }
+        ],
+        xaxis: {
+            type: 'datetime',
+            title: {
+                text: 'Time'
+            },
+            labels: {
+                datetimeFormatter: {
+                    year: 'yyyy',
+                    month: "MMM 'yy",
+                    day: 'dd MMM',
+                    hour: 'HH:mm'
+                }
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Temperature (°C)'
+            },
+            min: 0,
+            max: 400
+        },
+        colors: ['#00E396', '#FFA500', '#FF0000'],
+        markers: {
+            size: 6,
+            strokeWidth: 0,
+            hover: {
+                size: 8
+            }
+        },
+        tooltip: {
+            shared: false,
+            intersect: true,
+            x: {
+                format: 'dd MMM yyyy HH:mm:ss'
+            },
+            y: {
+                formatter: function(val) {
+                    return val.toFixed(2) + '°C';
+                }
+            }
+        }
+    });
+    scatterChart.render();
+}
+
+function initTrafficLightChart() {
+    trafficLightChart = new ApexCharts(document.querySelector("#trafficLightPieChart"), {
+        series: [0, 0, 0],
+        chart: {
+            type: 'pie',
+            height: '100%'
+        },
+        labels: ['Normal', 'Warning', 'Critical'],
+        colors: ['#00E396', '#FFA500', '#FF0000'],
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: { width: 200 },
+                legend: { position: 'bottom' }
+            }
+        }],
+        plotOptions: {
+            pie: {
+                donut: {
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total Sensors',
+                            formatter: function(w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        legend: { position: 'right', offsetY: 0, height: 230 },
+        
+    });
+    trafficLightChart.render();
+}
+
+function getSensorsForLine(line) {
+    return line === "line4" 
+        ? ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
+        : ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"];
+}
+
+function updateSensorSelector(line) {
+    const selector = document.getElementById("sensorSelector");
+    selector.innerHTML = '';
+    
+    const sensors = getSensorsForLine(line);
+    sensors.forEach(sensor => {
+        const option = document.createElement('option');
+        option.value = sensor;
+        option.textContent = sensor.toUpperCase();
+        selector.appendChild(option);
+    });
+    
+    // Reset live data when changing lines
+    liveScatterData = { normal: [], warning: [], critical: [] };
+    
+    // Trigger initial update if sensors exist
+    if (sensors.length > 0) {
+        updateScatterChart();
+    }
+}
+
+function updateScatterChart() {
+    const selectedSensor = document.getElementById("sensorSelector").value;
+    if (!selectedSensor) return;
+
+    // Reset live data when switching sensors
+    liveScatterData = { normal: [], warning: [], critical: [] };
+
+    // First load historical data
+    fetch(`http://127.0.0.1:5000/api/historical-data/${selectedLine}/${selectedSensor}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Categorize historical data
+                data.data.forEach(item => {
+                    const point = {
+                        x: new Date(item.timestamp).getTime(),
+                        y: item.value
+                    };
+                    const status = getTrafficLightStatus(selectedSensor, item.value);
+                    
+                    if (status === 'normal') liveScatterData.normal.push(point);
+                    else if (status === 'warning') liveScatterData.warning.push(point);
+                    else liveScatterData.critical.push(point);
+                });
+
+                scatterChart.updateOptions({
+                    series: [
+                        { name: 'Normal', data: liveScatterData.normal },
+                        { name: 'Warning', data: liveScatterData.warning },
+                        { name: 'Critical', data: liveScatterData.critical }
+                    ],
+                    xaxis: {
+                        type: 'datetime'
+                    }
+                });
+            } else {
+                console.error("Failed to fetch historical data");
+            }
+        })
+        .catch(error => console.error("Error fetching historical data:", error));
+}
+
+function updateLiveScatterChart(liveData) {
+    const selectedSensor = document.getElementById("sensorSelector").value;
+    if (!selectedSensor || !liveData[selectedSensor]) return;
+
+    // Get current timestamp and value
+    const timestamp = new Date().getTime();
+    const temperature = liveData[selectedSensor];
+    
+    // Create new point
+    const point = {
+        x: timestamp,
+        y: temperature
+    };
+    
+    // Categorize the point
+    const status = getTrafficLightStatus(selectedSensor, temperature);
+    
+    // Add to appropriate series
+    if (status === 'normal') liveScatterData.normal.push(point);
+    else if (status === 'warning') liveScatterData.warning.push(point);
+    else liveScatterData.critical.push(point);
+
+    // Keep only the last 100 points in each series
+    ['normal', 'warning', 'critical'].forEach(status => {
+        if (liveScatterData[status].length > 100) {
+            liveScatterData[status].shift();
+        }
+    });
+
+    // Update the chart
+    scatterChart.updateOptions({
+        series: [
+            { name: 'Normal', data: liveScatterData.normal },
+            { name: 'Warning', data: liveScatterData.warning },
+            { name: 'Critical', data: liveScatterData.critical }
+        ],
+        xaxis: {
+            type: 'datetime'
+        }
+    });
+}
+
+function getTrafficLightStatus(sensor, value) {
+    const thresholds = sensorThresholds[sensor];
+    if (!thresholds) return 'normal';
+
+    const range = thresholds.max - thresholds.min;
+    const buffer = range * 0.1;
+
+    if (value >= thresholds.min - buffer && value <= thresholds.max + buffer) {
+        return 'normal';
+    } else if (value >= thresholds.min - 2 * buffer && value <= thresholds.max + 2 * buffer) {
+        return 'warning';
+    } else {
+        return 'critical';
+    }
+}
+
+function slideDonutsLeft() {
+    const slider = document.getElementById('donutSlider');
+    const chartWidth = document.querySelector('.donut-chart-container').offsetWidth;
+    if (currentSlide > 0) {
+        currentSlide--;
+        slider.scrollTo({
+            left: currentSlide * (chartWidth + 15),
+            behavior: 'smooth'
+        });
+    }
+}
+
+function slideDonutsRight() {
+    const slider = document.getElementById('donutSlider');
+    const chartWidth = document.querySelector('.donut-chart-container').offsetWidth;
+    const maxSlides = (selectedLine === "line4") ? 7 : 16;
+    if (currentSlide < maxSlides) {
+        currentSlide++;
+        slider.scrollTo({
+            left: currentSlide * (chartWidth + 15),
+            behavior: 'smooth'
+        });
+    }
+}
 
 function fetchLiveData() {
     fetch(`http://127.0.0.1:5000/api/live-data/${selectedLine}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                updateCharts(data.data);
+                updateDonutCharts(data.data);
                 updateAnalytics(data.data);
+                updateBarChart(data.data);
+                updateLiveScatterChart(data.data);
             } else {
                 console.error("Failed to fetch live data");
             }
@@ -59,103 +436,34 @@ function fetchLiveData() {
         .catch(error => console.error("Error fetching data:", error));
 }
 
-function initializeCharts(line) {
-    const container = document.getElementById("chartsContainer");
-    container.innerHTML = "";
-    charts = {};
-
-    const sensors = (line === "line4") 
-        ? ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
-        : ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"];
-
-    sensors.forEach(sensor => {
-        const chartDiv = document.createElement("div");
-        chartDiv.classList.add("col-md-3", "mb-4", "mini-chart");
-        chartDiv.innerHTML = `
-            <div class="chart-title">
-                <a href="pages/sensor-data.html?sensor=${sensor}&line=${line}" class="sensor-link">${sensor}</a>
-            </div>
-            <div id="chart-${sensor}" style="height: 150px;"></div>
-        `;
-
-        chartDiv.addEventListener("click", () => {
-            window.location.href = `pages/sensor-data.html?sensor=${sensor}&line=${line}`;
-        });
-
-        container.appendChild(chartDiv);
-        charts[sensor] = new ApexCharts(document.querySelector(`#chart-${sensor}`), {
-            chart: { type: "line", height: 150, animations: { enabled: false } },
-            series: [{ name: sensor, data: [] }],
-            colors: ['#00E396'],
-            xaxis: { labels: { show: false } },
-            yaxis: { labels: { show: false } }
-        });
-
-        charts[sensor].render();
-    });
-}
-
-function updateCharts(liveData) {
+function updateDonutCharts(liveData) {
     Object.keys(liveData).forEach(sensor => {
-        if (sensor !== "timestamp" && charts[sensor]) {
-            const timestamp = new Date().toLocaleTimeString();
+        if (sensor !== "timestamp" && donutCharts[sensor]) {
             const value = liveData[sensor];
-            const newData = { x: timestamp, y: value };
-
             const color = getTrafficLightColor(sensor, value);
-
-            charts[sensor].updateOptions({
+            
+            donutCharts[sensor].updateOptions({
                 colors: [color]
             });
-
-            const updatedData = [...(charts[sensor].w.config.series[0].data), newData].slice(-50);
-            charts[sensor].updateSeries([{ name: sensor, data: updatedData }]);
-
-            if (expandedChart && expandedChart.sensor === sensor) {
-                updateExpandedChart(sensor, newData, color);
-            }
+            
+            donutCharts[sensor].updateSeries([value]);
         }
     });
 }
 
-function expandChart(sensor) {
-    const expandedContainer = document.getElementById("expandedChartContainer");
-    const expandedChartDiv = document.getElementById("expandedChart");
-
-    expandedContainer.style.display = "flex";
-    expandedChartDiv.innerHTML = "";
-
-    expandedChart = {
-        sensor: sensor,
-        instance: new ApexCharts(expandedChartDiv, {
-            chart: { type: "line", height: 400, animations: { enabled: false } },
-            series: [{ name: sensor, data: charts[sensor].w.config.series[0].data }],
-            colors: charts[sensor].w.config.colors,
-            xaxis: { type: "datetime", labels: { format: "HH:mm:ss" } },
-            yaxis: { title: { text: sensor } }
-        })
-    };
-
-    expandedChart.instance.render();
-}
-
-function updateExpandedChart(sensor, newData, color) {
-    if (!expandedChart || expandedChart.sensor !== sensor) return;
-
-    expandedChart.instance.updateOptions({
-        colors: [color]
+function updateBarChart(liveData) {
+    const sensors = Object.keys(liveData).filter(key => key.startsWith('r'));
+    const categories = sensors.map(s => s.toUpperCase());
+    const seriesData = sensors.map(s => liveData[s]);
+    
+    barChart.updateOptions({
+        xaxis: { categories }
     });
-
-    const updatedData = [...(expandedChart.instance.w.config.series[0].data), newData].slice(-50);
-    expandedChart.instance.updateSeries([{ name: sensor, data: updatedData }]);
+    barChart.updateSeries([{
+        name: 'Temperature',
+        data: seriesData
+    }]);
 }
-
-function closeExpandedChart() {
-    document.getElementById("expandedChartContainer").style.display = "none";
-    expandedChart = null;
-}
-
-let trafficLightChart;
 
 function updateAnalytics(liveData) {
     const sensors = Object.keys(liveData).filter(key => key !== "timestamp" && key !== "timezone");
@@ -176,54 +484,16 @@ function updateAnalytics(liveData) {
     });
 
     const averageTemperature = (totalTemperature / totalSensors).toFixed(2);
-
     document.getElementById("totalSensors").textContent = totalSensors;
     document.getElementById("averageTemperature").textContent = `${averageTemperature}°C`;
-    updateTrafficLightPieChart(greenCount, amberCount, redCount);
-}
-
-function updateTrafficLightPieChart(greenCount, amberCount, redCount) {
-    const options = {
-        series: [greenCount, amberCount, redCount],
-        chart: {
-            type: 'pie',
-            height: 300,
-        },
-        labels: ['Green', 'Amber', 'Red'], colors: ['#00E396', '#FFA500', '#FF0000'],
-        responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }],
-        plotOptions: {
-            pie: {
-                donut: {
-                    labels: {
-                        show: true,
-                        total: {
-                            show: true,
-                            label: 'Total Sensors',
-                            formatter: function (w) {
-                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        legend: { position: 'right', offsetY: 0, height: 230, }, title: { text: 'Sensor Status Distribution', align: 'center' }
-    };
-
-    if (!trafficLightChart) {
-        trafficLightChart = new ApexCharts(
-            document.querySelector("#trafficLightPieChart"), 
-            options
-        );
-        trafficLightChart.render();
-    } else {
-        trafficLightChart.updateSeries([greenCount, amberCount, redCount]);
-    }
+    document.getElementById("optimalSensors").textContent = greenCount;
+    document.getElementById("warningSensors").textContent = amberCount + redCount;
+    
+    trafficLightChart.updateSeries([greenCount, amberCount, redCount]);
 }
 
 function getTrafficLightColor(sensor, value) {
     const thresholds = sensorThresholds[sensor];
-
     if (!thresholds) return '#00E396';
 
     const range = thresholds.max - thresholds.min;
@@ -238,58 +508,7 @@ function getTrafficLightColor(sensor, value) {
     }
 }
 
-function fetchAverageTemperature(line, period) {
-    const apiUrl = `http://localhost:5000/api/average-temperature/${line}`;
-    
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ period: period })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            displayAverages(data.averages);
-        } else {
-            console.error("Failed to fetch average temperature:", data.error);
-        }
-    })
-    .catch(error => console.error("API error:", error));
-}
+function closeExpandedChart() {
+    document.getElementById("expandedChartContainer").style.display = "none";
 
-function displayAverages(averages) {
-    const averageContainer = document.getElementById('averageContainer');
-    averageContainer.innerHTML = '';
-
-    for (const [sensor, avg] of Object.entries(averages)) {
-        const card = document.createElement('div');
-        card.classList.add('average-card');
-
-        const sensorName = document.createElement('h4');
-        sensorName.textContent = sensor.replace('avg_', '').toUpperCase();
-
-        const avgValue = document.createElement('p');
-        avgValue.textContent = `${avg.toFixed(2)}°C`;
-
-        card.appendChild(sensorName);
-        card.appendChild(avgValue);
-        averageContainer.appendChild(card);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const lineSelector = document.getElementById('lineSelector');
-    const periodSelector = document.getElementById('periodSelector');
-
-    lineSelector.addEventListener('change', function () {
-        fetchAverageTemperature(this.value, periodSelector.value);
-    });
-
-    periodSelector.addEventListener('change', function () {
-        fetchAverageTemperature(lineSelector.value, this.value);
-    });
-
-    fetchAverageTemperature(lineSelector.value, periodSelector.value);
-});
+  
