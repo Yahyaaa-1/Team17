@@ -15,7 +15,6 @@
     <link rel="stylesheet" href="../website/css/dark-mode.css">
 </head>
 <body>
-    <!-- Main Header -->
     <header class="main-header position-relative">
         <div class="header-content container-fluid h-100">
             <div class="logo-container position-absolute top-50 start-50 translate-middle">
@@ -50,66 +49,100 @@
                 </li>
             </ul>
         </div>
-        <div class="header-controls d-flex align-items-center"></div>
     </nav>
 
-    <div class="container my-5">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-auto text-center">
-                    <div class="clock-container">
-                        <div class="clock-widget" id="clock"></div>
-                    </div>
+    <div class="container-fluid dashboard-container">
+        <!-- Top Controls Row -->
+        <div class="row top-controls">
+            <div class="col-md-6">
+                <div class="clock-selector-container">
+                    <div class="small-clock-widget" id="clock"></div>
+                    <select id="lineSelector" class="form-select">
+                        <option value="line4">Line 4</option>
+                        <option value="line5">Line 5</option>
+                    </select>
                 </div>
             </div>
         </div>
 
-        <div class="main-content">
-            <h2 class="text-center mb-4">Simulated Temperature Sensors</h2>
-
-            <!-- Line Selector -->
-            <div class="text-center mb-3">
-                <select id="lineSelector" class="form-select w-50 mx-auto">
-                    <option value="line4">Line 4</option>
-                    <option value="line5">Line 5</option>
-                </select>
-            </div>
-
-            <!-- Analytics Section -->
-            <div class="analytics">
-                <div class="card">
+        <!-- Stats Row -->
+        <div class="row stats-row">
+            <div class="col-md-3">
+                <div class="small-stat-card">
                     <h4>Total Sensors</h4>
                     <p id="totalSensors">0</p>
                 </div>
-                <div class="card">
-                    <h4>Average Temperature</h4>
+            </div>
+            <div class="col-md-3">
+                <div class="small-stat-card">
+                    <h4>Avg Temp</h4>
                     <p id="averageTemperature">0°C</p>
                 </div>
-                <div class="card">
-                    <h4>Traffic Light Summary</h4>
-                    <div id="trafficLightPieChart" style="width: 100%; height: 300px;"></div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-stat-card">
+                    <h4>Optimal Sensors</h4>
+                    <p id="optimalSensors">0</p>
                 </div>
             </div>
-
-            <div class="text-center mb-3">
-                <select id="periodSelector" class="form-select w-50 mx-auto">
-                    <option value="day">Past Day</option>
-                    <option value="week">Past Week</option>
-                    <option value="month">Past Month</option>
-                </select>
+            <div class="col-md-3">
+                <div class="small-stat-card">
+                    <h4>Warning Sensors</h4>
+                    <p id="warningSensors">0</p>
+                </div>
             </div>
-
-            <h3 class="text-center mb-4">Averages for Each Sensor</h3>
-            <div id="averageContainer" class="average-container text-center mb-4"></div>
-
-            <div class="dashboard-grid" id="chartsContainer"></div>
         </div>
-    </div>
 
-    <!-- Full Screen Expanded Chart -->
-    <div id="expandedChartContainer">
-        <span class="close-btn" onclick="closeExpandedChart()">✖</span>
-        <div id="expandedChart"></div>
+        <!-- First Widget Row -->
+        <div class="row widget-row">
+            <!-- Donut Slider Widget -->
+            <div class="col-md-6">
+                <div class="slider-section">
+                    <h3 class="section-title">Production Line Sensors</h3>
+                    <div class="slider-container">
+                        <button class="slider-nav prev" id="prevDonut">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="donut-slider" id="donutSlider"></div>
+                        <button class="slider-nav next" id="nextDonut">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pie Chart Widget -->
+            <div class="col-md-6">
+                <div class="pie-chart-container">
+                    <h3 class="section-title">Sensor Status Overview</h3>
+                    <div id="trafficLightPieChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Widget Row -->
+        <div class="row widget-row mt-3">
+            <!-- Bar Chart Widget -->
+            <div class="col-md-6">
+                <div class="bar-chart-container">
+                    <h3 class="section-title">Temperature Readings</h3>
+                    <div id="barChart"></div>
+                </div>
+            </div>
+            
+            <!-- Scatter Chart Widget -->
+            <div class="col-md-6">
+                <div class="scatter-chart-container">
+                    <div class="scatter-chart-header">
+                        <h3 class="section-title">Temperature Over Time</h3>
+                        <select id="sensorSelector" class="form-select sensor-select">
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div id="scatterChart"></div>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- Footer -->
     <footer class="footer py-4 mt-5">
@@ -138,8 +171,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="js/live-data.js"></script>
     <script src="js/logged-in.js"></script>
