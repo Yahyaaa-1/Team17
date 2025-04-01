@@ -1139,8 +1139,8 @@ def get_sensor_data(line, sensor):
 def sensor_page(line, sensor):
     return render_template('sensor-data.html', line=line, sensor=sensor)
 
-@app.route('/api/historical/<line>', methods=['POST'])
-def get_historical_data(line):
+@app.route('/api/historical/<line>/<sensor>', methods=['GET']) 
+def get_historical_data(line, sensor):
     try:
         connection = get_db_connection()
         if not connection:
@@ -1151,17 +1151,15 @@ def get_historical_data(line):
         if line not in valid_lines:
             return jsonify({'error': 'Invalid line selected'}), 400
 
-        if request.content_type != "application/json":
-            return jsonify({'error': "Unsupported Media Type: Request must be JSON"}), 415
+        # Get query parameters (for GET request)
+        length = request.args.get('length', default=50, type=int)
+        search_value = request.args.get('searchValue', default='', type=str)
+        date_filter = request.args.get('dateFilter', default='', type=str)
+        start_date_time = request.args.get('startDateTime', default='', type=str)
+        end_date_time = request.args.get('endDateTime', default='', type=str)
 
-        data = request.get_json()
-        length = int(data.get("length", 50))
-        search_value = data.get("searchValue", "")
-        date_filter = data.get("dateFilter", "")
-        start_date_time = data.get("startDateTime", "")
-        end_date_time = data.get("endDateTime", "")
-
-        query = f"SELECT * FROM {line} WHERE 1=1"
+        # Build query for specific sensor
+        query = f"SELECT timestamp, {sensor} as value FROM {line} WHERE 1=1"
 
         if date_filter:
             query += f" AND DATE(timestamp) = '{date_filter}'"
@@ -1172,16 +1170,19 @@ def get_historical_data(line):
 
         query += f" ORDER BY timestamp DESC LIMIT {length}"
 
-        # Debug: Print the constructed SQL query
         print("Executing SQL Query:", query)
-
         cursor.execute(query)
         data = cursor.fetchall()
 
+        # Format response to match what frontend expects
+        formatted_data = []
         for record in data:
-            record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+            formatted_data.append({
+                'timestamp': record['timestamp'].strftime("%Y-%m-%d %H:%M:%S"),
+                'value': float(record['value'])
+            })
 
-        return jsonify({'success': True, 'data': data}), 200
+        return jsonify({'success': True, 'data': formatted_data}), 200
 
     except Exception as e:
         print(f"Error fetching historical data: {e}")
@@ -1189,7 +1190,6 @@ def get_historical_data(line):
     finally:
         if connection:
             connection.close()
-
 
 
 
