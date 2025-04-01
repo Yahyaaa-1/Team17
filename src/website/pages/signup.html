@@ -66,18 +66,16 @@
                         <label for="tempPassword" class="form-label">Temporary Password</label>
                         <input type="password" class="form-control" id="tempPassword" name="tempPassword" required>
                     </div>
-                    <div class="mb-3 position-relative">
+                    <div class="mb-3">
                         <label for="newPassword" class="form-label">New Password</label>
                         <input type="password" class="form-control" id="newPassword" name="newPassword" required>
-                        <div class="password-strength"></div>
-                        <small class="form-text text-muted helper-text">
-                            Minimum 8 characters, include numbers and special characters
-                        </small>
                         <i class="far fa-eye password-toggle" id="toggleNewPassword" style="position: absolute; right: 10px; top: 38px; cursor: pointer;"></i>
                     </div>
-                    <div class="mb-3">
+                    
+                    <div class="mb-3" style="position: relative;">
                         <label for="confirmPassword" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        <i class="far fa-eye password-toggle" id="toggleConfirmPassword" style="position: absolute; right: 10px; top: 38px; cursor: pointer;"></i>
                         <div id="passwordMatch" class="match-message"></div>
                     </div>
                     <div id="message" class="alert" style="display: none;"></div>
