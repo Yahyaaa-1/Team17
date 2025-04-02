@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     let lineSelector = document.getElementById('lineSelector');
-    let apiUrlBase = 'http://localhost:5000/api/historical/';
+    let apiUrlBase = 'http://localhost:5000/api/historical-data/';
     // let availableDatesUrlBase = 'http://localhost:5000/api/available-dates/';
     let tableTab = document.getElementById('table-tab');
     let graphTab = document.getElementById('graph-tab');
@@ -119,42 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchGraphData(lineSelector.value);
     });
 
-    function fetchGraphData(line) {
-    let apiUrl = `${apiUrlBase}${line}`;
-    console.log(`Fetching graph data from ${apiUrl}`);
-
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            dateFilter: document.getElementById('dateFilter').value,
-            startDateTime: startDateTimeFilter.value,
-            endDateTime: endDateTimeFilter.value,
-            searchValue: document.getElementById('searchBox').value
-        })
-    })
-    .then(response => response.json())
-    .then(response => {
-        console.log("Raw API Response:", response);
-
-        if (!response || !response.success || !Array.isArray(response.data)) {
-            console.error("Invalid data format received:", response);
-            alert("Error: API did not return expected data format.");
-            return;
-        }
-
-        currentGraphData = response.data; // Store the data
-
-        if (currentGraphData.length === 0) {
-            console.warn("No data available for graph.");
-            alert("No data available for this selection.");
-            return;
-        }
-
-        plotGraph(currentGraphData); // Plot immediately with fetched data
-    })
-    .catch(error => console.error("Graph API error:", error));
-}
+    
 
 document.getElementById('dateFilter').addEventListener('change', function() {
     console.log("Date filter changed to:", this.value);
