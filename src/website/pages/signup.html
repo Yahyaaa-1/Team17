@@ -59,19 +59,18 @@
                 <h1 class="text-center mb-4">Register Account</h1>
                 <form id="register-form">
                     <div class="mb-3">
+                        <label for="fullname" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="fullname" name="fullname" required>
+                    </div>
+                    <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <input type="text" class="form-control" id="email" name="email" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="tempPassword" class="form-label">Temporary Password</label>
-                        <input type="password" class="form-control" id="tempPassword" name="tempPassword" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">New Password</label>
+                    <div class="mb-3" style="position: relative;">
+                        <label for="newPassword" class="form-label">Create a Password</label>
                         <input type="password" class="form-control" id="newPassword" name="newPassword" required>
                         <i class="far fa-eye password-toggle" id="toggleNewPassword" style="position: absolute; right: 10px; top: 38px; cursor: pointer;"></i>
                     </div>
-                    
                     <div class="mb-3" style="position: relative;">
                         <label for="confirmPassword" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
@@ -84,6 +83,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Footer -->
     <footer class="footer py-4 mt-5">

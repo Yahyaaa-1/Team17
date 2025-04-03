@@ -101,50 +101,50 @@ def log_event(message, type, log_level):
     except Exception as e:
         print(f"Failed to log event: {e}")
 
-# Verify employee
-@app.route('/api/verify-employee', methods=['POST', 'OPTIONS'])
-def verify_employee():
+# # Verify employee
+# @app.route('/api/verify-employee', methods=['POST', 'OPTIONS'])
+# def verify_employee():
 
-    if request.method == "OPTIONS":
-        response = jsonify({"success": True})
-        return response
+#     if request.method == "OPTIONS":
+#         response = jsonify({"success": True})
+#         return response
 
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No data received'}), 400
+#     try:
+#         data = request.get_json()
+#         if not data:
+#             return jsonify({'success': False, 'error': 'No data received'}), 400
 
-        email = data.get('email')
-        temp_password = data.get('temp_password')
+#         email = data.get('email')
+#         temp_password = data.get('temp_password')
 
-        if not email or not temp_password:
-            return jsonify({'success': False, 'error': 'Missing credentials'}), 400
+#         if not email or not temp_password:
+#             return jsonify({'success': False, 'error': 'Missing credentials'}), 400
 
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT * FROM employee_registry 
-                WHERE email = %s AND temp_password = %s
-            """, (email, temp_password))
+#         try:
+#             cursor = connection.cursor(dictionary=True)
+#             cursor.execute("""
+#                 SELECT * FROM employee_registry 
+#                 WHERE email = %s AND temp_password = %s
+#             """, (email, temp_password))
             
-            employee = cursor.fetchone()
+#             employee = cursor.fetchone()
             
-            if employee:
-                return jsonify({'success': True, 'message': 'Verification successful'})
-            else:
-                return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+#             if employee:
+#                 return jsonify({'success': True, 'message': 'Verification successful'})
+#             else:
+#                 return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
-        finally:
-            cursor.close()
-            connection.close()
+#         finally:
+#             cursor.close()
+#             connection.close()
 
-    except Exception as e:
-        print(f"Error in verify_employee: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+#     except Exception as e:
+#         print(f"Error in verify_employee: {str(e)}")
+#         return jsonify({'success': False, 'error': str(e)}), 500
 
 # user registration
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
@@ -161,12 +161,12 @@ def register():
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
-            
+        
+        full_name = data.get('full_name')   
         email = data.get('email')
-        temp_password = data.get('temp_password')
         new_password = data.get('new_password')
 
-        if not all([email, temp_password, new_password]):
+        if not all([full_name, email, new_password]):
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
         connection = get_db_connection()
@@ -174,22 +174,6 @@ def register():
             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
         cursor = connection.cursor(dictionary=True)
-        
-        # Verify the employee
-        cursor.execute("""
-            SELECT * FROM employee_registry 
-            WHERE email = %s AND temp_password = %s
-        """, (email, temp_password))
-        
-        employee = cursor.fetchone()
-
-        if not employee:
-            cursor.close()
-            connection.close()
-            log_event(f"Registration failed for {email}: Invalid Credentials", type='WARNING', log_level='admin')
-            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-        else:
-            print(f"Employee details: {employee}")
 
         # Check if user already exists in user_accounts
         cursor.execute("""
@@ -210,13 +194,13 @@ def register():
         try:
             cursor.execute("""
                 INSERT INTO user_accounts 
-                (operator_id,email, full_name, password, admin, active,dark_mode) 
-                VALUES (%s, %s, %s, %s, %s,%s,%s)
-            """, (employee['operator_id'],email, employee['full_name'], hashed_password, 0, 0,0))
+                (email, full_name, password, admin, active,dark_mode) 
+                VALUES ( %s, %s, %s, %s,%s,%s)
+            """, (email, full_name, hashed_password, 0, 0,0))
 
             connection.commit()
         except mysql.connector.Error as err:
-          
+            print("Database error:", err)
             return jsonify({'success': False, 'error': 'Database error occurred'}), 500
         finally:
             cursor.close()

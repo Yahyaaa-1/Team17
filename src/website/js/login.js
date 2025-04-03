@@ -57,16 +57,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    if (emailInput) {
-        emailInput.addEventListener('input', function() {
-            const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
-            if (!emailPattern.test(this.value)) {
-                this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-    }
+    // if (emailInput) {
+    //     emailInput.addEventListener('input', function() {
+    //         const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
+    //         if (!emailPattern.test(this.value)) {
+    //             this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
+    //         } else {
+    //             this.setCustomValidity('');
+    //         }
+    //     });
+    // }
 
     // Form submission
     if (loginForm) {

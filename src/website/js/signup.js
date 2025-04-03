@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmPasswordInput = document.getElementById('confirmPassword');
     const passwordMatchMessage = document.getElementById('passwordMatch');
     const emailInput = document.getElementById('email');
+    const fullNameInput = document.getElementById('fullname');
+
 
     function togglePasswordVisibility(toggleButtonId, passwordFieldId) {
         const toggleButton = document.querySelector(toggleButtonId);
@@ -57,16 +59,16 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPasswordInput.addEventListener('input', validatePasswordMatch);
     }
 
-    if (emailInput) {
-        emailInput.addEventListener('input', function() {
-            const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
-            if (!emailPattern.test(this.value)) {
-                this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-    }
+    // if (emailInput) {
+    //     emailInput.addEventListener('input', function() {
+    //         const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
+    //         if (!emailPattern.test(this.value)) {
+    //             this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
+    //         } else {
+    //             this.setCustomValidity('');
+    //         }
+    //     });
+    // }
 
     // Form submission
     if (registerForm) {
@@ -78,12 +80,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton.disabled = true;
             }
 
+            const fullName = fullNameInput?.value;
             const email = emailInput?.value;
-            const tempPassword = document.getElementById('tempPassword')?.value;
             const newPassword = newPasswordInput?.value;
             const confirmPassword = confirmPasswordInput?.value;
 
-            if (!email || !tempPassword || !newPassword || !confirmPassword) {
+            if (!fullName || !email || !newPassword || !confirmPassword) {
                 showMessage('Please fill in all fields', true);
                 if (submitButton) {
                     submitButton.classList.remove('loading');
@@ -103,57 +105,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const verifyResponse = await fetch('http://localhost:5000/api/verify-employee', {
+                // Proceed with registration
+                const registerResponse = await fetch('http://localhost:5000/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        full_name: fullName,
                         email: email,
-                        temp_password: tempPassword
+                        new_password: newPassword
                     })
                 });
-            
-                if (!verifyResponse.ok) {
-                    const errorData = await verifyResponse.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${verifyResponse.status}`);
+        
+                if (!registerResponse.ok) {
+                    const errorData = await registerResponse.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${registerResponse.status}`);
                 }
-            
-                const verifyData = await verifyResponse.json();
-                
-                if (verifyData.success) {
-                    // Proceed with registration
-                    const registerResponse = await fetch('http://localhost:5000/api/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            temp_password: tempPassword,
-                            new_password: newPassword
-                        })
-                    });
-            
-                    if (!registerResponse.ok) {
-                        const errorData = await registerResponse.json();
-                        throw new Error(errorData.error || `HTTP error! status: ${registerResponse.status}`);
-                    }
-            
-                    const registerData = await registerResponse.json();
-            
-                    if (registerData.success) {
-                        showMessage('Registration successful! Waiting for admin approval. Redirecting to login...');
-                        registerForm.reset();
-                        
-                        setTimeout(() => {
-                            window.location.href = '../pages/login.html';
-                        }, 3000);
-                    } else {
-                        showMessage(registerData.error || 'Registration failed', true);
-                    }
+        
+                const registerData = await registerResponse.json();
+        
+                if (registerData.success) {
+                    showMessage('Registration successful! Waiting for admin approval. Redirecting to login...');
+                    registerForm.reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = '../pages/login.html';
+                    }, 3000);
                 } else {
-                    showMessage('Invalid email or temporary password', true);
+                    showMessage(registerData.error || 'Registration failed', true);
                 }
             } catch (error) {
                 console.error('Error:', error);
