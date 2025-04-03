@@ -72,7 +72,7 @@
             <div id="editModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h2>Edit Employee</h2>
+                    <h2>Edit User</h2>
                     <form id="editEmployeeForm">
                         <div class="form-group">
                             <label for="edit_operator_id">Operator ID:</label>
@@ -87,31 +87,11 @@
                             <input type="text" id="edit_full_name" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_temp_password">Temporary Password:</label>
+                            <label for="edit_temp_password">Password:</label>
                             <input type="text" id="edit_temp_password" required>
                         </div>
                         <button type="submit" class="save-btn">Save Changes</button>
                     </form>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <h2 class="mb-3">Employee Registry</h2>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="employee-registry-table">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Operator ID</th>
-                                <th>Email</th>
-                                <th>Full Name</th>
-                                <th>Temporary Password</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="employee-registry-body">
-                            <!-- Employee registry will be populated dynamically -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>

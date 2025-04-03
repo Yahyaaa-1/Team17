@@ -1,0 +1,7 @@
+Admin user
+email: yashfak@bradford.ac.uk
+password: Password123
+
+Regular user
+email: barirah@bradford.ac.uk
+password: Password123

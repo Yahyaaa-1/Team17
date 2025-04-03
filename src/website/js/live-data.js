@@ -430,6 +430,7 @@ function processForcastedThresholds(forecastedData) {
     });
 }
 
+
 function updateTrafficLightStatus(forecastedData, liveData) {
     // Update traffic light status based on forecasted data
     const sensors = getSensorsForLine(selectedLine);
@@ -444,14 +445,43 @@ function updateTrafficLightStatus(forecastedData, liveData) {
             
             const status = getTrafficLightStatus(value, lowerBound, upperBound);
             
-            if (status === 'normal') greenCount++;
-            else if (status === 'warning') amberCount++;
-            else if (status === 'critical') redCount++;
+            if (status === 'normal') {
+                greenCount++;
+            }
+            else if (status === 'warning') {
+                amberCount++;
+                // Log warning status
+                logSensorStatus(sensor, value, status, lowerBound, upperBound);
+            }
+            else if (status === 'critical') {
+                redCount++;
+                // Log critical status
+                logSensorStatus(sensor, value, status, lowerBound, upperBound);
+            }
         }
     });
     
     // Update traffic light chart
     trafficLightChart.updateSeries([greenCount, amberCount, redCount]);
+}
+
+// Helper function to log sensor status
+function logSensorStatus(sensor, value, status, lowerBound, upperBound) {
+    const message = `Sensor ${sensor} on ${selectedLine} is in ${status} state. Current value: ${value}, Threshold: [${lowerBound}, ${upperBound}]`;
+    
+    fetch('http://localhost:5000/api/log', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: message,
+            type: 'WARNING',
+            level: 'normal'
+        })
+    }).catch(error => {
+        console.error('Sensor status logging error:', error);
+    });
 }
 
 function getTrafficLightStatus(value, lowerBound, upperBound) {

@@ -20,7 +20,7 @@ DB_CONFIG = {
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-START_TIME = datetime(2025, 4, 3, 15, 22, 0)
+START_TIME = datetime(2025, 4, 3, 18, 52, 0)
 INTERVAL = timedelta(seconds=30)
 DURATION = timedelta(hours=0.1)
 

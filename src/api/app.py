@@ -394,38 +394,38 @@ def get_user_accounts():
             'user_accounts': user_accounts
         })
 
-# Get all employees
-@app.route('/api/admin/employee-reg', methods=['GET', 'OPTIONS'])
-def get_employee_reg():
+# # Get all employees
+# @app.route('/api/admin/employee-reg', methods=['GET', 'OPTIONS'])
+# def get_employee_reg():
 
-    if request.method == "OPTIONS":
-        return jsonify({"success": True})
+#     if request.method == "OPTIONS":
+#         return jsonify({"success": True})
     
-    try:
+#     try:
         
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        cursor = connection.cursor(dictionary=True)
+#         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("""
-            SELECT * FROM employee_registry 
-        """)
+#         cursor.execute("""
+#             SELECT * FROM employee_registry 
+#         """)
         
-        employee_registry = cursor.fetchall()
+#         employee_registry = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
+#         cursor.close()
+#         connection.close()
 
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+#     except Exception as e:
+#         return jsonify({'success': False, 'error': str(e)}), 400
     
-    return jsonify({
-            'success': True, 
-            'message': 'Retrieved user accounts successfully',
-            'employee_registry': employee_registry
-        })
+#     return jsonify({
+#             'success': True, 
+#             'message': 'Retrieved user accounts successfully',
+#             'employee_registry': employee_registry
+#         })
 
     
 
@@ -673,92 +673,92 @@ def deleteUser():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
-# Delete employee
-@app.route('/api/admin/delete-employee', methods=['POST', 'OPTIONS'])
-def deleteEmployee():
+# # Delete employee
+# @app.route('/api/admin/delete-employee', methods=['POST', 'OPTIONS'])
+# def deleteEmployee():
         
-    if request.method == "OPTIONS":
-        return jsonify({"success": True})
+#     if request.method == "OPTIONS":
+#         return jsonify({"success": True})
     
-    if request.method != "POST":
-        return jsonify({"error": "Method not allowed"}), 405
+#     if request.method != "POST":
+#         return jsonify({"error": "Method not allowed"}), 405
     
-    try:
-        data = request.get_json()
+#     try:
+#         data = request.get_json()
         
-        if not data:
-            return jsonify({'success': False, 'error': 'No data received'}), 400
+#         if not data:
+#             return jsonify({'success': False, 'error': 'No data received'}), 400
             
-        operator_id = data.get('operator_id')
-        admin_ID = data.get('admin_ID')
+#         operator_id = data.get('operator_id')
+#         admin_ID = data.get('admin_ID')
 
 
-        print(operator_id)
+#         print(operator_id)
        
 
-        if not [operator_id]:
-            return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
+#         if not [operator_id]:
+#             return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
         
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        try:
-            data = request.get_json()
-            operator_id = data.get('operator_id')
-            print(f"Attempting to delete operator: {operator_id}")
+#         try:
+#             data = request.get_json()
+#             operator_id = data.get('operator_id')
+#             print(f"Attempting to delete operator: {operator_id}")
 
-            cursor = connection.cursor(dictionary=True)
+#             cursor = connection.cursor(dictionary=True)
            
 
-            # First verify the user exists
-            cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
-            user = cursor.fetchone()
-            print(f"User before deletion: {user}")
+#             # First verify the user exists
+#             cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
+#             user = cursor.fetchone()
+#             print(f"User before deletion: {user}")
 
-            if not user:
-                return jsonify({
-                    'success': False,
-                    'message': f'User {operator_id} not found'
-                }), 404
+#             if not user:
+#                 return jsonify({
+#                     'success': False,
+#                     'message': f'User {operator_id} not found'
+#                 }), 404
 
-            # Then delete from employee_registry
-            cursor.execute("DELETE FROM employee_registry WHERE operator_id = %s", (operator_id,))
-            employee = cursor.rowcount
-            print(f"Rows affected in employee_registry: {employee}")
+#             # Then delete from employee_registry
+#             cursor.execute("DELETE FROM employee_registry WHERE operator_id = %s", (operator_id,))
+#             employee = cursor.rowcount
+#             print(f"Rows affected in employee_registry: {employee}")
 
-            connection.commit()
+#             connection.commit()
 
-            # Verify deletion
-            cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
-            verify = cursor.fetchone()
+#             # Verify deletion
+#             cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
+#             verify = cursor.fetchone()
 
-            if verify is None:
-                log_event(f"Employee Reg {operator_id} deleted by admin - {admin_ID}", type='WARNING', log_level='admin')
-                return jsonify({
-                    'success': True,
-                    'message': f'User {operator_id} has been deleted',
-                    'employee_rows_affected': employee
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'message': f'Delete operation failed for user {operator_id}'
-                }), 500
+#             if verify is None:
+#                 log_event(f"Employee Reg {operator_id} deleted by admin - {admin_ID}", type='WARNING', log_level='admin')
+#                 return jsonify({
+#                     'success': True,
+#                     'message': f'User {operator_id} has been deleted',
+#                     'employee_rows_affected': employee
+#                 })
+#             else:
+#                 return jsonify({
+#                     'success': False,
+#                     'message': f'Delete operation failed for user {operator_id}'
+#                 }), 500
 
-        except mysql.connector.Error as err:
-            print(f"Database error: {err}")
-            return jsonify({'success': False, 'error': str(err)}), 500
-        finally:
-            if cursor:
-                cursor.close()
-            if connection:
-                connection.close()
+#         except mysql.connector.Error as err:
+#             print(f"Database error: {err}")
+#             return jsonify({'success': False, 'error': str(err)}), 500
+#         finally:
+#             if cursor:
+#                 cursor.close()
+#             if connection:
+#                 connection.close()
 
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+#     except Exception as e:
+#         return jsonify({'success': False, 'error': str(e)}), 400
     
-    # Get user status
+#     # Get user status
 @app.route('/api/admin/toggle-user-status', methods=['POST', 'OPTIONS'])
 def toggleUserStatus():
     
