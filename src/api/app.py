@@ -1014,12 +1014,19 @@ def generate_temperature_readings():
             # Line 4 sensor readings
             line4_values = [current_timestamp, timezone_offset]
             for sensor in LINE_4_SENSORS:
-                temp = sensor_temps[sensor]
+
+
+                avg_temp = SENSOR_RANGES_LINE5[sensor]["avg"]  # Get average temperature
+                fluctuation = avg_temp * 0.02  # Calculate 2% fluctuation
+                new_temp = random.uniform(avg_temp - fluctuation, avg_temp + fluctuation)  # Generate new temperature within ±2%
+                
+                # Old method
+                # temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE4[sensor]
                 
-                # Small random fluctuation
-                delta = random.uniform(-0.2, 0.2)
-                new_temp = temp + delta
+                # # Small random fluctuation
+                # delta = random.uniform(-0.2, 0.2)
+                # new_temp = temp + delta
                 
                 # Keep within sensor limits
                 new_temp = max(limits["min"], min(limits["max"], new_temp))
@@ -1040,11 +1047,20 @@ def generate_temperature_readings():
             # Line 5 sensor readings  
             line5_values = [current_timestamp, timezone_offset]
             for sensor in LINE_5_SENSORS:
-                temp = sensor_temps[sensor]
+
+                # Old method
+                # temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE5[sensor]
                 
-                delta = random.uniform(-0.2, 0.2)
-                new_temp = temp + delta
+                # delta = random.uniform(-0.2, 0.2)
+                # new_temp = temp + delta
+
+
+                avg_temp = SENSOR_RANGES_LINE5[sensor]["avg"]  # Get average temperature
+                fluctuation = avg_temp * 0.02  # Calculate 2% fluctuation
+                new_temp = random.uniform(avg_temp - fluctuation, avg_temp + fluctuation)  # Generate new temperature within ±2%
+                
+
                 new_temp = max(limits["min"], min(limits["max"], new_temp))
                 sensor_temps[sensor] = round(new_temp, 2)
                 line5_values.append(sensor_temps[sensor])
@@ -1103,6 +1119,38 @@ def get_live_data(line):
         if connection:
             connection.close()
             
+@app.route('/api/forecasted-data/<line>', methods=['GET'])
+def get_forecasted_data(line):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        query = f"SELECT * FROM forecasted{line} ORDER BY forecast_time ASC"
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        if not data:
+            return jsonify({'error': 'No forecasted data available'}), 404
+
+        # Format the response
+        for record in data:
+            record["forecast_time"] = record["forecast_time"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching forecasted data: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+
 @app.route('/api/sensor-data/<line>/<sensor>', methods=['GET'])
 def get_sensor_data(line, sensor):
     try:
@@ -1181,7 +1229,7 @@ def get_historical_data(line):
         logging.error(f"Error fetching historical data: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/historical/<line>/<sensor>', methods=['POST']) 
+@app.route('/api/historical/<line>/<sensor>', methods=['GET']) 
 @cross_origin()
 def get_historical_data_sensor(line, sensor):
     try:
