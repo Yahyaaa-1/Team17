@@ -148,18 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error deleting user:', error);
             }
     }
-
-
-    
-    // COMMENTED OUT FOR NOW ----------------------------------- ADD BACK IF ERRORS WITH DATA LOADING INTO TABLES
-    // Call both functions when the page loads
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     fetchUserAccounts();
-    //     fetchEmployeeRegistry();
-    // });
-
-
-
     
 
     // Toggle user admin

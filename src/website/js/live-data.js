@@ -210,14 +210,14 @@ function updateAnalytics(liveData) {
         key.startsWith('r') && typeof liveData[key] === 'number'
     );
     
-    if (sensors.length === 0) {
-        // No valid sensor data case
-        document.getElementById("totalSensors").textContent = "0";
-        document.getElementById("averageTemperature").textContent = "0°C";
-        document.getElementById("optimalSensors").textContent = "N/A";
-        document.getElementById("warningSensors").textContent = "N/A";
-        return;
-    }
+    // if (sensors.length === 0) {
+    //     // No valid sensor data case
+    //     document.getElementById("totalSensors").textContent = "0";
+    //     document.getElementById("averageTemperature").textContent = "0°C";
+    //     document.getElementById("optimalSensors").textContent = "N/A";
+    //     document.getElementById("warningSensors").textContent = "N/A";
+    //     return;
+    // }
 
     const totalSensors = sensors.length;
     let totalTemperature = 0;
