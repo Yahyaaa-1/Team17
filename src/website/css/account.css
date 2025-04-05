@@ -82,6 +82,26 @@
     border-bottom: 1px solid var(--secondary-blue);
 } */
 
+#darkModeToggle {
+    margin-top: 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode #darkModeToggle {
+    background-color: #444;
+    color: #fff;
+}
+
+body #darkModeToggle {
+    background-color: #007bff;
+    color: #fff;
+}
+
+body #darkModeToggle:hover {
+    background-color: #0056b3;
+}
+
+
 /* Dark Mode Variables */
 [data-bs-theme="dark"] {
     --primary-color: #1a365d;

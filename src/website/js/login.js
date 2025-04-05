@@ -19,6 +19,22 @@ document.addEventListener('DOMContentLoaded', function() {
         this.classList.toggle('fa-eye-slash');
     });
 
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        const body = document.body;
+        const icon = this.querySelector('i');
+    
+        body.classList.toggle('dark-mode');
+    
+        // Change icon based on the mode
+        if (body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    });
+
     // Function to show messages
     function showMessage(message, isError = false) {
         if (messageDiv) {

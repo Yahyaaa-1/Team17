@@ -10,6 +10,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('toggleNewPassword');
     const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
     
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        const body = document.body;
+        const icon = this.querySelector('i');
+    
+        body.classList.toggle('dark-mode');
+    
+        // Change icon based on the mode
+        if (body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    });
 
     togglePassword.addEventListener('click', function () {
         const type = newPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';

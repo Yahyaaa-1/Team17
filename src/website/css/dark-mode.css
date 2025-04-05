@@ -55,6 +55,109 @@ body.dark-mode .table-container {
     padding: 15px;
     box-shadow: 0 4px 8px var(--shadow-color);
 }
+/* General Dark Mode Styles */
+body.dark-mode {
+    background-color: #121212; /* Dark background for the entire body */
+    color: #ffffff; /* Light text color */
+}
+
+/* Container Styles */
+body.dark-mode .small-stat-card,
+body.dark-mode .slider-section,
+body.dark-mode .donut-chart-container,
+body.dark-mode .pie-chart-container,
+body.dark-mode .bar-chart-container,
+body.dark-mode .scatter-chart-container,
+body.dark-mode .widget-row,
+body.dark-mode .stats-row,
+body.dark-mode .top-controls,
+body.dark-mode .alert {
+    background-color: #1e1e1e; /* Dark background for containers */
+    color: #ffffff; /* Light text color */
+    border: 1px solid #333; /* Dark border for containers */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+}
+
+/* Headings */
+body.dark-mode .small-stat-card h4,
+body.dark-mode .section-title {
+    color: #ffffff; /* Light color for headings */
+}
+
+/* Form Elements */
+body.dark-mode .form-select {
+    background-color: #2d2d2d; /* Dark background for select elements */
+    color: #ffffff; /* Light text color for select elements */
+    border: 1px solid #444; /* Dark border for select elements */
+}
+
+body.dark-mode .form-select:focus {
+    border-color: #555; /* Lighter border on focus */
+    background-color: #3a3a3a; /* Darker background on focus */
+}
+
+/* Alerts */
+body.dark-mode .alert {
+    background-color: #333; /* Dark background for alerts */
+    color: #ffffff; /* Light text color for alerts */
+}
+
+/* Chart Backgrounds */
+body.dark-mode .donut-chart,
+body.dark-mode #barChart,
+body.dark-mode #scatterChart,
+body.dark-mode #trafficLightPieChart {
+}
+
+/* Chart Overlays */
+body.dark-mode .apexcharts-tooltip {
+    background-color: rgba(50, 50, 50, 0.9); /* Dark tooltip background with transparency */
+    color: #ffffff; /* Light tooltip text */
+}
+
+body.dark-mode .apexcharts-xaxis-label,
+body.dark-mode .apexcharts-yaxis-label {
+    color: #ffffff; /* Light color for axis labels */
+}
+
+body.dark-mode .apexcharts-text {
+    color: #ffffff; /* Light color for chart text */
+}
+
+/* Donut and Pie Chart Styles */
+body.dark-mode .apexcharts-donut,
+body.dark-mode .apexcharts-pie {
+    background-color: #2d2d2d; /* Dark background for donut and pie charts */
+}
+
+/* Scatter Chart Styles */
+body.dark-mode .apexcharts-scatter {
+    background-color: #2d2d2d; /* Dark background for scatter charts */
+}
+
+/* Button Styles */
+body.dark-mode .slider-nav {
+    background-color: #444; /* Dark background for slider buttons */
+    color: #ffffff; /* Light text color for buttons */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Rounded corners */
+}
+
+body.dark-mode .slider-nav:hover {
+    background-color: #555; /* Lighter background on hover */
+}
+
+/* Additional Styles for Better Visibility */
+body.dark-mode .widget-row {
+    margin-bottom: 20px; /* Space between widget rows */
+}
+
+body.dark-mode .stats-row {
+    margin-bottom: 20px; /* Space between stats rows */
+}
+
+
 
 /* Tables */
 body.dark-mode table {
@@ -192,6 +295,113 @@ body.dark-mode .tooltip.bs-tooltip-end .tooltip-arrow::before {
     border-left-color: var(--card-bg);
     border-right-color: var(--card-bg);
 }
+
+/* Signup dark mode */
+
+#darkModeToggle {
+    margin-top: 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode #darkModeToggle {
+    background-color: #444;
+    color: #fff;
+}
+
+body #darkModeToggle {
+    background-color: #007bff;
+    color: #fff;
+}
+
+body #darkModeToggle:hover {
+    background-color: #0056b3;
+}
+/* Dark Mode Styles for Form Elements */
+body.dark-mode .form-control {
+    background-color: #2d2d2d; /* Dark background for input fields */
+    border: 1px solid #444; /* Dark border */
+    color: #e0e0e0; /* Light text color */
+}
+
+body.dark-mode .form-control:focus {
+    background-color: #3a3a3a; /* Darker background on focus */
+    border-color: #555; /* Lighter border on focus */
+    color: #ffffff; /* White text on focus */
+    box-shadow: 0 0 0 0.25rem rgba(66, 70, 73, 0.5); /* Focus shadow */
+}
+
+body.dark-mode .form-label {
+    color: #cccccc; /* Light color for labels */
+}
+
+body.dark-mode .alert {
+    background-color: #2a2a2a; /* Dark background for alerts */
+    border: 1px solid #444; /* Dark border for alerts */
+    color: #e0e0e0; /* Light text color for alerts */
+}
+
+body.dark-mode .btn-primary {
+    background-color: #1976d2; /* Dark mode primary button color */
+    border-color: #1976d2; /* Dark mode primary button border */
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #1565c0; /* Dark mode primary button hover color */
+    border-color: #1565c0; /* Dark mode primary button hover border */
+}
+
+/* Additional styles for the signup container in dark mode */
+body.dark-mode .signup-container {
+    background-color: #1e1e1e; /* Dark background for the signup container */
+    border: 1px solid #333; /* Dark border for the signup container */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+}
+
+/* Login dark mode */
+
+/* Dark Mode Styles for Form Elements */
+body.dark-mode .form-control {
+    background-color: #2d2d2d; /* Dark background for input fields */
+    border: 1px solid #444; /* Dark border */
+    color: #e0e0e0; /* Light text color */
+}
+
+body.dark-mode .form-control:focus {
+    background-color: #3a3a3a; /* Darker background on focus */
+    border-color: #555; /* Lighter border on focus */
+    color: #ffffff; /* White text on focus */
+    box-shadow: 0 0 0 0.25rem rgba(66, 70, 73, 0.5); /* Focus shadow */
+}
+
+body.dark-mode .form-label {
+    color: #cccccc; /* Light color for labels */
+}
+
+body.dark-mode .alert {
+    background-color: #2a2a2a; /* Dark background for alerts */
+    border: 1px solid #444; /* Dark border for alerts */
+    color: #e0e0e0; /* Light text color for alerts */
+}
+
+body.dark-mode .btn-primary {
+    background-color: #1976d2; /* Dark mode primary button color */
+    border-color: #1976d2; /* Dark mode primary button border */
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #1565c0; /* Dark mode primary button hover color */
+    border-color: #1565c0; /* Dark mode primary button hover border */
+}
+
+/* Additional styles for the login container in dark mode */
+body.dark-mode .register-container {
+    background-color: #1e1e1e; /* Dark background for the login container */
+    border: 1px solid #333; /* Dark border for the login container */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+}
+
 
 /* Help Page Specific Styles */
 body.dark-mode .help-container {

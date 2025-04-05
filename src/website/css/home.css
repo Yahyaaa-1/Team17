@@ -372,31 +372,4 @@
     margin-top: -10px; /* Pulls the chart up slightly */
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    .small-stat-card {
-        min-width: 160px;
-    }
-}
 
-@media (max-width: 992px) {
-    .stats-row {
-        gap: 8px;
-    }
-    .small-stat-card {
-        min-width: calc(25% - 8px);
-    }
-}
-
-@media (max-width: 768px) {
-    .widget-row {
-        flex-direction: column;
-    }
-    .slider-section,
-    .pie-chart-container,
-    .bar-chart-container,
-    .scatter-chart-container {
-        height: auto;
-        margin-bottom: 15px;
-    }
-}

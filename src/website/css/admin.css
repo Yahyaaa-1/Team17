@@ -35,7 +35,7 @@ table th {
 }
 .approve-btn {
     background-color: var(--success-green);
-    color: white;
+    color: rgb(0, 0, 0);
 }
 .delete-btn {
     background-color: var(--error-red);
