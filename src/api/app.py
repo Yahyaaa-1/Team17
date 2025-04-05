@@ -101,50 +101,50 @@ def log_event(message, type, log_level):
     except Exception as e:
         print(f"Failed to log event: {e}")
 
-# Verify employee
-@app.route('/api/verify-employee', methods=['POST', 'OPTIONS'])
-def verify_employee():
+# # Verify employee
+# @app.route('/api/verify-employee', methods=['POST', 'OPTIONS'])
+# def verify_employee():
 
-    if request.method == "OPTIONS":
-        response = jsonify({"success": True})
-        return response
+#     if request.method == "OPTIONS":
+#         response = jsonify({"success": True})
+#         return response
 
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No data received'}), 400
+#     try:
+#         data = request.get_json()
+#         if not data:
+#             return jsonify({'success': False, 'error': 'No data received'}), 400
 
-        email = data.get('email')
-        temp_password = data.get('temp_password')
+#         email = data.get('email')
+#         temp_password = data.get('temp_password')
 
-        if not email or not temp_password:
-            return jsonify({'success': False, 'error': 'Missing credentials'}), 400
+#         if not email or not temp_password:
+#             return jsonify({'success': False, 'error': 'Missing credentials'}), 400
 
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT * FROM employee_registry 
-                WHERE email = %s AND temp_password = %s
-            """, (email, temp_password))
+#         try:
+#             cursor = connection.cursor(dictionary=True)
+#             cursor.execute("""
+#                 SELECT * FROM employee_registry 
+#                 WHERE email = %s AND temp_password = %s
+#             """, (email, temp_password))
             
-            employee = cursor.fetchone()
+#             employee = cursor.fetchone()
             
-            if employee:
-                return jsonify({'success': True, 'message': 'Verification successful'})
-            else:
-                return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+#             if employee:
+#                 return jsonify({'success': True, 'message': 'Verification successful'})
+#             else:
+#                 return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
-        finally:
-            cursor.close()
-            connection.close()
+#         finally:
+#             cursor.close()
+#             connection.close()
 
-    except Exception as e:
-        print(f"Error in verify_employee: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+#     except Exception as e:
+#         print(f"Error in verify_employee: {str(e)}")
+#         return jsonify({'success': False, 'error': str(e)}), 500
 
 # user registration
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
@@ -161,12 +161,12 @@ def register():
         
         if not data:
             return jsonify({'success': False, 'error': 'No data received'}), 400
-            
+        
+        full_name = data.get('full_name')   
         email = data.get('email')
-        temp_password = data.get('temp_password')
         new_password = data.get('new_password')
 
-        if not all([email, temp_password, new_password]):
+        if not all([full_name, email, new_password]):
             return jsonify({'success': False, 'error': 'Missing required fields'}), 400
 
         connection = get_db_connection()
@@ -174,22 +174,6 @@ def register():
             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
         cursor = connection.cursor(dictionary=True)
-        
-        # Verify the employee
-        cursor.execute("""
-            SELECT * FROM employee_registry 
-            WHERE email = %s AND temp_password = %s
-        """, (email, temp_password))
-        
-        employee = cursor.fetchone()
-
-        if not employee:
-            cursor.close()
-            connection.close()
-            log_event(f"Registration failed for {email}: Invalid Credentials", type='WARNING', log_level='admin')
-            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-        else:
-            print(f"Employee details: {employee}")
 
         # Check if user already exists in user_accounts
         cursor.execute("""
@@ -210,13 +194,13 @@ def register():
         try:
             cursor.execute("""
                 INSERT INTO user_accounts 
-                (operator_id,email, full_name, password, admin, active,dark_mode) 
-                VALUES (%s, %s, %s, %s, %s,%s,%s)
-            """, (employee['operator_id'],email, employee['full_name'], hashed_password, 0, 0,0))
+                (email, full_name, password, admin, active,dark_mode) 
+                VALUES ( %s, %s, %s, %s,%s,%s)
+            """, (email, full_name, hashed_password, 0, 0,0))
 
             connection.commit()
         except mysql.connector.Error as err:
-          
+            print("Database error:", err)
             return jsonify({'success': False, 'error': 'Database error occurred'}), 500
         finally:
             cursor.close()
@@ -410,38 +394,38 @@ def get_user_accounts():
             'user_accounts': user_accounts
         })
 
-# Get all employees
-@app.route('/api/admin/employee-reg', methods=['GET', 'OPTIONS'])
-def get_employee_reg():
+# # Get all employees
+# @app.route('/api/admin/employee-reg', methods=['GET', 'OPTIONS'])
+# def get_employee_reg():
 
-    if request.method == "OPTIONS":
-        return jsonify({"success": True})
+#     if request.method == "OPTIONS":
+#         return jsonify({"success": True})
     
-    try:
+#     try:
         
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        cursor = connection.cursor(dictionary=True)
+#         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("""
-            SELECT * FROM employee_registry 
-        """)
+#         cursor.execute("""
+#             SELECT * FROM employee_registry 
+#         """)
         
-        employee_registry = cursor.fetchall()
+#         employee_registry = cursor.fetchall()
 
-        cursor.close()
-        connection.close()
+#         cursor.close()
+#         connection.close()
 
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+#     except Exception as e:
+#         return jsonify({'success': False, 'error': str(e)}), 400
     
-    return jsonify({
-            'success': True, 
-            'message': 'Retrieved user accounts successfully',
-            'employee_registry': employee_registry
-        })
+#     return jsonify({
+#             'success': True, 
+#             'message': 'Retrieved user accounts successfully',
+#             'employee_registry': employee_registry
+#         })
 
     
 
@@ -689,92 +673,92 @@ def deleteUser():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
-# Delete employee
-@app.route('/api/admin/delete-employee', methods=['POST', 'OPTIONS'])
-def deleteEmployee():
+# # Delete employee
+# @app.route('/api/admin/delete-employee', methods=['POST', 'OPTIONS'])
+# def deleteEmployee():
         
-    if request.method == "OPTIONS":
-        return jsonify({"success": True})
+#     if request.method == "OPTIONS":
+#         return jsonify({"success": True})
     
-    if request.method != "POST":
-        return jsonify({"error": "Method not allowed"}), 405
+#     if request.method != "POST":
+#         return jsonify({"error": "Method not allowed"}), 405
     
-    try:
-        data = request.get_json()
+#     try:
+#         data = request.get_json()
         
-        if not data:
-            return jsonify({'success': False, 'error': 'No data received'}), 400
+#         if not data:
+#             return jsonify({'success': False, 'error': 'No data received'}), 400
             
-        operator_id = data.get('operator_id')
-        admin_ID = data.get('admin_ID')
+#         operator_id = data.get('operator_id')
+#         admin_ID = data.get('admin_ID')
 
 
-        print(operator_id)
+#         print(operator_id)
        
 
-        if not [operator_id]:
-            return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
+#         if not [operator_id]:
+#             return jsonify({'success': False, 'error': 'Missing Operator id'}), 400
         
-        connection = get_db_connection()
-        if not connection:
-            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+#         connection = get_db_connection()
+#         if not connection:
+#             return jsonify({'success': False, 'error': 'Database connection failed'}), 500
 
-        try:
-            data = request.get_json()
-            operator_id = data.get('operator_id')
-            print(f"Attempting to delete operator: {operator_id}")
+#         try:
+#             data = request.get_json()
+#             operator_id = data.get('operator_id')
+#             print(f"Attempting to delete operator: {operator_id}")
 
-            cursor = connection.cursor(dictionary=True)
+#             cursor = connection.cursor(dictionary=True)
            
 
-            # First verify the user exists
-            cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
-            user = cursor.fetchone()
-            print(f"User before deletion: {user}")
+#             # First verify the user exists
+#             cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
+#             user = cursor.fetchone()
+#             print(f"User before deletion: {user}")
 
-            if not user:
-                return jsonify({
-                    'success': False,
-                    'message': f'User {operator_id} not found'
-                }), 404
+#             if not user:
+#                 return jsonify({
+#                     'success': False,
+#                     'message': f'User {operator_id} not found'
+#                 }), 404
 
-            # Then delete from employee_registry
-            cursor.execute("DELETE FROM employee_registry WHERE operator_id = %s", (operator_id,))
-            employee = cursor.rowcount
-            print(f"Rows affected in employee_registry: {employee}")
+#             # Then delete from employee_registry
+#             cursor.execute("DELETE FROM employee_registry WHERE operator_id = %s", (operator_id,))
+#             employee = cursor.rowcount
+#             print(f"Rows affected in employee_registry: {employee}")
 
-            connection.commit()
+#             connection.commit()
 
-            # Verify deletion
-            cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
-            verify = cursor.fetchone()
+#             # Verify deletion
+#             cursor.execute("SELECT * FROM employee_registry WHERE operator_id = %s", (operator_id,))
+#             verify = cursor.fetchone()
 
-            if verify is None:
-                log_event(f"Employee Reg {operator_id} deleted by admin - {admin_ID}", type='WARNING', log_level='admin')
-                return jsonify({
-                    'success': True,
-                    'message': f'User {operator_id} has been deleted',
-                    'employee_rows_affected': employee
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'message': f'Delete operation failed for user {operator_id}'
-                }), 500
+#             if verify is None:
+#                 log_event(f"Employee Reg {operator_id} deleted by admin - {admin_ID}", type='WARNING', log_level='admin')
+#                 return jsonify({
+#                     'success': True,
+#                     'message': f'User {operator_id} has been deleted',
+#                     'employee_rows_affected': employee
+#                 })
+#             else:
+#                 return jsonify({
+#                     'success': False,
+#                     'message': f'Delete operation failed for user {operator_id}'
+#                 }), 500
 
-        except mysql.connector.Error as err:
-            print(f"Database error: {err}")
-            return jsonify({'success': False, 'error': str(err)}), 500
-        finally:
-            if cursor:
-                cursor.close()
-            if connection:
-                connection.close()
+#         except mysql.connector.Error as err:
+#             print(f"Database error: {err}")
+#             return jsonify({'success': False, 'error': str(err)}), 500
+#         finally:
+#             if cursor:
+#                 cursor.close()
+#             if connection:
+#                 connection.close()
 
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+#     except Exception as e:
+#         return jsonify({'success': False, 'error': str(e)}), 400
     
-    # Get user status
+#     # Get user status
 @app.route('/api/admin/toggle-user-status', methods=['POST', 'OPTIONS'])
 def toggleUserStatus():
     
@@ -874,23 +858,19 @@ def updateUserDetails():
             
         operator_id = data.get('operator_id')
         email = data.get('Nemail')
-        password = data.get('NtempPass')
         fullname = data.get('Nfullname')
 
         print("New user details to update")
         print(email)
-        print(password)
         print(fullname)
 
        # Check for missing fields
-        if not all([operator_id, email, password, fullname]):
+        if not all([operator_id, email, fullname]):
             missing_fields = []
             if not operator_id:
                 missing_fields.append('Operator ID')
             if not email:
                 missing_fields.append('Email')
-            if not password:
-                missing_fields.append('Password')
             if not fullname:
                 missing_fields.append('Fullname')
         
@@ -906,7 +886,7 @@ def updateUserDetails():
             
             # Get user active status
             cursor.execute("""SELECT * 
-                           FROM employee_registry 
+                           FROM user_accounts 
                            WHERE operator_id = %s""", (operator_id,))
             
             user = cursor.fetchone()
@@ -917,16 +897,15 @@ def updateUserDetails():
 
                     # Update query
                     query = """
-                        UPDATE employee_registry
+                        UPDATE user_accounts
                         SET email = %s,
-                        full_name = %s,
-                        temp_password = %s
+                        full_name = %s
                         WHERE operator_id = %s
                     """
-                    # print("Query:", query)
-                    # print("Parameters:", (new_status, operator_id))
+                    print("Query:", query)
+                    print("Parameters:", (email,fullname, operator_id))
                     
-                    cursor.execute(query, (email,fullname,password, operator_id))
+                    cursor.execute(query, (email,fullname, operator_id))
                     connection.commit()
 
                     return jsonify({
@@ -1014,12 +993,19 @@ def generate_temperature_readings():
             # Line 4 sensor readings
             line4_values = [current_timestamp, timezone_offset]
             for sensor in LINE_4_SENSORS:
-                temp = sensor_temps[sensor]
+
+
+                avg_temp = SENSOR_RANGES_LINE5[sensor]["avg"]  # Get average temperature
+                fluctuation = avg_temp * 0.02  # Calculate 2% fluctuation
+                new_temp = random.uniform(avg_temp - fluctuation, avg_temp + fluctuation)  # Generate new temperature within ±2%
+                
+                # Old method
+                # temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE4[sensor]
                 
-                # Small random fluctuation
-                delta = random.uniform(-0.2, 0.2)
-                new_temp = temp + delta
+                # # Small random fluctuation
+                # delta = random.uniform(-0.2, 0.2)
+                # new_temp = temp + delta
                 
                 # Keep within sensor limits
                 new_temp = max(limits["min"], min(limits["max"], new_temp))
@@ -1040,11 +1026,20 @@ def generate_temperature_readings():
             # Line 5 sensor readings  
             line5_values = [current_timestamp, timezone_offset]
             for sensor in LINE_5_SENSORS:
-                temp = sensor_temps[sensor]
+
+                # Old method
+                # temp = sensor_temps[sensor]
                 limits = SENSOR_RANGES_LINE5[sensor]
                 
-                delta = random.uniform(-0.2, 0.2)
-                new_temp = temp + delta
+                # delta = random.uniform(-0.2, 0.2)
+                # new_temp = temp + delta
+
+
+                avg_temp = SENSOR_RANGES_LINE5[sensor]["avg"]  # Get average temperature
+                fluctuation = avg_temp * 0.02  # Calculate 2% fluctuation
+                new_temp = random.uniform(avg_temp - fluctuation, avg_temp + fluctuation)  # Generate new temperature within ±2%
+                
+
                 new_temp = max(limits["min"], min(limits["max"], new_temp))
                 sensor_temps[sensor] = round(new_temp, 2)
                 line5_values.append(sensor_temps[sensor])
@@ -1103,6 +1098,38 @@ def get_live_data(line):
         if connection:
             connection.close()
             
+@app.route('/api/forecasted-data/<line>', methods=['GET'])
+def get_forecasted_data(line):
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = connection.cursor(dictionary=True)
+        valid_lines = ["line4", "line5"]
+        if line not in valid_lines:
+            return jsonify({'error': 'Invalid line selected'}), 400
+
+        query = f"SELECT * FROM forecasted{line} ORDER BY forecast_time ASC"
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        if not data:
+            return jsonify({'error': 'No forecasted data available'}), 404
+
+        # Format the response
+        for record in data:
+            record["forecast_time"] = record["forecast_time"].strftime("%Y-%m-%d %H:%M:%S")
+
+        return jsonify({'success': True, 'data': data}), 200
+
+    except Exception as e:
+        print(f"Error fetching forecasted data: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection:
+            connection.close()
+
 @app.route('/api/sensor-data/<line>/<sensor>', methods=['GET'])
 def get_sensor_data(line, sensor):
     try:
@@ -1181,7 +1208,7 @@ def get_historical_data(line):
         logging.error(f"Error fetching historical data: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/historical/<line>/<sensor>', methods=['POST']) 
+@app.route('/api/historical/<line>/<sensor>', methods=['GET']) 
 @cross_origin()
 def get_historical_data_sensor(line, sensor):
     try:
@@ -1597,4 +1624,3 @@ if __name__ == '__main__':
     simulation_thread = threading.Thread(target=generate_temperature_readings, daemon=True)
     simulation_thread.start()
     app.run(debug=True, use_reloader=False)
-
