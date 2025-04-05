@@ -4,12 +4,53 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sensor Data</title>
+  <link rel="icon" type="image/x-icon" href="../images/rakusens_tab_logo.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
   <link rel="stylesheet" href="../css/home.css"/>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 <body>
+
+  <!-- Main Header -->
+  <header class="main-header position-relative">
+    <div class="header-content container-fluid h-100">
+        <div class="logo-container position-absolute top-50 start-50 translate-middle">
+            <img src="../images/rakusens_logo.svg" alt="Rakusens Logo" class="logo-svg">
+        </div>
+    </div>
+  </header>
+
+  <!-- Main Navigation -->
+  <nav class="main-nav navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid justify-content-center">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="../home.html">
+            <i class="fa fa-chart-line"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="fa fa-history"></i> Historical Data
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="logs.html">
+            <i class="fa fa-file-alt"></i> Logs
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="help.html">
+            <i class="fa fa-question-circle"></i> Help & Support
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="header-controls d-flex align-items-center">
+    </div>
+  </nav>
+
   <div class="container my-5 text-center">
     <h2 class="mb-4" id="sensorTitle">Loading...</h2>
 
@@ -42,114 +83,17 @@
     </div>
   </div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const line = urlParams.get("line") || "line4";
-    const sensor = urlParams.get("sensor") || "r01";
-    const cacheKey = `sensorData_${line}_${sensor}`;
-    let chartData = [];
-    let temperatureData = [];
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-4">
+    <div class="container text-center">
+        <p>&copy; 2025 Rakusens. All rights reserved.</p>
+    </div>
+  </footer>
 
-    document.getElementById("sensorTitle").textContent = `Sensor Data for ${sensor} on ${line}`;
-
-    const baseChartOptions = {
-      chart: { animations: { enabled: false }, height: 400, toolbar: { show: false } },
-      series: [{ name: sensor, data: [] }],
-      xaxis: {
-        type: "datetime",
-        title: { text: "Time" },
-        labels: {
-          datetimeFormatter: {
-            hour: "HH:mm",
-            minute: "HH:mm",
-            second: "HH:mm:ss"
-          }
-        },
-        tooltip: { enabled: true },
-        range: 2 * 60 * 60 * 1000 // 2 hours
-      },
-      yaxis: { title: { text: "Temperature (°C)" } }
-    };
-
-    const sensorChart = new ApexCharts(document.querySelector("#sensorChart"), {
-      ...baseChartOptions,
-      chart: { ...baseChartOptions.chart, type: "line" }
-    });
-
-    const sensorScatterChart = new ApexCharts(document.querySelector("#sensorScatterChart"), {
-      ...baseChartOptions,
-      chart: { ...baseChartOptions.chart, type: "scatter" },
-      markers: { size: 5, colors: ["#FF4560"] }
-    });
-
-    const sensorAreaChart = new ApexCharts(document.querySelector("#sensorAreaChart"), {
-      ...baseChartOptions,
-      chart: { ...baseChartOptions.chart, type: "area" },
-      fill: {
-        type: "gradient",
-        gradient: { shadeIntensity: 0.5, opacityFrom: 0.6, opacityTo: 0.2, stops: [0, 90, 100] }
-      }
-    });
-
-    sensorChart.render();
-    sensorScatterChart.render();
-    sensorAreaChart.render();
-
-    function loadInitialData() {
-      const cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-      const now = Date.now();
-      const twoHoursAgo = now - 2 * 60 * 60 * 1000;
-
-      chartData = cached.filter(p => p.x >= twoHoursAgo).sort((a, b) => a.x - b.x);
-      temperatureData = chartData.map(p => p.y);
-
-      updateCharts(chartData);
-      updateStatistics();
-
-      setInterval(fetchLiveData, 8000);
-    }
-
-    function fetchLiveData() {
-      fetch(`http://localhost:5000/api/live-data/${line}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.data[sensor]) {
-            const now = Date.now();
-            const point = { x: now, y: parseFloat(data.data[sensor]) };
-
-            chartData.push(point);
-            chartData = chartData.filter(p => p.x >= now - 2 * 60 * 60 * 1000);
-            temperatureData = chartData.map(p => p.y);
-
-            updateCharts(chartData);
-            updateStatistics();
-            localStorage.setItem(cacheKey, JSON.stringify(chartData));
-          }
-        })
-        .catch(err => console.error("Live update error:", err));
-    }
-
-    function updateCharts(data) {
-      const updatedSeries = [{ name: sensor, data }];
-      sensorChart.updateSeries(updatedSeries);
-      sensorScatterChart.updateSeries(updatedSeries);
-      sensorAreaChart.updateSeries(updatedSeries);
-    }
-
-    function updateStatistics() {
-      if (!temperatureData.length) return;
-      const mean = (temperatureData.reduce((a, b) => a + b, 0) / temperatureData.length).toFixed(1);
-      const min = Math.min(...temperatureData).toFixed(1);
-      const max = Math.max(...temperatureData).toFixed(1);
-      const latest = temperatureData[temperatureData.length - 1].toFixed(1);
-
-      document.getElementById("temperatureDisplay").textContent = `${latest} °C`;
-      document.getElementById("meanTemperature").textContent = `${mean} °C`;
-      document.getElementById("minTemperature").textContent = `${min} °C`;
-      document.getElementById("maxTemperature").textContent = `${max} °C`;
-    }
-
-    loadInitialData();
-  </script>
+  <!-- Merged JS -->
+  <script src="../js/sensor-data.js"></script>
+  <script src="../js/logged-in.js"></script>
 </body>
 </html>
+
+

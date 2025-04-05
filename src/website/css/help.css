@@ -1,6 +1,5 @@
 :root {
     --primary-dark-blue: #2c3e50;
-    --accent-blue: #3498db;
     --error-red: #e74c3c;
     --success-green: #2ecc71;
     --background-light: #ffffff;
@@ -16,14 +15,6 @@
     --border-color: #2c3e50;
     --card-shadow: 0 2px 8px rgba(0,0,0,0.3);
     --accent-blue-rgb: 41, 128, 185;
-}
-
-.main-header {
-    height: 200px;
-    background-image: url('../images/rakusens_header.png'); /* Ensure correct path */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
 .help-container {
@@ -46,35 +37,6 @@
     color: var(--primary-dark-blue);
     margin-bottom: 15px;
     font-weight: 600;
-}
-
-/* Navigation Styles */
-.main-nav {
-    padding: 0.5rem 0;
-    position: relative;
-    z-index: 999;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.main-nav .navbar-nav {
-    gap: 2rem;
-}
-
-.main-nav .nav-link {
-    color: white !important;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.main-nav .nav-link.active {
-    background: #3498db;
-    color: white !important;
-}
-
-.main-nav .nav-link:hover {
-    background: rgba(255,255,255,0.1);
 }
 
 [data-theme="dark"] .main-nav {

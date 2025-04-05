@@ -14,7 +14,7 @@
     --danger-color: #dc3545;
 }
 
-/* Main Header Styles */
+/* Main Header Styles
 .main-header {
     height: 200px;
     background-image: url('../images/rakusens_header.png');
@@ -23,13 +23,13 @@
     background-repeat: no-repeat;
     position: relative;
     overflow: hidden;
-}
+} */
 
 .header-content {
     position: relative;
     height: 100%;
 }
-
+/* 
 .logo-container {
     position: absolute;
     left: 50%;
@@ -41,9 +41,8 @@
 .logo-svg {
     height: 160px;
     width: auto;
-}
-
-/* Main Navigation Styles */
+} */
+/* 
 .main-nav {
     padding: 0.5rem 0;
     position: relative;
@@ -81,7 +80,7 @@
 [data-theme="dark"] .main-nav {
     background: var(--deep-navy);
     border-bottom: 1px solid var(--secondary-blue);
-}
+} */
 
 /* Dark Mode Variables */
 [data-bs-theme="dark"] {

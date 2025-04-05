@@ -7,24 +7,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordMatchMessage = document.getElementById('passwordMatch');
     const emailInput = document.getElementById('email');
     const fullNameInput = document.getElementById('fullname');
-
-
-    function togglePasswordVisibility(toggleButtonId, passwordFieldId) {
-        const toggleButton = document.querySelector(toggleButtonId);
-        const passwordField = document.querySelector(passwordFieldId);
+    const togglePassword = document.getElementById('toggleNewPassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
     
-        toggleButton.addEventListener("click", function () {
-            const isPassword = passwordField.getAttribute("type") === "password";
-            passwordField.setAttribute("type", isPassword ? "text" : "password");
-            this.classList.toggle("fa-eye-slash");
-            this.classList.toggle("fa-eye");
-        });
-    }
-    
-    document.addEventListener("DOMContentLoaded", function () {
-        togglePasswordVisibility("#toggleNewPassword", "#newPassword");
-        togglePasswordVisibility("#toggleConfirmPassword", "#confirmPassword");
+
+    togglePassword.addEventListener('click', function () {
+        const type = newPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        newPasswordInput.setAttribute('type', type);
+
+        // Toggle the icon (optional visual feedback)
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
     });
+
+    toggleConfirmPassword.addEventListener('click', function () {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+
+        // Toggle the icon (optional visual feedback)
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+    
     
 
     // Function to show messages

@@ -109,7 +109,6 @@ function initScatterChart() {
         chart: {
             type: 'scatter',
             height: '100%',
-            zoom: { enabled: true, type: 'xy' },
             toolbar: { tools: { download: true, selection: true, zoom: true } },
             animations: { enabled: true, easing: 'linear', dynamicAnimation: { speed: 1000 } }
         },
@@ -121,9 +120,33 @@ function initScatterChart() {
         xaxis: {
             type: 'datetime',
             title: { text: 'Time' },
-            labels: { datetimeFormatter: { hour: 'HH:mm' } }
+            labels: {
+                datetimeFormatter: {
+                    hour: 'HH:mm',
+                    minute: 'HH:mm'
+                }
+            },
+            zoom: {
+                enabled: true,
+                type: 'x',   // Enable zoom on the x-axis
+                autoScaleYaxis: true // Auto scale Y-axis as the X-axis zooms
+            },
+            // Remove min and max to let zoom dynamically control the range
+            // min: Date.now() - 7200000, // Start with 2 hours ago
+            // max: Date.now(), // Current time
         },
-        yaxis: { title: { text: 'Temperature (°C)' }, min: 0, max: 400 },
+        yaxis: {
+            title: { text: 'Temperature (°C)' },
+            min: 0, // Default minimum
+            max: 100, // Default maximum
+            forceNiceScale: true,
+            tickAmount: 6,
+            labels: {
+                formatter: function(val) {
+                    return val.toFixed(1) + '°C';
+                }
+            }
+        },
         colors: ['#00E396', '#FFA500', '#FF0000'],
         markers: { size: 6, strokeWidth: 0, hover: { size: 8 } },
         tooltip: {
@@ -547,6 +570,29 @@ function updateLiveScatterChart(liveData) {
             liveScatterData[status].shift();
         }
     });
+
+    // Calculate y-axis min/max based on all data points
+    const allPoints = [...liveScatterData.normal, ...liveScatterData.warning, ...liveScatterData.critical];
+    let yMin = 0;
+    let yMax = 100;
+
+    if (allPoints.length > 0) {
+        const values = allPoints.map(p => p.y);
+        const dataMin = Math.min(...values);
+        const dataMax = Math.max(...values);
+        
+        // Add 10% buffer to the min/max
+        const range = dataMax - dataMin;
+        yMin = Math.max(0, dataMin - range * 0.1);
+        yMax = dataMax + range * 0.1;
+        
+        // Ensure we have at least 20 degrees range
+        if ((yMax - yMin) < 20) {
+            const center = (yMin + yMax) / 2;
+            yMin = center - 10;
+            yMax = center + 10;
+        }
+    }
     
     // Update the chart
     scatterChart.updateOptions({
@@ -556,7 +602,13 @@ function updateLiveScatterChart(liveData) {
             { name: 'Critical', data: liveScatterData.critical }
         ],
         xaxis: {
-            type: 'datetime'
+            type: 'datetime',
+            min: timestamp - 7200000, // 2 hours ago
+            max: timestamp + 60000 // 1 minute in future (small buffer)
+        },
+        yaxis: {
+            min: yMin,
+            max: yMax
         }
     });
 }

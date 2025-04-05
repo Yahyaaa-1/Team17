@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function initializeLogsTable() {
         logsTable = $('#logsTable').DataTable({
+            searching: false,  // disables the search bar
             processing: true,
             serverSide: true,
             ajax: {

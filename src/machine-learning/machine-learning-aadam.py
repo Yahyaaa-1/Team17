@@ -5,7 +5,7 @@ import mysql.connector
 from flask import Flask, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
-
+import time 
 # Flask App Configuration
 app = Flask(__name__)
 CORS(app)
@@ -20,9 +20,9 @@ DB_CONFIG = {
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-START_TIME = datetime(2025, 4, 3, 18, 52, 0)
+START_TIME = datetime(2025, 4, 5, 1, 10, 0)
 INTERVAL = timedelta(seconds=30)
-DURATION = timedelta(hours=0.1)
+DURATION = timedelta(hours=0.25)
 
 def get_db_connection():
     """Establish connection to MySQL database"""
@@ -111,6 +111,9 @@ def generate_and_store_forecasts():
     
     # Process both lines
     for line in ["line4", "line5"]:
+        
+        start_time = time.time()  # Start timing
+
         sensors = detect_sensors(line)
         if not sensors:
             print(f"No sensor models found for {line}")
@@ -133,6 +136,11 @@ def generate_and_store_forecasts():
                 forecast = load_model_and_forecast(model_path, timestamp)
                 if forecast is not None:
                     store_forecasts(conn, line, sensor, timestamp, forecast)
+
+        end_time = time.time()  # End timing
+        elapsed_time = end_time - start_time  # Calculate the elapsed time
+        print(f"Time taken to process {line}: {elapsed_time:.2f} seconds")  # Print the time taken
+    
     
     conn.close()
     print("\nForecast generation complete!")
