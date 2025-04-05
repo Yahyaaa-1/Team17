@@ -83,6 +83,46 @@ def register():
     log_event(f"New user registered: {email}")
     return success("Registration successful")
 
+@app.route('/api/login', methods=['POST', 'OPTIONS'])
+def login():
+    if request.method == 'OPTIONS':
+        return handle_options()
+
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return error("Email and password required")
+
+    conn = get_db_connection()
+    if not conn:
+        return error("Database connection failed", 500)
+
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM user_accounts WHERE email = %s", (email,))
+    user = cursor.fetchone()
+
+    if user and check_password_hash(user['password'], password):
+        cursor.close()
+        conn.close()
+        log_event(f"User logged in: {email}")
+        return jsonify({
+            "success": True,
+            "user": {
+                "email": user['email'],
+                "full_name": user['full_name'],
+                "operator_id": user['operator_id'],
+                "admin": user['admin'],
+                "active": user['active'],
+                "dark_mode": user['dark_mode']
+            }
+        })
+    else:
+        cursor.close()
+        conn.close()
+        return error("Invalid email or password", 401)
+
 @app.route('/api/historical-data/<line>', methods=['POST', 'OPTIONS'])
 def get_historical_data(line):
     if request.method == 'OPTIONS': return handle_options()

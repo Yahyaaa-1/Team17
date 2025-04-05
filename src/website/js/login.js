@@ -11,12 +11,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('togglePassword');
 
     togglePassword.addEventListener('click', function () {
-        // Toggle the type attribute
         const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordInput.setAttribute('type', type);
 
-        // Toggle the eye icon emoji (optional)
-        this.textContent = type === 'password' ? '👁️' : '🙈';
+        // Toggle the icon (optional visual feedback)
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        const body = document.body;
+        const icon = this.querySelector('i');
+    
+        body.classList.toggle('dark-mode');
+    
+        // Change icon based on the mode
+        if (body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
     });
 
     // Function to show messages
@@ -57,16 +73,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    if (emailInput) {
-        emailInput.addEventListener('input', function() {
-            const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
-            if (!emailPattern.test(this.value)) {
-                this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-    }
+    // if (emailInput) {
+    //     emailInput.addEventListener('input', function() {
+    //         const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
+    //         if (!emailPattern.test(this.value)) {
+    //             this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
+    //         } else {
+    //             this.setCustomValidity('');
+    //         }
+    //     });
+    // }
 
     // Form submission
     if (loginForm) {
