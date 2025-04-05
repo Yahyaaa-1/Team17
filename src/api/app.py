@@ -858,23 +858,19 @@ def updateUserDetails():
             
         operator_id = data.get('operator_id')
         email = data.get('Nemail')
-        password = data.get('NtempPass')
         fullname = data.get('Nfullname')
 
         print("New user details to update")
         print(email)
-        print(password)
         print(fullname)
 
        # Check for missing fields
-        if not all([operator_id, email, password, fullname]):
+        if not all([operator_id, email, fullname]):
             missing_fields = []
             if not operator_id:
                 missing_fields.append('Operator ID')
             if not email:
                 missing_fields.append('Email')
-            if not password:
-                missing_fields.append('Password')
             if not fullname:
                 missing_fields.append('Fullname')
         
@@ -890,7 +886,7 @@ def updateUserDetails():
             
             # Get user active status
             cursor.execute("""SELECT * 
-                           FROM employee_registry 
+                           FROM user_accounts 
                            WHERE operator_id = %s""", (operator_id,))
             
             user = cursor.fetchone()
@@ -901,16 +897,15 @@ def updateUserDetails():
 
                     # Update query
                     query = """
-                        UPDATE employee_registry
+                        UPDATE user_accounts
                         SET email = %s,
-                        full_name = %s,
-                        temp_password = %s
+                        full_name = %s
                         WHERE operator_id = %s
                     """
-                    # print("Query:", query)
-                    # print("Parameters:", (new_status, operator_id))
+                    print("Query:", query)
+                    print("Parameters:", (email,fullname, operator_id))
                     
-                    cursor.execute(query, (email,fullname,password, operator_id))
+                    cursor.execute(query, (email,fullname, operator_id))
                     connection.commit()
 
                     return jsonify({

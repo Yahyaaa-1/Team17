@@ -108,7 +108,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-    }       
+    }
+
+    document.getElementById('editEmployeeForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+        savechanges(); // Call the savechanges function
+    });
 
      // Save edit changes
     window.savechanges = async function(button) {
@@ -124,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ operator_id: operatorId , Nemail: email, Nfullname:fullname, NtempPass:tempPass})
+                    body: JSON.stringify({ operator_id: operatorId , Nemail: email, Nfullname:fullname})
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -132,11 +137,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 else{
-                    location.reload();
+                    //location.reload();
                 }
                 const data = await response.json();
                 if (data.success) {
-                    //fetchEmployeeRegistry(); // Refresh table
+                    fetchUserAccounts();
+                    document.getElementById('editModal').style.display = "none";
                 }
             } catch (error) {
                 console.error('Error deleting user:', error);
@@ -310,28 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error deleting user:', error);
-            }
-        }
-    }
-
-    // Delete employee
-    window.deleteEmployee = async function(button) {
-        const operatorId = button.dataset.id;
-        if (confirm(`Are you sure you want to delete employee ${operatorId}?`)) {
-            try {
-                const response = await fetch(`http://localhost:5000/api/admin/delete-employee`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ operator_id: operatorId , admin_ID:adminID})
-                });
-                const data = await response.json();
-                if (data.success) {
-                    fetchEmployeeRegistry(); // Refresh table
-                }
-            } catch (error) {
-                console.error('Error deleting employee:', error);
             }
         }
     }
