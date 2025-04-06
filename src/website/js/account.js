@@ -15,14 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const darkModeToggle = document.getElementById('darkModeToggle');
     const htmlElement = document.documentElement;
 
+    // Use either source, prioritizing the dedicated darkMode key if it exists
+    const isDarkMode = JSON.parse(sessionStorage.getItem('darkMode')) || user.dark_mode;
+
     // Set initial theme
-    htmlElement.setAttribute('data-bs-theme', user.dark_mode ? 'dark' : 'light');
-    darkModeToggle.checked = user.dark_mode;
+    htmlElement.setAttribute('data-bs-theme', isDarkMode ? 'dark' : 'light');
+    darkModeToggle.checked = isDarkMode;
 
     // Dark mode toggle handler
     darkModeToggle.addEventListener('change', () => {
         const isDarkMode = darkModeToggle.checked;
         htmlElement.setAttribute('data-bs-theme', isDarkMode ? 'dark' : 'light');
+        user.dark_mode = isDarkMode ? 1 : 0;
+        sessionStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('darkMode', JSON.stringify(user.dark_mode));
+        
+
         // updatePreference('dark_mode', isDarkMode ? 1 : 0);
     });
 
