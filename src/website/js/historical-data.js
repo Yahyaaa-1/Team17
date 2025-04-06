@@ -53,11 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    searchBox.addEventListener('keyup', function () {
-        console.log("Search value changed to:", this.value);
-        // fetchGraphData(lineSelector.value);
-        fetchHistoricalData(lineSelector.value);
-    });
     
     let availableColumns = {
         "line4": ["timestamp", "r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"],
@@ -89,12 +84,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listeners for datetime range filters
     startDateTimeFilter.addEventListener('change', function() {
         console.log("Start datetime changed:", this.value);
-        fetchGraphData(lineSelector.value);
+        fetchHistoricalData(lineSelector.value);
     });
 
     endDateTimeFilter.addEventListener('change', function() {
         console.log("End datetime changed:", this.value);
-        fetchGraphData(lineSelector.value);
+        fetchHistoricalData(lineSelector.value);
     });
 
     
@@ -266,7 +261,7 @@ endDateTimeFilter.addEventListener('change', function() {
             processing: true,
             serverSide: true,
             searching: false,
-            order: [[0, 'desc']], // Sort by timestamp descending
+            order: [[0, 'desc']], 
             responsive: true,
             autoWidth: false,
             columns: columns,
@@ -280,7 +275,6 @@ endDateTimeFilter.addEventListener('change', function() {
                         dateFilter: $('#dateFilter').val(),
                         startDateTime: $('#startDateTimeFilter').val(),
                         endDateTime: $('#endDateTimeFilter').val(),
-                        searchValue: $('#searchBox').val()
                     };
                     console.log("Request Data:", requestData);
                     
@@ -300,11 +294,17 @@ endDateTimeFilter.addEventListener('change', function() {
                     }
                     return response.data;
                 }
+            },
+            columns: columns,
+            drawCallback: function(settings) {
+                const api = this.api();
+                const response = api.ajax.json();
+                if (response) {
+                    api.page.info().recordsTotal = response.recordsTotal;
+                    api.page.info().recordsFiltered = response.recordsFiltered;
+                }
             }
         });
-    
-        // Setup filter change handlers
-        setupFilterHandlers();
     }
     
     // Separate function to fetch and update graph
@@ -333,16 +333,6 @@ endDateTimeFilter.addEventListener('change', function() {
         .catch(error => {
             console.error("Graph update error:", error);
             // Handle graph error (maybe show placeholder or error message)
-        });
-    }
-    
-    // Setup filter change handlers
-    function setupFilterHandlers() {
-
-        // Refresh table when filters change
-        $('#dateFilter, #searchBox').off('change keyup').on('change keyup', function () {
-            console.log("Refreshing table data");
-            table.ajax.reload();
         });
     }
     
