@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const data = await response.json();
                 if (data.success) {
-                    fetchTableHeaders(tableId); // Refresh table
+                    fetchTableHeaders(tableID); // Refresh table
                 }
             } catch (error) {
                 console.error('Error deleting sensor:', error);

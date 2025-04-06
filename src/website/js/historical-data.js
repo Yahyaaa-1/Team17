@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     let lineSelector = document.getElementById('lineSelector');
     let apiUrlBase = 'http://localhost:5000/api/historical-data/';
-    // let availableDatesUrlBase = 'http://localhost:5000/api/available-dates/';
     let tableTab = document.getElementById('table-tab');
     let graphTab = document.getElementById('graph-tab');
     let tableView = document.getElementById('tableView');
@@ -31,7 +30,8 @@ document.addEventListener('DOMContentLoaded', function () {
         graphView.classList.add('show', 'active');
         tableView.classList.remove('show', 'active');
         if (!currentGraphData) {
-            fetchGraphData(lineSelector.value); // Fetch only if no data yet
+            // fetchGraphData(lineSelector.value); // Fetch only if no data yet
+            fetchHistoricalData(lineSelector.value);
         } else {
             plotGraph(currentGraphData); // Re-plot with existing data
         }
@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('dateFilter').addEventListener('change', function() {
         console.log("Date filter changed to:", this.value);
-        fetchGraphData(lineSelector.value);
+        // fetchGraphData(lineSelector.value);
+        fetchHistoricalData(lineSelector.value);
     });
 
     // Chart type change listener
@@ -47,19 +48,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (currentGraphData) {
             plotGraph(currentGraphData); // Immediately re-plot with stored data
         } else {
-            fetchGraphData(lineSelector.value); // Fetch if no data yet
+            // fetchGraphData(lineSelector.value); // Fetch if no data yet
+            fetchHistoricalData(lineSelector.value);
         }
-    });
-
-    // Add filter change listeners to refresh graph data
-    dateFilter.addEventListener('change', function () {
-        console.log("Date filter changed to:", this.value);
-        fetchGraphData(lineSelector.value);
     });
 
     searchBox.addEventListener('keyup', function () {
         console.log("Search value changed to:", this.value);
-        fetchGraphData(lineSelector.value);
+        // fetchGraphData(lineSelector.value);
+        fetchHistoricalData(lineSelector.value);
     });
     
     let availableColumns = {
@@ -68,26 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     let table = null;
-    let availableDates = [];
-
-    // // Gets list of dates with available data
-    // function fetchAvailableDates(line) {
-    //     let availableDatesUrl = availableDatesUrlBase + line;
-    //     console.log(`Getting dates for: ${availableDatesUrl}`);
-
-    //     fetch(availableDatesUrl)
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             if (data.success) {
-    //                 availableDates = data.dates;
-    //                 updateDatePicker();
-    //             } else {
-    //                 console.error("Failed to fetch dates:", data.error);
-    //             }
-    //         })
-    //         .catch(error => console.error("API error:", error));
-    // }
-
+    // let availableDates = [];
 
     // Set default date range (e.g., last 7 days)
     function setDefaultDateRange() {
@@ -136,58 +114,167 @@ endDateTimeFilter.addEventListener('change', function() {
     table.ajax.reload();
 });
 
-    // Populates the date picker dropdown
-    function updateDatePicker() {
-        let dateInput = document.getElementById('dateFilter');
-        dateInput.innerHTML = "";
+    // // Populates the date picker dropdown
+    // function updateDatePicker() {
+    //     let dateInput = document.getElementById('dateFilter');
+    //     dateInput.innerHTML = "";
 
-        availableDates.forEach(date => {
-            let option = document.createElement("option");
-            option.value = date;
-            option.textContent = date;
-            dateInput.appendChild(option);
-        });
+    //     availableDates.forEach(date => {
+    //         let option = document.createElement("option");
+    //         option.value = date;
+    //         option.textContent = date;
+    //         dateInput.appendChild(option);
+    //     });
 
-        dateInput.addEventListener('change', function () {
-            console.log("Date selected:", this.value);
-            table.ajax.reload();
-        });
+    //     dateInput.addEventListener('change', function () {
+    //         console.log("Date selected:", this.value);
+    //         table.ajax.reload();
+    //     });
 
-        console.log("Date picker updated with:", availableDates);
-    }
+    //     console.log("Date picker updated with:", availableDates);
+    // }
 
-    // Sets up the data table with historical data
-    function initializeTable(line) {
-        let apiUrl = apiUrlBase + line;
+    // // Sets up the data table with historical data
+    // function initializeTable(line) {
+    //     let apiUrl = apiUrlBase + line;
     
-        // Define column types: 'timestamp' as date, others as numeric
+    //     // Define column types: 'timestamp' as date, others as numeric
+    //     let columns = availableColumns[line].map(col => {
+    //         if (col === "timestamp") {
+    //             return { data: col, type: "date" };
+    //         }
+    //         return { data: col, type: "num" };
+    //     });
+    
+    //     console.log(`Setting up table for ${line}`);
+    
+    //     if ($.fn.DataTable.isDataTable("#lineTable")) {
+    //         console.log("Clearing existing table");
+    //         table.destroy();
+    //         $('#lineTable').empty();
+    //     }
+    
+    //     // Create thead and tbody
+    //     $('#lineTable').html(`<thead><tr>${columns.map(col => `<th>${col.data}</th>`).join("")}</tr></thead><tbody></tbody>`);
+    
+    //     table = $('#lineTable').DataTable({
+    //         processing: true,
+    //         serverSide: true,
+    //         searching: false,
+    //         ajax: {
+    //             url: apiUrl,
+    //             type: 'POST',
+    //             contentType: "application/json",
+    //             data: function (d) {
+    //                 const requestData = {
+    //                     length: d.length,
+    //                     dateFilter: $('#dateFilter').val(),
+    //                     startDateTime: $('#startDateTimeFilter').val(),
+    //                     endDateTime: $('#endDateTimeFilter').val(),
+    //                     searchValue: $('#searchBox').val()
+    //                 };
+    //                 console.log("Request Data:", requestData);
+    //                 return JSON.stringify(requestData);
+    //             },
+    //             error: function (xhr, error, thrown) {
+    //                 console.error("Table error: ", xhr.responseText, error, thrown);
+    //             }
+    //         },
+    //         order: [[0, 'desc']], // Sort timestamp by default, newest first
+    //         responsive: true,
+    //         autoWidth: false,
+    //         columns: columns
+    //     });
+    
+    //     // Refresh table when filters change
+    //     $('#dateFilter, #searchBox').off('change keyup').on('change keyup', function () {
+    //         console.log("Refreshing table data");
+    //         table.ajax.reload();
+    //     });
+    // }    
+
+
+    // // Fetch and plot graph data
+    // function fetchGraphData(line) {
+    //     let apiUrl = `${apiUrlBase}${line}`;
+    //     console.log(`Fetching graph data from ${apiUrl}`);
+    
+    //     fetch(apiUrl, {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({
+    //             dateFilter: document.getElementById('dateFilter').value,
+    //             searchValue: document.getElementById('searchBox').value
+    //         })
+    //     })
+    //     .then(response => response.json())
+    //     .then(response => {
+    //         console.log("Raw API Response:", response);
+    
+    //         if (!response || !response.success || !Array.isArray(response.data)) {
+    //             console.error("Invalid data format received:", response);
+    //             alert("Error: API did not return expected data format.");
+    //             return;
+    //         }
+    
+    //         currentGraphData = response.data; // Store the data
+    
+    //         if (currentGraphData.length === 0) {
+    //             console.warn("No data available for graph.");
+    //             alert("No data available for this selection.");
+    //             return;
+    //         }
+    
+    //         plotGraph(currentGraphData); // Plot immediately with fetched data
+    //     })
+    //     .catch(error => console.error("Graph API error:", error));
+    // }
+
+    function fetchHistoricalData(line) {
+        const apiUrl = `${apiUrlBase}${line}`;
+        console.log(`Fetching historical data from ${apiUrl}`);
+    
+        // // Define columns for DataTable
+        // const columns = AVAILABLE_COLUMNS[line].map(col => ({
+        //     data: col,
+        //     type: col === "timestamp" ? "date" : "num"
+        // }));
+
         let columns = availableColumns[line].map(col => {
-            if (col === "timestamp") {
-                return { data: col, type: "date" };
-            }
-            return { data: col, type: "num" };
-        });
+                    if (col === "timestamp") {
+                        return { data: col, type: "date" };
+                    }
+                    return { data: col, type: "num" };
+                });
     
-        console.log(`Setting up table for ${line}`);
-    
+        // Initialize or reset table structure
         if ($.fn.DataTable.isDataTable("#lineTable")) {
-            console.log("Clearing existing table");
             table.destroy();
             $('#lineTable').empty();
         }
     
-        // Create thead and tbody
-        $('#lineTable').html(`<thead><tr>${columns.map(col => `<th>${col.data}</th>`).join("")}</tr></thead><tbody></tbody>`);
+        // Create table structure
+        $('#lineTable').html(`
+            <thead>
+                <tr>${columns.map(col => `<th>${col.data}</th>`).join("")}</tr>
+            </thead>
+            <tbody></tbody>
+        `);
     
+        // Initialize DataTable with server-side processing
         table = $('#lineTable').DataTable({
             processing: true,
             serverSide: true,
             searching: false,
+            order: [[0, 'desc']], // Sort by timestamp descending
+            responsive: true,
+            autoWidth: false,
+            columns: columns,
             ajax: {
                 url: apiUrl,
                 type: 'POST',
                 contentType: "application/json",
-                data: function (d) {
+                data: function(d) {
                     const requestData = {
                         length: d.length,
                         dateFilter: $('#dateFilter').val(),
@@ -196,62 +283,68 @@ endDateTimeFilter.addEventListener('change', function() {
                         searchValue: $('#searchBox').val()
                     };
                     console.log("Request Data:", requestData);
+                    
+                    // Fetch graph data when table data is requested
+                    fetchAndUpdateGraph(apiUrl, requestData);
+                    
                     return JSON.stringify(requestData);
                 },
-                error: function (xhr, error, thrown) {
-                    console.error("Table error: ", xhr.responseText, error, thrown);
+                error: function(xhr, error, thrown) {
+                    console.error("Data fetch error:", xhr.responseText, error, thrown);
+                    alert("Error fetching data. Please try again.");
+                },
+                dataSrc: function(response) {
+                    if (!response.success) {
+                        console.error("API Error:", response.error);
+                        return [];
+                    }
+                    return response.data;
                 }
-            },
-            order: [[0, 'desc']], // Sort timestamp by default, newest first
-            responsive: true,
-            autoWidth: false,
-            columns: columns
+            }
         });
     
+        // Setup filter change handlers
+        setupFilterHandlers();
+    }
+    
+    // Separate function to fetch and update graph
+    function fetchAndUpdateGraph(apiUrl, requestData) {
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (!response.success || !Array.isArray(response.data)) {
+                throw new Error("Invalid data format received");
+            }
+    
+            currentGraphData = response.data;
+    
+            if (currentGraphData.length === 0) {
+                console.warn("No data available for graph");
+                // Clear or reset graph if needed
+                return;
+            }
+    
+            plotGraph(currentGraphData);
+        })
+        .catch(error => {
+            console.error("Graph update error:", error);
+            // Handle graph error (maybe show placeholder or error message)
+        });
+    }
+    
+    // Setup filter change handlers
+    function setupFilterHandlers() {
+
         // Refresh table when filters change
         $('#dateFilter, #searchBox').off('change keyup').on('change keyup', function () {
             console.log("Refreshing table data");
             table.ajax.reload();
         });
-    }    
-
-
-    // Fetch and plot graph data
-    function fetchGraphData(line) {
-        let apiUrl = `${apiUrlBase}${line}`;
-        console.log(`Fetching graph data from ${apiUrl}`);
-    
-        fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                dateFilter: document.getElementById('dateFilter').value,
-                searchValue: document.getElementById('searchBox').value
-            })
-        })
-        .then(response => response.json())
-        .then(response => {
-            console.log("Raw API Response:", response);
-    
-            if (!response || !response.success || !Array.isArray(response.data)) {
-                console.error("Invalid data format received:", response);
-                alert("Error: API did not return expected data format.");
-                return;
-            }
-    
-            currentGraphData = response.data; // Store the data
-    
-            if (currentGraphData.length === 0) {
-                console.warn("No data available for graph.");
-                alert("No data available for this selection.");
-                return;
-            }
-    
-            plotGraph(currentGraphData); // Plot immediately with fetched data
-        })
-        .catch(error => console.error("Graph API error:", error));
     }
-    
     
     function plotGraph(data) {
         if (!graphContext) {
@@ -421,14 +514,15 @@ endDateTimeFilter.addEventListener('change', function() {
 
     // Initial table setup with delay
     setTimeout(() => {
-        initializeTable(lineSelector.value);
-        fetchGraphData(lineSelector.value);
+        // initializeTable(lineSelector.value);
+        // fetchGraphData(lineSelector.value);
+        fetchHistoricalData(lineSelector.value);
     }, 500);
 
     // Handle line selection changes
     lineSelector.addEventListener("change", function () {
         console.log(`Switching to line: ${this.value}`);
-        initializeTable(this.value);
-        fetchGraphData(this.value);
+        // initializeTable(this.value);
+        fetchHistoricalData(lineSelector.value);
     });
 });
