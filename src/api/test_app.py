@@ -1,207 +1,138 @@
 import unittest
-from unittest.mock import patch
-from werkzeug.security import generate_password_hash, check_password_hash
-from Capp import app  # Import your Flask app
+from unittest.mock import patch, MagicMock
+from RefactoredApp import FlaskApp, DatabaseManager, SimulationService, AuthService, AdminService, DataService
+from flask import json
+from datetime import datetime,timedelta
 
-class FlaskAppTests(unittest.TestCase):
+class TestFlaskApp(unittest.TestCase):
+
+
+    @classmethod
     def setUp(self):
-        # Set up the test client and any necessary configurations
-        self.app = app.test_client()
+        # Setup that runs before all test #
+        self.app = FlaskApp().app
         self.app.testing = True
+        self.client = self.app.test_client()
+        
+        # Mock database connections before all tests
+        self.db_patcher = patch('mysql.connector.connect')
+        self.mock_db = self.db_patcher.start()
+        self.mock_conn = MagicMock()
+        self.mock_db.return_value = self.mock_conn
+        self.mock_cursor = MagicMock()
+        self.mock_conn.cursor.return_value = self.mock_cursor
 
-    # Tests for the registration endpoint
+    def tearDown(self):
+        self.db_patcher.stop()
+
+    # Helper methods
+    def mock_db_execute(self, return_value=None):
+        self.mock_cursor.fetchone.return_value = return_value
+        self.mock_cursor.fetchall.return_value = return_value or []
+        return self.mock_cursor
+
+    # Auth Service Tests
     def test_register_success(self):
-        # Test successful registration
-        response = self.app.post('/api/register', json={
+        self.mock_db_execute(None)  # No existing user
+        response = self.client.post('/api/register', json={
+            'full_name': 'Test User',
             'email': 'test@example.com',
-            'temp_password': 'temp123',
-            'new_password': 'newpassword123'
+            'new_password': 'Test1234!'
         })
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Registration successful', response.data)
 
     def test_register_missing_fields(self):
-        # Test registration with missing fields
-        response = self.app.post('/api/register', json={
+        response = self.client.post('/api/register', json={
             'email': 'test@example.com'
         })
         self.assertEqual(response.status_code, 400)
-        self.assertIn(b'Missing required fields', response.data)
+        self.assertIn(b'Missing fields', response.data)
 
-    def test_register_invalid_credentials(self):
-        # Test registration with invalid temporary password
-        response = self.app.post('/api/register', json={
-            'email': 'test@example.com',
-            'temp_password': 'wrongtemp',
-            'new_password': 'newpassword123'
-        })
-        self.assertEqual(response.status_code, 401)
-        self.assertIn(b'Invalid credentials', response.data)
-
-    def test_register_user_already_exists(self):
-        # Test registration when user already exists
-        response = self.app.post('/api/register', json={
-            'email': 'existing_user@example.com',
-            'temp_password': 'temp123',
-            'new_password': 'newpassword123'
-        })
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(b'User already registered', response.data)
-
-    # Tests for the login endpoint
     def test_login_success(self):
-        # Test successful login
-        response = self.app.post('/api/login', json={
+        from werkzeug.security import generate_password_hash
+        hashed_pw = generate_password_hash('Test1234!')
+        # Add all required user fields from your User model
+        self.mock_db_execute({
+            'operator_id': 1,
+            'email': 'test@example.com', 
+            'password': hashed_pw,
+            'admin': 0,
+            'active': 1,
+            'dark_mode': 0,
+            'full_name': 'Test User'
+        })
+        
+        response = self.client.post('/api/login', json={
             'email': 'test@example.com',
-            'password': 'newpassword123'
+            'password': 'Test1234!'
         })
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Login successful', response.data)
 
-    def test_login_missing_fields(self):
-        # Test login with missing fields
-        response = self.app.post('/api/login', json={
-            'email': 'test@example.com'
-        })
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(b'Missing required fields', response.data)
+    # Admin Service Tests
+    def test_get_user_accounts(self):
+        mock_data = [{
+            'operator_id': 1,
+            'email': 'admin@example.com',
+            'full_name': 'Admin User',
+            'admin': 1,
+            'active': 1,
+            'dark_mode': 0
+        }]
+        
+        
+        self.mock_cursor.fetchall.return_value = mock_data
+        response = self.client.get('/api/admin/user-accounts')
+        self.assertEqual(response.status_code, 200)
 
-    def test_login_invalid_email(self):
-        # Test login with invalid email
-        response = self.app.post('/api/login', json={
-            'email': 'invalid@example.com',
-            'password': 'somepassword'
-        })
-        self.assertEqual(response.status_code, 401)
-        self.assertIn(b'Invalid email', response.data)
-
-    def test_login_invalid_password(self):
-        # Test login with incorrect password
-        response = self.app.post('/api/login', json={
-            'email': 'test@example.com',
-            'password': 'wrongpassword'
-        })
-        self.assertEqual(response.status_code, 401)
-        self.assertIn(b'Invalid password', response.data)
-
-    def test_login_inactive_user(self):
-        # Test login for an inactive user
-        response = self.app.post('/api/login', json={
-            'email': 'inactive_user@example.com',
-            'password': 'password123'
-        })
-        self.assertEqual(response.status_code, 403)
-        self.assertIn(b'Account not yet approved', response.data)
-
-    # Tests for the update dark mode endpoint
-    def test_update_dark_mode_success(self):
-        # Test updating dark mode preference successfully
-        response = self.app.post('/api/update-dark-mode', json={
-            'operator_id': '123',
-            'dark_mode': 'enabled'
+    def test_toggle_admin_status(self):
+        self.mock_db_execute({'admin': 0})
+        response = self.client.post('/api/admin/toggle-admin-status', json={
+            'operator_id': 1,
+            'admin_ID': 2
         })
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Dark mode preference updated', response.data)
+        self.assertIn(b'admin status updated', response.data)
 
-    def test_update_dark_mode_missing_operator_id(self):
-        # Test updating dark mode with missing operator ID
-        response = self.app.post('/api/update-dark-mode', json={
-            'dark_mode': 'enabled'
-        })
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(b'Missing operator ID', response.data)
+    # Data Service Tests
+    @patch('RefactoredApp.DataService.get_historical_data')
+    def test_get_historical_data(self, mock_get):
+        mock_get.return_value = {'success': True, 'data': []}
+        response = self.client.post('/api/historical-data/line4', json={})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'data', response.data)
 
-    def test_update_dark_mode_no_data_received(self):
-        # Test updating dark mode with no data received
-        response = self.app.post('/api/update-dark-mode', json={})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(b'No data received', response.data)
-
-    def test_update_dark_mode_database_failure(self):
-        # Simulate a database failure (mocking can be used here)
-        # This would require a more complex setup with mocking libraries
-        response = self.app.post('/api/update-dark-mode', json={
-            'operator_id': '123',
-            'dark_mode': 'enabled'
+    # Error Handling Tests
+    def test_database_connection_failure(self):
+        self.mock_db.return_value = None  # Simulate DB connection failure
+        response = self.client.post('/api/login', json={
+            'email': 'test@example.com',
+            'password': 'Test1234!'
         })
         self.assertEqual(response.status_code, 500)
         self.assertIn(b'Database connection failed', response.data)
 
-    @patch('Capp.get_db_connection')  # Mock the database connection
-    def test_register_success(self, mock_get_db_connection):
-        # Mock the database response for employee verification
-        mock_connection = mock_get_db_connection.return_value
-        mock_cursor = mock_connection.cursor.return_value
-        mock_cursor.fetchone.return_value = {
-            'operator_id': 'W001',
-            'email': 'john.doe@rakusens.co.uk',
-            'full_name': 'John Doe',
-            'temp_password': 'TempPass123!'
-        }
-
-        response = self.app.post('/api/register', json={
-            'email': 'john.doe@rakusens.co.uk',
-            'temp_password': 'TempPass123!',
-            'new_password': 'newpassword123'
-        })
+    # Simulation Service Tests
+    @patch('RefactoredApp.render_template')
+    def test_simulation_start(self, mock_render):
+        mock_render.return_value = "Mocked Home Page"
+        response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Registration successful', response.data)
+        mock_render.assert_called_with('home.html')
 
-    @patch('Capp.get_db_connection')
-    def test_register_invalid_temp_password(self, mock_get_db_connection):
-        mock_connection = mock_get_db_connection.return_value
-        mock_cursor = mock_connection.cursor.return_value
-        mock_cursor.fetchone.return_value = {
-            'operator_id': 'W001',
-            'email': 'john.doe@rakusens.co.uk',
-            'full_name': 'John Doe',
-            'temp_password': 'WrongTempPass!'
-        }
+    # Edge Cases
+    def test_invalid_route(self):
+        response = self.client.get('/invalid-route')
+        self.assertEqual(response.status_code, 404)
 
-        response = self.app.post('/api/register', json={
-            'email': 'john.doe@rakusens.co.uk',
-            'temp_password': 'TempPass123!',
-            'new_password': 'newpassword123'
+    def test_update_password_short(self):
+        response = self.client.post('/api/update-password', json={
+            'operator_id': 1,
+            'new_password': 'short'
         })
-        self.assertEqual(response.status_code, 401)
-        self.assertIn(b'Invalid credentials', response.data)
-
-    @patch('Capp.get_db_connection')
-    def test_login_success(self, mock_get_db_connection):
-        mock_connection = mock_get_db_connection.return_value
-        mock_cursor = mock_connection.cursor.return_value
-        mock_cursor.fetchone.return_value = {
-            'operator_id': 'W001',
-            'email': 'john.doe@rakusens.co.uk',
-            'full_name': 'John Doe',
-            'password': generate_password_hash('newpassword123'),  # Use the hashed password
-            'admin': 0,
-            'active': 1,
-            'dark_mode': 0
-        }
-
-        response = self.app.post('/api/login', json={
-            'email': 'john.doe@rakusens.co.uk',
-            'password': 'newpassword123'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Login successful', response.data)
-
-    @patch('Capp.get_db_connection')
-    def test_login_invalid_email(self, mock_get_db_connection):
-        mock_connection = mock_get_db_connection.return_value
-        mock_cursor = mock_connection.cursor.return_value
-        mock_cursor.fetchone.return_value = None  # Simulate non-existent user
-
-        response = self.app.post('/api/login', json={
-            'email': 'invalid@example.com',
-            'password': 'somepassword'
-        })
-        self.assertEqual(response.status_code, 401)
-        self.assertIn(b'Invalid email', response.data)
-
-
-    # Add more tests as needed...
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'at least 8 characters', response.data)
 
 if __name__ == '__main__':
     unittest.main()

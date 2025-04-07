@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(sessionStorage.getItem('user'));
+    const admin = JSON.parse(sessionStorage.getItem('isAdmin'));
     if (!user) window.location.href = '/pages/login.html';
 
     // Populate account details
@@ -7,45 +8,36 @@ document.addEventListener('DOMContentLoaded', () => {
         <p><strong>Operator ID:</strong> ${user.operator_id}</p>
         <p><strong>Email:</strong> ${user.email}</p>
         <p><strong>Full Name:</strong> ${user.fullName || user.full_name}</p>
-        <p><strong>Admin Privileges:</strong> ${user.is_admin ? 'Yes' : 'No'}</p>
+        <p><strong>Admin Privileges:</strong> ${admin ? 'Yes' : 'No'}</p>
     `;
 
     // Initialize dark mode toggle using data-bs-theme
     const darkModeToggle = document.getElementById('darkModeToggle');
     const htmlElement = document.documentElement;
 
+    // Use either source, prioritizing the dedicated darkMode key if it exists
+    const isDarkMode = JSON.parse(sessionStorage.getItem('darkMode')) || user.dark_mode;
+
     // Set initial theme
-    htmlElement.setAttribute('data-bs-theme', user.dark_mode ? 'dark' : 'light');
-    darkModeToggle.checked = user.dark_mode;
+    htmlElement.setAttribute('data-bs-theme', isDarkMode ? 'dark' : 'light');
+    darkModeToggle.checked = isDarkMode;
 
     // Dark mode toggle handler
     darkModeToggle.addEventListener('change', () => {
         const isDarkMode = darkModeToggle.checked;
         htmlElement.setAttribute('data-bs-theme', isDarkMode ? 'dark' : 'light');
-        updatePreference('dark_mode', isDarkMode ? 1 : 0);
+        user.dark_mode = isDarkMode ? 1 : 0;
+        sessionStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('darkMode', JSON.stringify(user.dark_mode));
+        
+
+        // updatePreference('dark_mode', isDarkMode ? 1 : 0);
     });
 
     // Password update handler
     document.getElementById('passwordForm').addEventListener('submit', updatePassword);
 });
 
-// Update user preferences
-function updatePreference(key, value) {
-    const user = JSON.parse(sessionStorage.getItem('user'));
-    user[key] = value;
-    sessionStorage.setItem('user', JSON.stringify(user));
-
-    fetch('http://localhost:5000/api/update-preference', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            operator_id: user.operator_id,
-            [key]: value
-        })
-    }).catch((error) => {
-        console.error(`Failed to update ${key}:`, error);
-    });
-}
 
 // Update user password
 async function updatePassword(event) {
@@ -94,5 +86,5 @@ async function updatePassword(event) {
 // Logout function
 function logout() {
     sessionStorage.clear();
-    window.location.href = '/pages/login.html';
+    window.location.href = 'login.html';
 }

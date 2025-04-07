@@ -126,7 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     sessionStorage.setItem('user', JSON.stringify({
                         operator_id: data.operator_id,
                         email: data.email,
-                        fullName: data.full_name
+                        fullName: data.full_name,
+                        dark_mode:data.dark_mode
                     }));
                     
                     // Set dark mode preference from database response

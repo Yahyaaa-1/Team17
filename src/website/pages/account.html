@@ -42,7 +42,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="help.html">
                         <i class="fa fa-question-circle"></i> Help & Support
                     </a>
                 </li>
@@ -108,8 +108,8 @@
                     <div class="card-body">
                         <h3 class="mb-3"><i class="fas fa-cogs me-2"></i>Preferences</h3>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="dark-mode-toggle">
-                            <label class="form-check-label" for="dark-mode-toggle">Dark Mode</label>
+                            <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                            <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
                         </div>
                     </div>
                 </div>
@@ -125,44 +125,14 @@
         </button>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/dark-mode.js"></script>
+    
 </body>
 
 </html>
-    <script>
-        // Dark Mode Toggle Functionality
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const htmlElement = document.documentElement;
-
-        // Check local storage for dark mode setting
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            htmlElement.setAttribute('data-bs-theme', 'dark');
-            darkModeToggle.checked = true;
-        }
-
-        darkModeToggle.addEventListener('change', () => {
-            if (darkModeToggle.checked) {
-                htmlElement.setAttribute('data-bs-theme', 'dark');
-                localStorage.setItem('darkMode', 'enabled');
-            } else {
-                htmlElement.setAttribute('data-bs-theme', 'light');
-                localStorage.setItem('darkMode', 'disabled');
-            }
-        });
-
-        // Logout Functionality
-        function logout() {
-            // Example of logging out (you can add more logic)
-            alert('Logged out successfully!');
-            sessionStorage.removeItem('isLoggedIn');
-            sessionStorage.removeItem('user');
-            sessionStorage.removeItem('isAdmin');
-            window.location.href = '../login.html'; // Redirect to login page
-        }
-    </script>
 </body>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/dark-mode.js"></script>
 <script src="../js/account.js"></script> 
 <script src="../js/logged-in.js"></script>
 </html>
