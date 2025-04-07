@@ -504,12 +504,17 @@ class DataService:
             results = cursor.fetchall()
             for record in results:
                 record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+            # Log the successful retrieval of logs
+            self.log_service.log_event("Admin retrieved all user logs", type='INFO', log_level='admin')
+
             return {"success": True, "data": results}
         except Exception as e:
             return {"success": False, "error": str(e), "code": 500}
         finally:
             if 'cursor' in locals(): cursor.close()
             if 'connection' in locals(): connection.close()
+
 
     def get_live_data(self, line):
         try:
@@ -613,6 +618,9 @@ class DataService:
                 return {"success": False, "error": "No data available for this sensor", "code": 404}
             
             data["timestamp"] = data["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+
+             # Log the event that sensor data was retrieved
+            self.log_service.log_event(f"Sensor data retrieved for {sensor} from {line}", type='INFO', log_level='admin')
             return {"success": True, "data": data}
         except Exception as e:
             return {"success": False, "error": str(e), "code": 500}
