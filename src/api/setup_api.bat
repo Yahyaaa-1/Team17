@@ -1,6 +1,6 @@
 @echo off
 :: Step 2: Navigate to the API folder
-cd C:\Users\Yahya\Downloads\github\Team17-10\src\api
+cd C:\Users\Yahya\Downloads\github\Team17-17\src\api
 
 :: Step 3: Create a virtual environment
 python -m venv venv
