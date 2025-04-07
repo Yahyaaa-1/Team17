@@ -113,10 +113,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return;
             }
-
+            const passwordValidation = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+            if(!passwordValidation.test(newPassword) || !passwordValidation.test(confirmPassword)){
+                showMessage('Passwords must be Minimum eight characters, at least one letter, one number and one special character:', true);
+                if (submitButton) {
+                    submitButton.classList.remove('loading');
+                    submitButton.disabled = false;
+                }
+                return;
+            }
             // Email validation
-            const emailPattern = /^.+@rakusens\.com$/;
-            if (!emailPattern.test(email)) {
+            const emailValidation = /^.+@rakusens\.com$/;
+            if (!emailValidation.test(email)) {
                 showMessage('Email must end with @rakusens.com', true);
                 if (submitButton) {
                     submitButton.classList.remove('loading');
