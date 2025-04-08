@@ -598,6 +598,21 @@ class SimulationService:
         self.db_manager = db_manager
         self.log_service = log_service
         self.thread = None 
+
+        # @self.app.route('/api/admin/table-headers', methods=['GET', 'OPTIONS'])
+        # def get_table_headers():
+        #     if request.method == 'OPTIONS': return self.handle_options()
+        #     table_id = request.args.get('tableID')
+        #     result = self.admin_service.get_table_headers(table_id)
+        #     if not result['success']:
+        #         return self.error(result['error'], result.get('code', 500))
+        #     return jsonify(result)
+
+        # line4 = self.AdminService.get_table_headers('line4')
+        
+
+        # print(line4)
+
         self.LINE_4_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"]
         self.LINE_5_SENSORS = ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", 
                              "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]

@@ -78,16 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPasswordInput.addEventListener('input', validatePasswordMatch);
     }
 
-    // if (emailInput) {
-    //     emailInput.addEventListener('input', function() {
-    //         const emailPattern = /^[a-zA-Z]+\.[a-zA-Z]+@rakusens\.co\.uk$/;
-    //         if (!emailPattern.test(this.value)) {
-    //             this.setCustomValidity('Email must be in format firstname.lastname@rakusens.co.uk');
-    //         } else {
-    //             this.setCustomValidity('');
-    //         }
-    //     });
-    // }
+   
 
     // Form submission
     if (registerForm) {
@@ -122,7 +113,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return;
             }
-
+            const passwordValidation = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+            if(!passwordValidation.test(newPassword) || !passwordValidation.test(confirmPassword)){
+                showMessage('Passwords must be Minimum eight characters, at least one letter, one number and one special character:', true);
+                if (submitButton) {
+                    submitButton.classList.remove('loading');
+                    submitButton.disabled = false;
+                }
+                return;
+            }
+            // Email validation
+            const emailValidation = /^.+@rakusens\.com$/;
+            if (!emailValidation.test(email)) {
+                showMessage('Email must end with @rakusens.com', true);
+                if (submitButton) {
+                    submitButton.classList.remove('loading');
+                    submitButton.disabled = false;
+                }
+                return;
+            }
             try {
                 // Proceed with registration
                 const registerResponse = await fetch('http://localhost:5000/api/register', {
