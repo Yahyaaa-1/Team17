@@ -20,7 +20,7 @@ class MockConfig:
     DB_HOST = 'localhost'
     DB_USER = 'root'
     DB_PASSWORD = ''
-    DB_NAME = 'rakusensdatabase'
+    DB_NAME = 'database3'
 
 class TestDatabaseManager(unittest.TestCase):
     def setUp(self):
@@ -678,7 +678,7 @@ class TestSimulationService(unittest.TestCase):
         # there's no direct assertion here, but we can ensure it runs without errors.
 
     @patch('time.localtime')
-    @patch.object(SimulationService, 'generate_sensor_reading')
+    @patch.object(SimulationService, 'generate_sensor_reading')  # Mock generate_sensor_reading to return fixed values
     def test_insert_line_readings(self, mock_generate_reading, mock_localtime):
         """Test database insertion of readings"""
 
@@ -697,10 +697,10 @@ class TestSimulationService(unittest.TestCase):
         mock_generate_reading.side_effect = [130.45, 267.87]  # These are the expected values for r01 and r02
 
         # Mock the database connection and cursor
-        mock_connection = MagicMock()
-        mock_cursor = MagicMock()
+        mock_connection = MagicMock()  # Mock the real database connection
+        mock_cursor = MagicMock()  # Mock the cursor
         mock_connection.cursor.return_value = mock_cursor
-        self.mock_db.get_connection.return_value = mock_connection
+        self.mock_db.get_connection.return_value = mock_connection  # Mock the database manager to return the mock connection
 
         # Define the sensors for line4 (as an example)
         sensors = ['r01', 'r02']
@@ -738,7 +738,7 @@ class TestSimulationService(unittest.TestCase):
         print("Parameters:", mock_cursor.execute.call_args[0][1])
 
         # Ensure commit was called to persist the data
-        mock_cursor.connection.commit.assert_called_once()
+        mock_connection.commit.assert_called_once()  # Ensure commit was called on the actual connection object
 
 class TestFlaskEndpoints(unittest.TestCase):
     def setUp(self):

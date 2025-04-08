@@ -709,9 +709,8 @@ class SimulationService:
             readings_dict = dict(zip(sensors, values[2:]))
             print(f"{line_name}: {readings_dict}")
 
-            # Commit the transaction to save the changes ---------------------------------- aadam
-            cursor.connection.commit()
-
+            connection = self.db_manager.get_connection()
+            connection.commit()
         except Exception as e:
             # Log and raise an error if anything goes wrong
             self.log_service.log_event(f"Error inserting line {line_name} data: {str(e)}", type='ERROR')
