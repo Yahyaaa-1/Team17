@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     
     let availableColumns = {
-        "line4": ["timestamp", "r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"],
+        "line4": ["timestamp", "timezone","r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"],
         "line5": ["timestamp", "timezone", "r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"]
     };
 
