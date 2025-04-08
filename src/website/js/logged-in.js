@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionStorage.removeItem('isLoggedIn');
                 sessionStorage.removeItem('user');
                 sessionStorage.removeItem('isAdmin');
+                sessionStorage.removeItem('darkMode');
 
                 // Log logout event directly to the existing log-message endpoint
                 fetch('http://localhost:5000/api/log', {
