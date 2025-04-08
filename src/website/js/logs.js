@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function initializeLogsTable() {
         logsTable = $('#logsTable').DataTable({
-            searching: false,  // disables the search bar
+            searching: false,
             processing: true,
             serverSide: true,
             ajax: {
@@ -14,8 +14,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 contentType: "application/json",
                 data: function (d) {
                     const requestData = {
+                        draw: d.draw,
+                        start: d.start,
                         length: d.length,
-                        dateFilter: $('#dateFilter').val(),
                         searchValue: $('#searchBox').val()
                     };
                     console.log("Sending request data:", requestData); // Debugging line
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     return JSON.stringify({
-                        draw: 1,
+                        draw: json.draw,
                         recordsTotal: logs.length,
                         recordsFiltered: logs.length,
                         data: logs
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Refresh table on search and date filter
-        $('#searchBox, #dateFilter').on('change keyup', function () {
+        $('#searchBox').on('change keyup', function () {
             logsTable.ajax.reload();
         });
     }
