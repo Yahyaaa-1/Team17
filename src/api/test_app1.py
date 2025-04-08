@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import patch, MagicMock, call
 from datetime import datetime
 from flask import json
+import re
+from threading import Thread 
 from werkzeug.security import generate_password_hash
 from app import (
     FlaskApp,
@@ -584,8 +586,8 @@ class TestDataService(unittest.TestCase):
         self.mock_log.log_event.assert_called_once_with(
             "Sensor data retrieved for r01 from line4", type='INFO', log_level='admin'
         )
-
-
+    
+   
 class TestSimulationService(unittest.TestCase):
     def setUp(self):
         self.mock_db = MagicMock()
@@ -604,6 +606,140 @@ class TestSimulationService(unittest.TestCase):
         self.assertIsInstance(reading, float)
         self.assertGreaterEqual(reading, 16.0)
         self.assertLessEqual(reading, 258.0)
+
+
+    @patch('time.localtime')  # Correct patching of time.localtime
+    def test_timezone_offset(self, mock_localtime):
+        """Test timezone offset calculation"""
+
+        # Test for months April to October (should return +01)
+        for month in range(4, 11):
+            mock_localtime.return_value.tm_mon = month
+            offset = self.sim_service.get_timezone_offset()
+            self.assertEqual(offset, "+01", f"Failed for month {month}")
+
+        # Test for months November to March (should return +00)
+        for month in range(1, 4):
+            mock_localtime.return_value.tm_mon = month
+            offset = self.sim_service.get_timezone_offset()
+            self.assertEqual(offset, "+00", f"Failed for month {month}")
+
+
+    def test_multiple_sensor_readings(self):
+        """Test generation of multiple sensor readings"""
+        
+        # Define the sensor ranges directly in the method
+        sensor_ranges_line4 = {
+            "r01": {"avg": 129.10, "min": 16.00, "max": 258.00},
+            "r02": {"avg": 264.81, "min": 18.00, "max": 526.00},
+            "r03": {"avg": 255.77, "min": 17.00, "max": 476.00},
+            "r04": {"avg": 309.04, "min": 13.00, "max": 554.00}
+        }
+        
+        # List of sensors in the sensor range
+        sensors = sensor_ranges_line4.keys()
+
+        # Generate readings for each sensor and check the results
+        for sensor in sensors:
+            reading = self.sim_service.generate_sensor_reading(
+                sensor, sensor_ranges_line4
+            )
+            
+            # Ensure the reading is within the min and max range for the sensor
+            min_value = sensor_ranges_line4[sensor]["min"]
+            max_value = sensor_ranges_line4[sensor]["max"]
+            self.assertIsInstance(reading, float)  # Ensure it's a float
+            self.assertGreaterEqual(reading, min_value)  # Ensure the reading is >= min
+            self.assertLessEqual(reading, max_value)  # Ensure the reading is <= max
+
+
+
+
+    @patch('threading.Thread')
+    def test_simulation_start_stop(self, mock_thread):
+        """Test simulation thread management"""
+
+        # Test that calling start creates and starts a thread
+        mock_thread.return_value = MagicMock(spec=Thread)
+        
+        # Call start and check if the thread is started
+        self.sim_service.start()
+
+        # Assert that a thread was created
+        mock_thread.assert_called_once_with(target=self.sim_service.generate_temperature_readings, daemon=True)
+        
+        # Assert that the thread was started
+        mock_thread.return_value.start.assert_called_once()
+
+        # Now, test stop (it should not explicitly stop the thread as it's a daemon thread)
+        # Call stop and check if it doesn't raise an error or do anything specific (since it's a daemon thread)
+        self.sim_service.stop()
+
+        # Since the `stop()` method doesn't explicitly stop the thread in this implementation,
+        # there's no direct assertion here, but we can ensure it runs without errors.
+
+    @patch('time.localtime')
+    @patch.object(SimulationService, 'generate_sensor_reading')
+    def test_insert_line_readings(self, mock_generate_reading, mock_localtime):
+        """Test database insertion of readings"""
+
+        # Define sensor ranges directly in the method
+        sensor_ranges_line4 = {
+            "r01": {"avg": 129.10, "min": 16.00, "max": 258.00},
+            "r02": {"avg": 264.81, "min": 18.00, "max": 526.00}
+        }
+
+        # Set the mocked current time and timezone
+        mock_localtime.return_value.tm_mon = 5  # May (for timezone offset +01)
+        current_timestamp = datetime.now().replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')
+        timezone_offset = "+01"  # Simulating the timezone offset for May
+
+        # Mock the sensor readings to return fixed values for r01 and r02
+        mock_generate_reading.side_effect = [130.45, 267.87]  # These are the expected values for r01 and r02
+
+        # Mock the database connection and cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        self.mock_db.get_connection.return_value = mock_connection
+
+        # Define the sensors for line4 (as an example)
+        sensors = ['r01', 'r02']
+
+        # Call insert_line_readings
+        self.sim_service.insert_line_readings(
+            mock_cursor, 'line4', sensors, sensor_ranges_line4, current_timestamp, timezone_offset
+        )
+
+        # Expected query to be executed (strip out extra indentation/spacing)
+        expected_query = """
+            INSERT INTO line4
+            (timestamp, timezone, r01, r02)
+            VALUES (%s, %s, %s, %s)
+        """
+        
+        # Normalize both the actual and expected query strings by stripping excess whitespace and newlines
+        def normalize_query(query):
+            # Remove extra spaces and normalize the string
+            return " ".join(query.strip().split())
+
+        # Normalize the expected and actual queries
+        normalized_expected_query = normalize_query(expected_query)
+        normalized_actual_query = normalize_query(mock_cursor.execute.call_args[0][0])
+
+        # Ensure the query is executed with the correct parameters
+        self.assertEqual(normalized_actual_query, normalized_expected_query)
+
+        # Ensure the parameters passed to execute() match the expected values
+        self.assertEqual(mock_cursor.execute.call_args[0][1], 
+                         [current_timestamp, timezone_offset, 130.45, 267.87])
+
+        # Debugging: Print to check if execute() was called
+        print("Query executed:", mock_cursor.execute.call_args[0][0])
+        print("Parameters:", mock_cursor.execute.call_args[0][1])
+
+        # Ensure commit was called to persist the data
+        mock_cursor.connection.commit.assert_called_once()
 
 class TestFlaskEndpoints(unittest.TestCase):
     def setUp(self):
@@ -642,6 +778,139 @@ class TestFlaskEndpoints(unittest.TestCase):
     def tearDown(self):
         self.db_patcher.stop()
 
+class TestLogService(unittest.TestCase):
+
+    def setUp(self):
+        """Set up a mock DB manager for testing"""
+        self.db_manager = MagicMock()  # Mock the DB manager
+        self.log_service = LogService(self.db_manager)
+
+    def test_log_levels(self):
+        """Test different log levels"""
+        log_messages = [
+            ("Failed password attempt for email: emily.brown@rakusens.co.uk", "WARNING", "admin"),
+            ("User emily.brown@rakusens.co.uk logged in successfully.", "INFO", "admin"),
+            ("User emily.brown@rakusens.co.uk logged out.", "INFO", "admin"),
+            ("User W006 status changed to 0 by Admin - None", "INFO", "admin"),
+            ("User W006 status changed to 1 by Admin - None", "INFO", "admin"),
+            ("User W006 status changed to 0 by Admin - None", "INFO", "admin"),
+            ("User W006 status changed to 1 by Admin - None", "INFO", "admin"),
+            ("User W006 status changed to 0 by Admin - None", "INFO", "admin")
+        ]
+
+        for message, log_type, log_level in log_messages:
+            # Prepare mock connection and cursor
+            mock_connection = MagicMock()
+            mock_cursor = MagicMock()
+            mock_connection.cursor.return_value = mock_cursor
+            self.db_manager.get_connection.return_value = mock_connection
+            
+            # Call log_event with the current log message, type, and level
+            self.log_service.log_event(message, log_type, log_level)
+
+            # Normalize both the expected and actual queries by stripping extra whitespace
+            expected_query = """
+                INSERT INTO logs (level, type, message)
+                VALUES (%s, %s, %s)
+            """
+            expected_query = re.sub(r'\s+', ' ', expected_query.strip())  # Normalize spaces
+
+            actual_query = mock_cursor.execute.call_args[0][0]
+            actual_query = re.sub(r'\s+', ' ', actual_query.strip())  # Normalize spaces
+
+            # Assert that the normalized expected query matches the normalized actual query
+            self.assertEqual(actual_query, expected_query)
+
+            # Ensure commit is called to persist the log entry
+            mock_connection.commit.assert_called_once()
+
+
+    def test_log_formatting(self):
+        """Test log message formatting"""
+        log_messages = [
+            ("Failed password attempt for email: emily.brown@rakusens.co.uk", "WARNING", "admin"),
+            ("User emily.brown@rakusens.co.uk logged in successfully.", "INFO", "admin"),
+            ("User W006 status changed to 0 by Admin", "INFO", "admin"),
+        ]
+
+        for message, log_type, log_level in log_messages:
+            # Prepare mock connection and cursor
+            mock_connection = MagicMock()
+            mock_cursor = MagicMock()
+            mock_connection.cursor.return_value = mock_cursor
+            self.db_manager.get_connection.return_value = mock_connection
+            
+            # Call log_event with the current log message, type, and level
+            self.log_service.log_event(message, log_type, log_level)
+
+            # Get the actual query and parameters passed to execute
+            actual_query, actual_params = mock_cursor.execute.call_args[0]
+
+            # Normalize both the actual query and the expected query
+            def normalize_query(query):
+                # Remove extra spaces between elements
+                return re.sub(r'\s+', ' ', query.strip())
+
+            # Define the expected query
+            expected_query = """
+                INSERT INTO logs (level, type, message)
+                VALUES (%s, %s, %s)
+            """
+            
+            # Normalize the query strings
+            actual_query = normalize_query(actual_query)
+            expected_query = normalize_query(expected_query)
+
+            # Check if the queries match
+            self.assertEqual(actual_query, expected_query)
+
+            # Now check if the parameters are passed correctly
+            self.assertEqual(actual_params, (log_level, log_type, message))
+
+            # Ensure commit is called to persist the log entry
+            mock_connection.commit.assert_called_once()
+
+
+    def test_log_persistence(self):
+        """Test log storage in database"""
+        # Define some sample log entries
+        log_messages = [
+            ("Failed password attempt for email: emily.brown@rakusens.co.uk", "WARNING", "admin"),
+            ("User emily.brown@rakusens.co.uk logged in successfully.", "INFO", "admin"),
+            ("User W006 status changed to 0 by Admin", "INFO", "admin")
+        ]
+
+        for message, log_type, log_level in log_messages:
+            # Prepare mock connection and cursor
+            mock_connection = MagicMock()
+            mock_cursor = MagicMock()
+            mock_connection.cursor.return_value = mock_cursor
+            self.db_manager.get_connection.return_value = mock_connection
+            
+            # Call log_event with the current log message, type, and level
+            self.log_service.log_event(message, log_type, log_level)
+
+            # Check that the correct query was executed
+            expected_query = """
+                INSERT INTO logs (level, type, message)
+                VALUES (%s, %s, %s)
+            """
+            # Normalize the query to handle any formatting discrepancies
+            def normalize_query(query):
+                return re.sub(r'\s+', ' ', query.strip())
+            
+            actual_query, actual_params = mock_cursor.execute.call_args[0]
+            actual_query = normalize_query(actual_query)
+            expected_query = normalize_query(expected_query)
+            
+            self.assertEqual(actual_query, expected_query)
+            self.assertEqual(actual_params, (log_level, log_type, message))
+
+            # Ensure commit is called to persist the log entry
+            mock_connection.commit.assert_called_once()
+
+
+    
 if __name__ == '__main__':
     unittest.main()
 
@@ -664,8 +933,7 @@ def test_toggle_user_status(self):
 
 
 
-def test_get_sensor_data(self):
-    """Test individual sensor data retrieval"""
+
 
 def test_historical_data_filtering(self):
     """Test historical data with different filters"""
@@ -674,14 +942,9 @@ def test_live_data_format(self):
     """Test live data format and structure"""
 
 # SimulationService Tests
-def test_timezone_offset(self):
-    """Test timezone offset calculation"""
 
-def test_multiple_sensor_readings(self):
-    """Test generation of multiple sensor readings"""
 
-def test_simulation_start_stop(self):
-    """Test simulation thread management"""
+
 
 def test_insert_line_readings(self):
     """Test database insertion of readings"""
@@ -707,14 +970,9 @@ def test_connection_cleanup(self):
     """Test proper connection cleanup"""
 
 # LogService Tests
-def test_log_levels(self):
-    """Test different log levels"""
 
-def test_log_formatting(self):
-    """Test log message formatting"""
 
-def test_log_persistence(self):
-    """Test log storage in database"""
+
 
 def test_log_retrieval(self):
     """Test log retrieval functionality"""
