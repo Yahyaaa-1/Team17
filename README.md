@@ -46,7 +46,7 @@ Run the Flask application:
 
 python app.py
 
-esting
+Testing
 Open these links in your web browser:
 
 Check if the API is running:
