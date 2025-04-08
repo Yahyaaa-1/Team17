@@ -708,8 +708,8 @@ class SimulationService:
             readings_dict = dict(zip(sensors, values[2:]))
             print(f"{line_name}: {readings_dict}")
 
-            # Commit the transaction to save the changes ---------------------------------- aadam
-            cursor.connection.commit()
+            # # Commit the transaction to save the changes ---------------------------------- aadam
+            # cursor.connection.commit()
 
         except Exception as e:
             # Log and raise an error if anything goes wrong
