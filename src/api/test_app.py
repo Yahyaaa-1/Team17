@@ -587,7 +587,6 @@ class TestDataService(unittest.TestCase):
             "Sensor data retrieved for r01 from line4", type='INFO', log_level='admin'
         )
     
-   
 class TestSimulationService(unittest.TestCase):
     def setUp(self):
         self.mock_db = MagicMock()
@@ -908,32 +907,16 @@ class TestLogService(unittest.TestCase):
 
             # Ensure commit is called to persist the log entry
             mock_connection.commit.assert_called_once()
-
-
     
 if __name__ == '__main__':
     unittest.main()
 
-
-
-
-
-
 # AdminService Tests
-
-
-
-
 
 def test_toggle_user_status(self):
     """Test activating/deactivating user accounts"""
 
-
 # DataService Tests
-
-
-
-
 
 def test_historical_data_filtering(self):
     """Test historical data with different filters"""
@@ -943,15 +926,11 @@ def test_live_data_format(self):
 
 # SimulationService Tests
 
-
-
-
 def test_insert_line_readings(self):
     """Test database insertion of readings"""
 
 def test_reading_range_validation(self):
     """Test sensor readings stay within defined ranges"""
-
 
 # Database Manager Tests
 def test_connection_pooling(self):
