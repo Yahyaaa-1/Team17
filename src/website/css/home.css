@@ -69,27 +69,110 @@
     color: black;
 }
 
+/* Account Dropdown Base Styles */
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.account-btn i {
+    font-size: 16px;
+}
+
+/* Dropdown Content Base Styles */
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #004080; /* Adjust based on theme */
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    border-radius: 5px;
-    overflow: hidden;
+    right: 0;
+    top: 100%;
+    min-width: 200px;
+    margin-top: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.dropdown-content.show {
+    display: block;
 }
 
 .dropdown-content a {
-    color: white;
     padding: 12px 16px;
     text-decoration: none;
     display: flex;
     align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.dropdown-content a i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Light Mode Styles */
+.account-btn {
+    background-color: var(--secondary-blue) !important;
+    color: #ffffff;
+}
+
+.account-btn:hover {
+    color: #2196F3;
+}
+
+.dropdown-content {
+    background-color: var(--secondary-blue) !important;
+    border: 1px solid #e0e0e0;
+}
+
+.dropdown-content a {
+    color: #ffffff;
 }
 
 .dropdown-content a:hover {
-    background-color: #003366;
+    background-color: #f5f5f5;
+    color: #2196F3;
+}
+
+
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Add this CSS instead */
+.fa-caret-down {
+    transition: transform 0.2s ease;
+}
+
+.fa-caret-down.rotated {
+    transform: rotate(180deg);
+}
+
+/* Separator Line */
+.dropdown-content a:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
 }
 
 .show {

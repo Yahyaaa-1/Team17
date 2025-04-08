@@ -542,6 +542,15 @@ body.dark-mode .account-btn:hover {
     background-color: var(--button-hover);
 }
 
+body.dark-mode .account-btn {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+body.dark-mode .account-btn:hover {
+    background-color: var(--secondary-bg);
+}
+
 body.dark-mode .dropdown-content {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -553,6 +562,7 @@ body.dark-mode .dropdown-content a {
 
 body.dark-mode .dropdown-content a:hover {
     background-color: var(--secondary-bg);
+    color: #64B5F6;
 }
 
 body.dark-mode .main-content {

@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create login button if not logged in
             const loginButton = document.createElement('a');
             loginButton.href = `${basePath}login.html`;
-            loginButton.className = 'btn login-btn';
+            loginButton.className = 'btn header-login-btn'; 
             loginButton.textContent = 'Login';
             headerControls.appendChild(loginButton);
         } else {
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             accountButton.className = 'btn account-btn';
             accountButton.innerHTML = `
                 <i class="fas fa-user"></i> Account
-                <i class="fas fa-caret-down"></i>
+                <i class="fas fa-caret-up caret-icon"></i>
             `;
             
             // Dropdown content
@@ -100,12 +100,23 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add event listener to toggle dropdown
             accountButton.addEventListener('click', function() {
                 dropdownContent.classList.toggle('show');
+                const caretIcon = accountButton.querySelector('.caret-icon');
+                if (dropdownContent.classList.contains('show')) {
+                    caretIcon.classList.remove('fa-caret-up');
+                    caretIcon.classList.add('fa-caret-down');
+                } else {
+                    caretIcon.classList.remove('fa-caret-down');
+                    caretIcon.classList.add('fa-caret-up');
+                }
             });
-            
+                        
             // Close dropdown when clicking outside
             window.addEventListener('click', function(e) {
                 if (!accountDropdown.contains(e.target)) {
                     dropdownContent.classList.remove('show');
+                    const caretIcon = accountButton.querySelector('.caret-icon');
+                    caretIcon.classList.remove('fa-caret-down');
+                    caretIcon.classList.add('fa-caret-up');
                 }
             });
             
