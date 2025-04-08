@@ -627,7 +627,6 @@ class DataService:
         finally:
             if 'connection' in locals(): connection.close()
 
-
 class SimulationService:
     def __init__(self, db_manager, log_service):
         self.db_manager = db_manager

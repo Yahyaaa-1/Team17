@@ -25,8 +25,6 @@ class MockConfig:
 class TestDatabaseManager(unittest.TestCase):
     def setUp(self):
         self.db_manager = DatabaseManager()
-        
-        # Patch the Config with our mock
         self.config_patcher = patch('app.Config', new=MockConfig)
         self.mock_config = self.config_patcher.start()
         
