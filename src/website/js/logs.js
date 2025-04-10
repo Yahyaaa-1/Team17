@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function () {
             searching: false,
             processing: true,
             serverSide: true,
+            paging: false,      // Disable pagination
+            info: false,        // Remove "Showing X of Y entries" text
+            lengthChange: false, // Remove the "Show X entries" dropdown
             ajax: {
                 url: apiUrlBase,
                 type: 'POST',
@@ -17,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         draw: d.draw,
                         start: d.start,
                         length: d.length,
+                        
                         searchValue: $('#searchBox').val()
                     };
                     console.log("Sending request data:", requestData); // Debugging line

@@ -89,41 +89,4 @@ select {
     border-color: var(--primary-dark-blue);
 }
 
-/* Dark Mode */
-[data-theme="dark"] body {
-    background-color: #121212;
-    color: white;
-}
-
-[data-theme="dark"] h2 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] #line4Table thead {
-    background-color: var(--deep-navy);
-}
-
-[data-theme="dark"] #line4Table tbody tr:nth-child(even) {
-    background-color: #2a2a2a;
-}
-
-[data-theme="dark"] #line4Table tbody tr:hover {
-    background-color: #3a3a3a;
-}
-
-[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background-color: var(--light-blue);
-}
-input[type="date"] {
-    color: black; /* Default color for available dates */
-}
-
-input[type="date"]::-webkit-datetime-edit {
-    color: black;
-}
-
-input[type="date"]:not([min]):not([max]) {
-    color: #999; /* Gray out if no available date */
-}
-
 

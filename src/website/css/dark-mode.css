@@ -348,7 +348,42 @@ body.dark-mode footer {
     background-color: var(--secondary-bg);
     border-top: 1px solid var(--border-color);
 }
+/* dark-mode.css */
+[data-bs-theme="dark"] {
+    --bs-body-bg: #212529;
+    --bs-body-color: #f8f9fa;
+}
 
+[data-bs-theme="dark"] .card {
+    background-color: #343a40;
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .form-control {
+    background-color: #495057;
+    border-color: #6c757d;
+    color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] .input-group-text {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] .btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+[data-bs-theme="dark"] .navbar-dark {
+    background-color: #343a40;
+}
+
+[data-bs-theme="light"] {
+    --bs-body-bg: #ffffff;
+    --bs-body-color: #212529;
+}
 /* Dark mode toggle button */
 body.dark-mode .dark-mode-toggle-container {
     background-color: var(--card-bg);
@@ -638,7 +673,6 @@ body.dark-mode .dropdown-content {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
 }
-
 body.dark-mode .dropdown-content a {
     color: var(--text-color);
 }
@@ -781,7 +815,7 @@ body.dark-mode .nav-link:focus {
 body.dark-mode .form-control {
     background-color: #2d2d2d;
     border: 1px solid #444;
-    color: #e0e0e0;
+    color: #e0e0e0; 
 }
 
 body.dark-mode .form-control:focus {
