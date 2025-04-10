@@ -499,8 +499,8 @@ class DataService:
     def get_historical_data(self, line, data):
         try:
             # Get DataTables parameters
+            length = int(data.get("length", 100))
             start = int(data.get("start", 0))
-            length = int(data.get("length", 25))
             start_date_time = data.get("startDateTime", "")
             end_date_time = data.get("endDateTime", "")
 
@@ -537,11 +537,16 @@ class DataService:
             # Add ordering
             query += " ORDER BY timestamp DESC"
             
-            # Add pagination
-            query += " LIMIT %s OFFSET %s"
-            pagination_params = params.copy()
-            pagination_params.extend([length, start])
-
+             # Handle pagination differently for unlimited entries
+            if length == -1:
+                # For unlimited entries, remove LIMIT clause
+                pagination_params = params
+            else:
+                # Normal pagination
+                query += " LIMIT %s OFFSET %s"
+                pagination_params = params.copy()
+                pagination_params.extend([length, start])
+                
             connection = self.db_manager.get_connection()
             if not connection:
                 return {"success": False, "error": "Database connection failed"}
