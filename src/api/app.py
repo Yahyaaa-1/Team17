@@ -595,8 +595,6 @@ class DataService:
             for record in results:
                 record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
 
-            self.log_service.log_event("Admin retrieved all user logs", type='INFO', log_level='admin')
-
             return {"success": True, "data": results}
         except Exception as e:
             return {"success": False, "error": str(e), "code": 500}

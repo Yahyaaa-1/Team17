@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', function () {
             searching: false,
             processing: true,
             serverSide: true,
-            paging: false,      // Disable pagination
-            info: false,        // Remove "Showing X of Y entries" text
-            lengthChange: false, // Remove the "Show X entries" dropdown
+            paging: false,      
+            info: false,       
+            lengthChange: false, 
             ajax: {
                 url: apiUrlBase,
                 type: 'POST',
