@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Handle different error scenarios
                     if (data.active === false) {
                         // Account not approved
-                        showMessage('Your account is pending admin approval. Please contact the administrator.', true);
+                        showMessage('Your account is pending production manager approval.', true);
                     } else {
                         // Other login errors
                         showMessage(data.error || 'Login failed', true);
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (resetData.success) {
                             Swal.fire({
                                 title: 'Password Reset',
-                                text: 'Your password has been reset. Please contact and admin for your temporary credentials.',
+                                text: 'Your account has been deleted. Please sign up again',
                                 icon: 'success'
                             });
                             forgotPasswordModal.hide();

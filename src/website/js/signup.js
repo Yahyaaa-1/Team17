@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const registerData = await registerResponse.json();
         
                 if (registerData.success) {
-                    showMessage('Registration successful! Waiting for admin approval. Redirecting to login...');
+                    showMessage('Registration successful! Waiting for production manager approval. Redirecting to login...');
                     registerForm.reset();
                     
                     setTimeout(() => {
