@@ -1,7 +1,10 @@
-Admin user
-email: yashfak@bradford.ac.uk
-password: Password123
+Users 
+yahya.ashfak@rakusens.com
+Password123?
 
-Regular user
-email: barirah@bradford.ac.uk
-password: Password123
+
+barirah.irfan@rakusens.com
+Password123?
+
+aadam.ahmed@rakusens.com
+Password123?
