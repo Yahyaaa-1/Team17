@@ -11,6 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return isInPagesFolder ? '' : 'pages/';
     }
 
+    if (!user) {
+        alert("You can only access this website while being logged into Rakusen's system.");
+        window.location.href = `${getBasePath()}login.html`;
+        return; // Stop further execution if not logged in
+    }
+
     // Function to create and append buttons
     function updateHeaderButtons() {
         // Check login status
