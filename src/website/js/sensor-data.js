@@ -1,223 +1,357 @@
-let selectedLine = "line4";
-let selectedSensor = "r01";
-let historicalData = [];
-let liveData = []; // Added missing declaration
-let isFirstLiveDataFetch = true;
-let sensorChart = null;
-let initialTimeRange = 20000;
+const urlParams = new URLSearchParams(window.location.search);
 
+// Dynamically fetch line and sensor parameters from URL query string
+const line = urlParams.get("line") || "line4";  
+const sensor = urlParams.get("sensor") || "r01"; 
 
-document.addEventListener("DOMContentLoaded", function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    selectedSensor = urlParams.get("sensor") || "r01";
-    selectedLine = urlParams.get("line") || "line4";
-    const cacheKey = `sensorData_${selectedLine}_${selectedSensor}`;
-
-    document.getElementById("sensorTitle").textContent = `Sensor Data for ${selectedSensor} on ${selectedLine}`;
-
-    // Initialize charts
-    initializeChart();
-    sensorScatterChart.render();
-    sensorAreaChart.render();
-
-
-    // Questionable code??? is it neeeded?
-    // // Load cached data
-    // const cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
-    // const now = Date.now();
-    // const oneDayAgo = now - 24 * 60 * 60 * 1000;
-    // liveData = cached.filter(p => p.x >= oneDayAgo).sort((a, b) => a.x - b.x);
-
-    // Fetch historical data from API and fill charts
-    fetchHistoricalData(selectedLine, selectedSensor);
-
-    setInterval(fetchLiveData, 8000);
-});
-
-function initializeChart() {
-  const chartContainer = document.getElementById("sensorChart");
-  chartContainer.innerHTML = "";
-
-  //const timeRange = getTimeRange(2); // Get 2-hour range
-
-  sensorChart = new ApexCharts(chartContainer, {
-    chart: { 
-      type: "line", 
-      height: 400, 
-      animations: { enabled: true },
-      zoom: { enabled: true,
-        type: 'x',
-        autoScaleYaxis: true
-       }
-    },
-    series: [{ name: selectedSensor, data: [] }],
-    xaxis: {
-      type: "datetime",
-      labels: {
-        datetimeFormatter: {
-          hour: "HH:mm",
-          minute: "HH:mm",
-          second: "HH:mm:ss"
-        }
-      },
-      range: 3500000
-    },
-    yaxis: { title: { text: "Temperature (°C)" } },
-    stroke: { curve: 'straight', width: 2 }
-  });
-
-  sensorChart.render();
+if (!line || !sensor) {
+  console.error('Line or sensor not specified in the URL');
+  alert('Error: Please provide both line and sensor parameters in the URL');
 }
-// Initialize scatter chart with time range
-const sensorScatterChart = new ApexCharts(document.querySelector("#sensorScatterChart"), {
-    chart: { 
-      type: "scatter", 
-      height: 400, 
-      animations: { enabled: true },
-      zoom: { enabled: true,
-        type: 'x',
-        autoScaleYaxis: true
-       }
-    },
-    series: [],
-    xaxis: { 
-      type: "datetime", 
-      labels: { format: "HH:mm:ss" },
-      range: 3500000
-    },
-    yaxis: { 
-      title: { text: "Temperature (°C)" } 
-    },
-    markers: { 
-      size: 5, 
-      colors: ["#FF4560"] 
-    }
+
+const cacheKey = `sensorData_${line}_${sensor}`;
+let chartData = [];
+let historicalData = [];
+let liveData = [];
+let temperatureData = [];
+let timeRange = 60 * 60 * 1000;
+let isZoomed = false;
+let currentZoomXaxis = { min: undefined, max: undefined };
+let isFirstLiveDataFetch = true;
+
+// Inject CSS styles directly
+const style = document.createElement('style');
+style.textContent = `
+  .apexcharts-toolbar {
+    background: #f5f5f5;
+    border-radius: 4px;
+    padding: 2px;
+  }
+  .apexcharts-zoom-icon, .apexcharts-zoomin-icon, 
+  .apexcharts-zoomout-icon, .apexcharts-reset-zoom-icon, 
+  .apexcharts-pan-icon, .apexcharts-selection-icon {
+    padding: 6px;
+    margin: 0 2px;
+  }
+  .apexcharts-zoom-icon.selected, .apexcharts-zoomin-icon.selected, 
+  .apexcharts-zoomout-icon.selected, .apexcharts-reset-zoom-icon.selected, 
+  .apexcharts-pan-icon.selected, .apexcharts-selection-icon.selected {
+    background: #e0e0e0;
+  }
+  .time-filter {
+    transition: all 0.3s ease;
+  }
+  .time-filter.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+`;
+document.head.appendChild(style);
+
+document.getElementById("sensorTitle").textContent = `Sensor Data for ${sensor} on ${line}`;
+
+// Initialize time filter buttons - activate 1 hour by default
+document.querySelectorAll('.time-filter').forEach(button => {
+  button.addEventListener('click', function() {
+    document.querySelectorAll('.time-filter').forEach(btn => btn.classList.remove('active'));
+    this.classList.add('active');
+    updateTimeRange(this.dataset.range);
   });
   
-  // Initialize area chart with time range
-  const sensorAreaChart = new ApexCharts(document.querySelector("#sensorAreaChart"), {
-    chart: { 
-      type: "area", 
-      height: 400, 
-      animations: { enabled: true },
-      zoom: { enabled: true,
-        type: 'x',
-        autoScaleYaxis: true
-       }
+  // Activate 1 hour button by default
+  if (button.dataset.range === "hour") {
+    button.classList.add('active');
+  }
+});
+
+// Scatter Chart Configuration
+const scatterChartOptions = {
+  chart: {
+    type: 'scatter',
+    height: 400,
+    animations: { enabled: false },
+    toolbar: { 
+      show: true,
+      tools: {
+        zoomin: true,
+        zoomout: true,
+        pan: true,
+        reset: true,
+        selection: true,
+      },
+      autoSelected: 'zoom',
     },
-    series: [],
-    xaxis: { 
-      type: "datetime", 
-      labels: { format: "HH:mm:ss" },
-      range: 3500000
-    },
-    yaxis: { 
-      title: { text: "Temperature (°C)" } 
-    },
-    fill: {
-      type: "gradient",
-      gradient: { 
-        shadeIntensity: 0.5, 
-        opacityFrom: 0.6, 
-        opacityTo: 0.2, 
-        stops: [0, 90, 100] 
+    zoom: { 
+      enabled: true,
+      type: 'x',
+      autoScaleYaxis: true,
+      zoomedArea: {
+        fill: {
+          color: '#90CAF9',
+          opacity: 0.4
+        },
+        stroke: {
+          color: '#0D47A1',
+          opacity: 0.4,
+          width: 1
+        }
       }
     },
-    stroke: {
-      curve: 'straight',
-      width: 2
+    events: {
+      zoomed: function(chartContext, { xaxis, yaxis }) {
+        isZoomed = true;
+        currentZoomXaxis = xaxis;
+      },
+      scrolled: function(chartContext, { xaxis, yaxis }) {
+        if (isZoomed) {
+          currentZoomXaxis = xaxis;
+        }
+      }
     }
-  });
+  },
+  series: [{ name: 'Temperature', data: [] }],
+  markers: {
+    size: 6,
+    strokeWidth: 0,
+    hover: { size: 8 }
+  },
+  xaxis: {
+    type: 'datetime',
+    title: { text: 'Time' },
+    labels: {
+      datetimeFormatter: {
+        hour: 'HH:mm',
+        minute: 'HH:mm',
+        second: 'HH:mm:ss'
+      },
+      datetimeUTC: false // Display in local time
+    },
+    tooltip: { enabled: true },
+    tickAmount: 15,
+    min: undefined,
+    max: undefined
+  },
+  yaxis: {
+    title: { text: 'Temperature (°C)' },
+    tickAmount: 8,
+    min: (min) => min - 2,
+    max: (max) => max + 2
+  },
+  tooltip: {
+    shared: false,
+    intersect: true,
+    x: {
+      format: 'HH:mm:ss'
+    }
+  }
+};
+
+// Area Chart Configuration
+const areaChartOptions = {
+  chart: {
+    type: 'area',
+    height: 400,
+    stacked: false,
+    animations: { enabled: false },
+    toolbar: { show: false },
+    zoom: { enabled: false }
+  },
+  series: [{
+    name: 'Temperature',
+    data: []
+  }],
+  dataLabels: { enabled: false },
+  stroke: {
+    curve: 'smooth',
+    width: 2
+  },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.7,
+      opacityTo: 0.3,
+      stops: [0, 100]
+    }
+  },
+  colors: ['#FF4560'],
+  xaxis: {
+    type: 'datetime',
+    labels: {
+      datetimeFormatter: {
+        hour: 'HH:mm',
+        day: 'MMM dd',
+        month: 'MMM'
+      },
+      datetimeUTC: false // Display in local time
+    }
+  },
+  yaxis: {
+    title: { text: 'Temperature (°C)' }
+  },
+  tooltip: {
+    shared: false,
+    intersect: true,
+    x: {
+      format: 'HH:mm:ss'
+    }
+  }
+};
+
+// Initialize charts
+const scatterChart = new ApexCharts(document.querySelector("#sensorScatterChart"), scatterChartOptions);
+const areaChart = new ApexCharts(document.querySelector("#sensorAreaChart"), areaChartOptions);
+
+scatterChart.render();
+areaChart.render();
+
+// Add event listener for the reset button after chart is rendered
+setTimeout(() => {
+  const resetBtn = document.querySelector('.apexcharts-reset-zoom-icon');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetZoom);
+  }
+}, 1000);
+
+function loadInitialData() {
+  // First load any cached data
+  const cached = JSON.parse(localStorage.getItem(cacheKey) || "[]");
+  const now = new Date();
+  const periodStart = now.getTime() - timeRange;
+  
+  liveData = cached.filter(p => p.x >= periodStart).sort((a, b) => a.x - b.x);
+  
+  // Then fetch historical data with appropriate length for initial time range
+  fetchHistoricalData(getDataPointsForTimeRange(timeRange));
+  
+  // Start live updates
+  setInterval(fetchLiveData, 8000);
+}
+
+// Helper function to determine how many data points to fetch based on time range
+function getDataPointsForTimeRange(range) {
+  // Assuming data points come approximately every 10 seconds
+  const pointsPerHour = 360; // 360 points per hour (1 every 10 seconds)
+  
+  if (range <= 60 * 60 * 1000) { // 1 hour
+    return pointsPerHour;
+  } else if (range <= 2 * 60 * 60 * 1000) { // 2 hours
+    return pointsPerHour * 2;
+  } else if (range <= 24 * 60 * 60 * 1000) { // 1 day
+    return pointsPerHour * 24;
+  } else { // 1 week
+    return pointsPerHour * 24 * 7;
+  }
+}
+
+function fetchHistoricalData(pointsToFetch) {
+  fetch(`http://127.0.0.1:5000/api/historical/${line}/${sensor}?length=${pointsToFetch}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        historicalData = data.data.map(item => ({
+          // Parse timestamp as local time
+          x: new Date(item.timestamp).getTime(),
+          y: item.value
+        })).sort((a, b) => a.x - b.x);
+        
+        // Combine with any existing live data
+        chartData = [...historicalData, ...liveData]
+          .sort((a, b) => a.x - b.x)
+          .filter((v, i, a) => a.findIndex(t => t.x === v.x) === i);
+        
+        temperatureData = chartData.map(p => p.y);
+        
+        updateCharts();
+        updateStatistics();
+      }
+    })
+    .catch(err => console.error("Historical data error:", err));
+}
 
 function fetchLiveData() {
-  fetch(`http://localhost:5000/api/live-data/${selectedLine}`)
+  fetch(`http://localhost:5000/api/live-data/${line}`)
     .then(res => res.json())
     .then(data => {
-      if (data.success && data.data && data.data[selectedSensor] !== undefined) {
+      if (data.success && data.data && data.data[sensor] !== undefined) {
+        // Parse timestamp as local time
         const timestamp = new Date(data.data.timestamp).getTime();
-        const value = parseFloat(data.data[selectedSensor]);
+        const value = parseFloat(data.data[sensor]);
         const newData = { x: timestamp, y: value };
         
         liveData.push(newData);
         
         if (isFirstLiveDataFetch) {
           // On first fetch, combine historical + live data
-          const combinedData = [...historicalData, ...liveData]
+          chartData = [...historicalData, ...liveData]
             .sort((a, b) => a.x - b.x)
             .filter((v, i, a) => a.findIndex(t => t.x === v.x) === i);
-          
-          sensorChart.updateSeries([{
-            name: selectedSensor,
-            data: combinedData
-          }]);
-          
-          updateSecondaryCharts(combinedData);
-          updateStatistics(combinedData);
           
           isFirstLiveDataFetch = false;
         } else {
           // Subsequent updates just append new data
-          sensorChart.appendData([{
-            id: selectedSensor,
-            data: [newData]
-          }]);
-          
-          updateCombinedData();
+          chartData.push(newData);
         }
         
+        // Filter to current time range
+        const now = new Date().getTime();
+        const periodStart = now - timeRange;
+        chartData = chartData.filter(p => p.x >= periodStart).sort((a, b) => a.x - b.x);
+        temperatureData = chartData.map(p => p.y);
+        
+        updateCharts();
+        updateStatistics();
+        
         // Cache the data
-        localStorage.setItem(`sensorData_${selectedLine}_${selectedSensor}`, JSON.stringify(liveData));
+        localStorage.setItem(cacheKey, JSON.stringify(liveData));
+        
+        // Restore zoom state if zoomed
+        if (isZoomed && currentZoomXaxis.min && currentZoomXaxis.max) {
+          setTimeout(() => {
+            scatterChart.zoomX(
+              currentZoomXaxis.min,
+              currentZoomXaxis.max
+            );
+          }, 100);
+        }
       }
     })
-    .catch(err => console.error("Live data error:", err));
+    .catch(err => console.error("Live update error:", err));
 }
 
-function fetchHistoricalData(line, sensor) {
-  const url = `http://127.0.0.1:5000/api/historical/${line}/${sensor}?length=100`;
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        historicalData = data.data.map(item => ({
-          x: new Date(item.timestamp).getTime(),
-          y: item.value
-        })).sort((a, b) => a.x - b.x);
-        
-        sensorChart.updateSeries([{
-          name: selectedSensor,
-          data: historicalData
-        }]);
-        
-        updateSecondaryCharts(historicalData);
-        updateStatistics(historicalData);
+function updateCharts() {
+  const now = new Date().getTime(); // Current local time
+  const periodStart = now - timeRange;
+  
+  // Update Scatter Chart
+  scatterChart.updateSeries([{
+    name: 'Temperature',
+    data: chartData
+  }], false);
+  
+  if (!isZoomed) {
+    scatterChart.updateOptions({
+      xaxis: {
+        min: periodStart,
+        max: now
       }
-    })
-    .catch(err => console.error("Historical data error:", err));
+    }, false, false);
+  }
+
+  // Update Area Chart
+  areaChart.updateSeries([{
+    name: 'Temperature',
+    data: chartData
+  }]);
 }
 
-function updateCombinedData() {
-  const combinedData = [...historicalData, ...liveData]
-    .sort((a, b) => a.x - b.x)
-    .filter((v, i, a) => a.findIndex(t => t.x === v.x) === i);
+function updateStatistics() {
+  if (!temperatureData.length) return;
   
-  updateSecondaryCharts(combinedData);
-  updateStatistics(combinedData);
-}
-
-function updateSecondaryCharts(data) {
-  const seriesData = [{ name: selectedSensor, data }];
-  sensorScatterChart.updateSeries(seriesData);
-  sensorAreaChart.updateSeries(seriesData);
-}
-
-function updateStatistics(data) {
-  const tempData = data.map(p => p.y);
-  if (!tempData.length) return;
-  
-  const latest = tempData[tempData.length - 1].toFixed(1);
-  const mean = (tempData.reduce((a, b) => a + b, 0) / tempData.length).toFixed(1);
-  const min = Math.min(...tempData).toFixed(1);
-  const max = Math.max(...tempData).toFixed(1);
+  const mean = (temperatureData.reduce((a, b) => a + b, 0) / temperatureData.length).toFixed(1);
+  const min = Math.min(...temperatureData).toFixed(1);
+  const max = Math.max(...temperatureData).toFixed(1);
+  const latest = temperatureData[temperatureData.length - 1].toFixed(1);
 
   document.getElementById("temperatureDisplay").textContent = `${latest} °C`;
   document.getElementById("meanTemperature").textContent = `${mean} °C`;
@@ -225,11 +359,78 @@ function updateStatistics(data) {
   document.getElementById("maxTemperature").textContent = `${max} °C`;
 }
 
-function getTimeRange(hours) {
-    const now = new Date();
-    const past = new Date(now.getTime() - (hours * 60 * 60 * 1000));
-    return {
-      min: past.getTime(),
-      max: now.getTime() + (5 * 60 * 1000) // Add 5 minutes buffer
-    };
+function updateTimeRange(selectedPeriod) {
+  const now = new Date().getTime();
+  
+  switch (selectedPeriod) {
+    case "hour":
+      timeRange = 60 * 60 * 1000;
+      break;
+    case "2hours":
+      timeRange = 2 * 60 * 60 * 1000;
+      break;
+    case "day":
+      timeRange = 24 * 60 * 60 * 1000;
+      break;
+    case "week":
+      timeRange = 7 * 24 * 60 * 60 * 1000;
+      break;
+    default:
+      timeRange = 60 * 60 * 1000;
   }
+
+  // Fetch new historical data appropriate for the selected time range
+  fetchHistoricalData(getDataPointsForTimeRange(timeRange));
+  
+  // Filter data to new time range
+  const periodStart = now - timeRange;
+  chartData = [...historicalData, ...liveData]
+    .filter(p => p.x >= periodStart)
+    .sort((a, b) => a.x - b.x);
+  temperatureData = chartData.map(p => p.y);
+
+  // Reset zoom state when time range changes
+  isZoomed = false;
+  currentZoomXaxis = { min: undefined, max: undefined };
+
+  // Update charts with new x-axis range
+  scatterChart.updateOptions({
+    xaxis: {
+      min: periodStart,
+      max: now
+    }
+  }, false, false);
+
+  scatterChart.updateSeries([{
+    name: 'Temperature',
+    data: chartData
+  }]);
+
+  areaChart.updateSeries([{
+    name: 'Temperature',
+    data: chartData
+  }]);
+
+  updateStatistics();
+}
+
+function resetZoom() {
+  isZoomed = false;
+  currentZoomXaxis = { min: undefined, max: undefined };
+  
+  const now = new Date().getTime();
+  const periodStart = now - timeRange;
+  
+  scatterChart.updateOptions({
+    xaxis: {
+      min: periodStart,
+      max: now
+    }
+  }, false, false);
+  
+  scatterChart.resetSeries();
+  updateCharts();
+}
+
+// Start the application
+loadInitialData();
