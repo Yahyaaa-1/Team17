@@ -36,7 +36,6 @@ class TestAuthService(unittest.TestCase):
         })
         
         self.assertTrue(response['success'])
-        print("Test successful registration passed.")
         self.mock_log.log_event.assert_called_once()
 
     def setUp(self):
@@ -70,7 +69,6 @@ class TestAuthService(unittest.TestCase):
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'Invalid email or password')
 
-        print("Test login with inactive account passed.")
         self.mock_log.log_event.assert_called_once()
 
     @patch('app.generate_password_hash')
@@ -97,8 +95,6 @@ class TestAuthService(unittest.TestCase):
         # Check that the login attempt was unsuccessful
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'Invalid email or password')
-
-        print("Test login with invalid password passed.")
         self.mock_log.log_event.assert_called_once_with("Failed login attempt for test@example.com")
 
     @patch('app.generate_password_hash')
@@ -126,8 +122,6 @@ class TestAuthService(unittest.TestCase):
         # Check that the registration attempt failed due to existing email
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'User already exists')
-
-        print("Test registration with existing email passed.")
         self.mock_log.log_event.assert_not_called()
 
     @patch('app.generate_password_hash')
@@ -171,7 +165,6 @@ class TestAuthService(unittest.TestCase):
         self.assertEqual(normalized_actual_query, expected_query)
 
         # Check if the log event was called to log the update
-        print("Test dark mode preference update passed.")
         self.mock_log.log_event.assert_called_once_with(
             "Dark mode preference updated for user 1 to 1"
         )

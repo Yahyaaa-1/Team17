@@ -42,7 +42,6 @@ class TestFlaskEndpoints(unittest.TestCase):
             'password': 'ValidPass123!'
         })
         self.assertEqual(response.status_code, 200)
-        print("Login flow test passed successfully.")
 
     def tearDown(self):
         """Stop patching the database connection"""
