@@ -2,13 +2,10 @@ import unittest
 from unittest.mock import MagicMock, patch
 from werkzeug.security import generate_password_hash
 from app import AuthService, LogService
-import unittest
-from unittest.mock import patch, MagicMock, call
 from datetime import datetime
 from flask import json
 import re
-from threading import Thread 
-from werkzeug.security import generate_password_hash
+from threading import Thread
 
 
 class TestAuthService(unittest.TestCase):
@@ -39,7 +36,9 @@ class TestAuthService(unittest.TestCase):
         })
         
         self.assertTrue(response['success'])
+        print("Test successful registration passed.")
         self.mock_log.log_event.assert_called_once()
+
     def setUp(self):
         self.mock_db = MagicMock()
         self.mock_log = MagicMock(spec=LogService)
@@ -71,12 +70,12 @@ class TestAuthService(unittest.TestCase):
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'Invalid email or password')
 
+        print("Test login with inactive account passed.")
         self.mock_log.log_event.assert_called_once()
-         
 
     @patch('app.generate_password_hash')
     def test_login_with_invalid_password(self, mock_hash):
-        """Well done the test login with invalid password worked ✅ """
+        """Test login with invalid password"""
         
         # Simulate returning a user with the correct email but incorrect password
         self.mock_db.get_connection().cursor().fetchone.return_value = {
@@ -99,14 +98,12 @@ class TestAuthService(unittest.TestCase):
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'Invalid email or password')
 
-        # Verify that log_event was called once with the correct message for a failed login attempt
+        print("Test login with invalid password passed.")
         self.mock_log.log_event.assert_called_once_with("Failed login attempt for test@example.com")
 
-      
-       
     @patch('app.generate_password_hash')
     def test_register_with_existing_email(self, mock_hash):
-        """Test registration with already registered email ✅"""
+        """Test registration with already registered email"""
         
         # Simulate the database returning an existing user with the given email
         self.mock_db.get_connection().cursor().fetchone.return_value = {
@@ -130,13 +127,12 @@ class TestAuthService(unittest.TestCase):
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'User already exists')
 
-        # Ensure that log_event was not called, since the registration failed
+        print("Test registration with existing email passed.")
         self.mock_log.log_event.assert_not_called()
-
 
     @patch('app.generate_password_hash')
     def test_update_dark_mode_toggle(self, mock_hash):
-        """Test dark mode preference update ✅"""
+        """Test dark mode preference update"""
 
         # Simulate the database returning a user with dark_mode set to 0 (light mode)
         self.mock_db.get_connection().cursor().fetchone.return_value = {
@@ -162,7 +158,7 @@ class TestAuthService(unittest.TestCase):
         self.assertTrue(response['success'])
         self.assertEqual(response['message'], 'Dark mode preference updated')
 
-        # Get the actual query passed to execute() for debugging
+        # Get the actual query passed to execute()
         actual_query = self.mock_db.get_connection().cursor().execute.call_args[0][0]
 
         # Normalize the actual query by stripping newlines and extra spaces, and join words with a single space
@@ -175,9 +171,11 @@ class TestAuthService(unittest.TestCase):
         self.assertEqual(normalized_actual_query, expected_query)
 
         # Check if the log event was called to log the update
+        print("Test dark mode preference update passed.")
         self.mock_log.log_event.assert_called_once_with(
             "Dark mode preference updated for user 1 to 1"
         )
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,9 +2,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 from app import SimulationService, LogService
-import unittest
-from unittest.mock import patch, MagicMock, call
-from datetime import datetime
 from flask import json
 import re
 from threading import Thread 
@@ -29,7 +26,7 @@ class TestSimulationService(unittest.TestCase):
         self.assertIsInstance(reading, float)
         self.assertGreaterEqual(reading, 16.0)
         self.assertLessEqual(reading, 258.0)
-
+        print("Test sensor reading generation passed successfully.")
 
     @patch('time.localtime')  # Correct patching of time.localtime
     def test_timezone_offset(self, mock_localtime):
@@ -47,6 +44,7 @@ class TestSimulationService(unittest.TestCase):
             offset = self.sim_service.get_timezone_offset()
             self.assertEqual(offset, "+00", f"Failed for month {month}")
 
+        print("Test timezone offset calculation passed successfully.")
 
     def test_multiple_sensor_readings(self):
         """Test generation of multiple sensor readings"""
@@ -75,8 +73,7 @@ class TestSimulationService(unittest.TestCase):
             self.assertGreaterEqual(reading, min_value)  # Ensure the reading is >= min
             self.assertLessEqual(reading, max_value)  # Ensure the reading is <= max
 
-
-
+        print("Test multiple sensor readings passed successfully.")
 
     @patch('threading.Thread')
     def test_simulation_start_stop(self, mock_thread):
@@ -100,6 +97,7 @@ class TestSimulationService(unittest.TestCase):
 
         # Since the `stop()` method doesn't explicitly stop the thread in this implementation,
         # there's no direct assertion here, but we can ensure it runs without errors.
+        print("Test simulation start/stop passed successfully.")
 
     @patch('time.localtime')
     @patch.object(SimulationService, 'generate_sensor_reading')  # Mock generate_sensor_reading to return fixed values
@@ -157,12 +155,10 @@ class TestSimulationService(unittest.TestCase):
         self.assertEqual(mock_cursor.execute.call_args[0][1], 
                          [current_timestamp, timezone_offset, 130.45, 267.87])
 
-        # Debugging: Print to check if execute() was called
-        print("Query executed:", mock_cursor.execute.call_args[0][0])
-        print("Parameters:", mock_cursor.execute.call_args[0][1])
-
         # Ensure commit was called to persist the data
         mock_connection.commit.assert_called_once()  # Ensure commit was called on the actual connection object
+
+        print("Test insert line readings passed successfully.")
 
     def test_reading_range_validation(self):
         """Test sensor readings stay within defined ranges"""
@@ -192,6 +188,8 @@ class TestSimulationService(unittest.TestCase):
             # Assert that the reading is within the defined range
             self.assertGreaterEqual(reading, min_value, f"Reading for {sensor} is less than the minimum allowed value.")
             self.assertLessEqual(reading, max_value, f"Reading for {sensor} is greater than the maximum allowed value.")
+
+        print("Test reading range validation passed successfully.")
 
 if __name__ == '__main__':
     unittest.main()

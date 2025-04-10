@@ -1,11 +1,9 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from app import LogService
-import unittest
-from unittest.mock import patch, MagicMock, call
+import re
 from datetime import datetime
 from flask import json
-import re
 from threading import Thread 
 from werkzeug.security import generate_password_hash
 
@@ -55,6 +53,7 @@ class TestLogService(unittest.TestCase):
             # Ensure commit is called to persist the log entry
             mock_connection.commit.assert_called_once()
 
+        print("Test log levels passed successfully.")
 
     def test_log_formatting(self):
         """Test log message formatting"""
@@ -101,6 +100,7 @@ class TestLogService(unittest.TestCase):
             # Ensure commit is called to persist the log entry
             mock_connection.commit.assert_called_once()
 
+        print("Test log formatting passed successfully.")
 
     def test_log_persistence(self):
         """Test log storage in database"""
@@ -139,6 +139,8 @@ class TestLogService(unittest.TestCase):
 
             # Ensure commit is called to persist the log entry
             mock_connection.commit.assert_called_once()
+
+        print("Test log persistence passed successfully.")
 
 if __name__ == '__main__':
     unittest.main()
