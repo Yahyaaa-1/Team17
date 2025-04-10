@@ -234,3 +234,34 @@
     background-color: #4CAF50;
     color: white;
   }
+
+  /* Threshold information styling */
+.threshold-container {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+  }
+  
+  .threshold-item {
+    text-align: center;
+  }
+  
+  .threshold-legend {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+  }
+  
+  .color-box {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    border-radius: 3px;
+  }

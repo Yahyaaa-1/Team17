@@ -18,7 +18,8 @@ let timeRange = 60 * 60 * 1000;
 let isZoomed = false;
 let currentZoomXaxis = { min: undefined, max: undefined };
 let isFirstLiveDataFetch = true;
-
+let forecastThresholds = null;
+let trafficLightSystem = false;
 
 document.getElementById("sensorTitle").textContent = `Sensor Data for ${sensor} on ${line}`;
 
@@ -193,11 +194,16 @@ function loadInitialData() {
   
   liveData = cached.filter(p => p.x >= periodStart).sort((a, b) => a.x - b.x);
   
+  // Fetch forecast data for this sensor
+  fetchForecastData();
+  
   // Then fetch historical data with appropriate length for initial time range
   fetchHistoricalData(getDataPointsForTimeRange(timeRange));
   
   // Start live updates
   setInterval(fetchLiveData, 8000);
+  // Refresh forecast data periodically
+  setInterval(fetchForecastData, 60000); // Every minute
 }
 
 // Helper function to determine how many data points to fetch based on time range
@@ -234,7 +240,7 @@ function fetchHistoricalData(pointsToFetch) {
         
         temperatureData = chartData.map(p => p.y);
         // Combine with live data
-        updateCombinedData();
+        // updateCombinedData();
         updateCharts();
         updateStatistics();
       }
@@ -293,13 +299,20 @@ function fetchLiveData() {
 }
 
 function updateCharts() {
-  const now = new Date().getTime(); // Current local time
+  const now = new Date().getTime();
   const periodStart = now - timeRange;
+  
+  // Prepare data with colors for scatter chart
+  const scatterData = chartData.map(point => ({
+    x: point.x,
+    y: point.y,
+    fillColor: getPointColor(point.y)
+  }));
   
   // Update Scatter Chart
   scatterChart.updateSeries([{
     name: 'Temperature',
-    data: chartData
+    data: scatterData
   }], false);
   
   if (!isZoomed) {
@@ -311,12 +324,48 @@ function updateCharts() {
     }, false, false);
   }
 
-  // Update Area Chart
+  // Update Area Chart with gradient based on traffic light system
+  let areaColor = '#FF4560'; // Default color
+  if (trafficLightSystem) {
+    // Use the color of the latest data point
+    const latestPoint = chartData[chartData.length - 1];
+    if (latestPoint) {
+      areaColor = getPointColor(latestPoint.y);
+    }
+  }
+  
+  areaChart.updateOptions({
+    colors: [areaColor],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.7,
+        opacityTo: 0.3,
+        stops: [0, 100]
+      }
+    }
+  }, false, false);
+  
   areaChart.updateSeries([{
     name: 'Temperature',
     data: chartData
   }]);
+  
+  // Update current temperature display color
+  if (temperatureData.length > 0) {
+    const latestTemp = temperatureData[temperatureData.length - 1];
+    const tempDisplay = document.getElementById("temperatureDisplay");
+    tempDisplay.textContent = `${latestTemp.toFixed(1)} °C`;
+    
+    if (trafficLightSystem) {
+      tempDisplay.style.color = getPointColor(latestTemp);
+    } else {
+      tempDisplay.style.color = ''; // Reset to default
+    }
+  }
 }
+
 
 function updateStatistics() {
   if (!temperatureData.length) return;
@@ -403,6 +452,78 @@ function resetZoom() {
   
   scatterChart.resetSeries();
   updateCharts();
+}
+
+// Add this function to fetch forecast data for the specific sensor
+function fetchForecastData() {
+  fetch(`http://127.0.0.1:5000/api/forecasted-data/${line}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.data?.length > 0) {
+        const currentTime = new Date();
+        const sensorForecasts = data.data.filter(item => item.sensor === sensor);
+        
+        if (sensorForecasts.length > 0) {
+          const latestForecast = sensorForecasts[0];
+          const latestForecastTime = new Date(latestForecast.forecast_time);
+          const timeDifference = Math.abs(currentTime - latestForecastTime) / (1000 * 60);
+          
+          if (timeDifference <= 60) {
+            trafficLightSystem = true;
+            forecastThresholds = {
+              lowerBound: latestForecast.lower_bound,
+              upperBound: latestForecast.upper_bound
+            };
+            
+            // Update charts with traffic light colors
+            updateCharts();
+            
+            // Show threshold information
+            document.getElementById('thresholdInfo').style.display = 'block';
+            document.getElementById('lowerThreshold').textContent = forecastThresholds.lowerBound.toFixed(1);
+            document.getElementById('upperThreshold').textContent = forecastThresholds.upperBound.toFixed(1);
+          } else {
+            handleInoperativeTrafficLightSystem();
+          }
+        } else {
+          handleInoperativeTrafficLightSystem();
+        }
+      } else {
+        handleInoperativeTrafficLightSystem();
+      }
+    })
+    .catch(err => {
+      console.error("Forecast data error:", err);
+      handleInoperativeTrafficLightSystem();
+    });
+}
+
+function handleInoperativeTrafficLightSystem() {
+  trafficLightSystem = false;
+  forecastThresholds = null;
+  document.getElementById('thresholdInfo').style.display = 'none';
+  
+  // Update charts with default colors
+  updateCharts();
+}
+
+// Helper function to determine point color based on traffic light system
+function getPointColor(value) {
+  if (!trafficLightSystem || !forecastThresholds) return '#FF4560'; // Default color
+  
+  const { lowerBound, upperBound } = forecastThresholds;
+  
+  if (value < lowerBound) {
+    return '#FF0000'; // Critical (below lower bound)
+  } else if (value > upperBound) {
+    return '#FF0000'; // Critical (above upper bound)
+  } else if (value < lowerBound + ((upperBound - lowerBound) * 0.1)) {
+    return '#FFA500'; // Warning (near lower bound)
+  } else if (value > upperBound - ((upperBound - lowerBound) * 0.1)) {
+    return '#FFA500'; // Warning (near upper bound)
+  } else {
+    return '#00E396'; // Normal
+  }
 }
 
 // Start the application

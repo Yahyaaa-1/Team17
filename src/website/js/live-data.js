@@ -22,9 +22,9 @@ function getTrafficLightStatus(value, lowerBound, upperBound) {
         return 'critical';
     } else if (value > upperBound) {
         return 'critical';
-    } else if (value < lowerBound + ((upperBound - lowerBound) * 0.2)) {
+    } else if (value < lowerBound + ((upperBound - lowerBound) * 0.1)) {
         return 'warning';
-    } else if (value > upperBound - ((upperBound - lowerBound) * 0.2)) {
+    } else if (value > upperBound - ((upperBound - lowerBound) * 0.1)) {
         return 'warning';
     } else {
         return 'normal';

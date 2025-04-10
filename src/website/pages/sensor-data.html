@@ -74,6 +74,35 @@
       <h1 id="temperatureDisplay">-- °C</h1>
     </div>
 
+    <!-- Threshold Information Widget -->
+    <div class="widget" id="thresholdInfo" style="display: none;">
+      <h3 class="widget-title">Optimal Temperature Range</h3>
+      <div class="threshold-container">
+        <div class="threshold-item">
+          <h4>Lower Threshold</h4>
+          <h2 id="lowerThreshold">-- °C</h2>
+        </div>
+        <div class="threshold-item">
+          <h4>Upper Threshold</h4>
+          <h2 id="upperThreshold">-- °C</h2>
+        </div>
+      </div>
+      <div class="threshold-legend">
+        <div class="legend-item">
+          <span class="color-box" style="background-color: #00E396;"></span>
+          <span>Normal</span>
+        </div>
+        <div class="legend-item">
+          <span class="color-box" style="background-color: #FFA500;"></span>
+          <span>Warning</span>
+        </div>
+        <div class="legend-item">
+          <span class="color-box" style="background-color: #FF0000;"></span>
+          <span>Critical</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Statistics Widget -->
     <div class="widget">
       <div class="stats-container">
