@@ -477,24 +477,24 @@ class DataService:
     def __init__(self, db_manager, log_service):
         self.db_manager = db_manager
         self.log_service = log_service
-
-    # def get_table_columns(self, line):
-    #     """Get all columns for a given line table"""
-    #     try:
-    #         connection = self.db_manager.get_connection()
-    #         if not connection:
-    #             return None
+        
+    def get_table_columns(self, line):
+        """Get all columns for a given line table"""
+        try:
+            connection = self.db_manager.get_connection()
+            if not connection:
+                return None
                 
-    #         cursor = connection.cursor()
-    #         cursor.execute(f"SHOW COLUMNS FROM {line}")
-    #         columns = [column[0] for column in cursor.fetchall()]
-    #         return columns
-    #     except Exception as e:
-    #         self.log_service.log_event(f"Error getting columns for {line}: {str(e)}", type='ERROR')
-    #         return None
-    #     finally:
-    #         if 'cursor' in locals(): cursor.close()
-    #         if 'connection' in locals(): connection.close()
+            cursor = connection.cursor()
+            cursor.execute(f"SHOW COLUMNS FROM {line}")
+            columns = [column[0] for column in cursor.fetchall()]
+            return columns
+        except Exception as e:
+            self.log_service.log_event(f"Error getting columns for {line}: {str(e)}", type='ERROR')
+            return None
+        finally:
+            if 'cursor' in locals(): cursor.close()
+            if 'connection' in locals(): connection.close()
 
     def get_historical_data(self, line, data):
         try:
@@ -505,7 +505,7 @@ class DataService:
             end_date_time = data.get("endDateTime", "")
 
             # First get the actual columns in the table
-            columns = AdminService.get_table_columns(line)
+            columns = self.get_table_columns(line)
             if not columns:
                 return {"success": False, "error": f"Could not retrieve columns for table {line}"}
 
@@ -565,7 +565,7 @@ class DataService:
                 "data": results,
                 "recordsTotal": total_records,
                 "recordsFiltered": total_records,
-                "sensors": sensor_columns  
+                "sensors": sensor_columns  # Return available sensors for frontend
             }
 
         except Exception as e:
