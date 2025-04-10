@@ -737,6 +737,9 @@ class SimulationService:
             readings_dict = dict(zip(sensors, values[2:]))
             print(f"{line_name}: {readings_dict}")
 
+            connection = self.db_manager.get_connection()
+            connection.commit()
+    
             # # Commit the transaction to save the changes ---------------------------------- aadam
             # cursor.connection.commit()
 
