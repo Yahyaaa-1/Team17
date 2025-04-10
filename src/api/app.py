@@ -734,37 +734,54 @@ class SimulationService:
         return round(new_temp, 2)
 
     def insert_line_readings(self, connection, cursor, line_name, sensors, ranges, timestamp, timezone):
-        """Insert readings for a line into the database."""
-        values = [timestamp, timezone]
-        values.extend([self.generate_sensor_reading(sensor, ranges) for sensor in sensors])
-
+        """Insert readings for a line into the database after verifying sensor columns exist."""
+        values = []  # Initialize values here to prevent reference before assignment
+        
         try:
-            # Construct the SQL query dynamically
+            # First get the current table structure
+            cursor.execute(f"SHOW COLUMNS FROM {line_name}")
+            columns = cursor.fetchall()
+            existing_columns = [column[0] for column in columns]
+            
+            # Filter sensors to only those that exist in the table
+            valid_sensors = [sensor for sensor in sensors if sensor in existing_columns]
+            
+            if not valid_sensors:
+                raise Exception(f"No valid sensors found for table {line_name}")
+                
+            # Generate readings only for valid sensors
+            values = [timestamp, timezone]
+            values.extend([self.generate_sensor_reading(sensor, ranges) for sensor in valid_sensors])
+
+            # Construct the SQL query dynamically using only valid sensors
             query = f"""
                 INSERT INTO {line_name}
-                (timestamp, timezone, {', '.join(sensors)})
-                VALUES (%s, %s, {', '.join(['%s'] * len(sensors))})
+                (timestamp, timezone, {', '.join(valid_sensors)})
+                VALUES (%s, %s, {', '.join(['%s'] * len(valid_sensors))})
             """
 
             # Execute the query
             cursor.execute(query, values)
 
             # Log the inserted readings for debugging purposes
-            readings_dict = dict(zip(sensors, values[2:]))
+            readings_dict = dict(zip(valid_sensors, values[2:]))
             print(f"{line_name}: {readings_dict}")
 
-            connection = self.db_manager.get_connection()
             connection.commit()
-    
-            # # Commit the transaction to save the changes ---------------------------------- aadam
-            # cursor.connection.commit()
+            
+            # If some sensors were filtered out, log a warning
+            if len(valid_sensors) != len(sensors):
+                missing_sensors = set(sensors) - set(valid_sensors)
+                warning_msg = f"Some sensors not found in table {line_name}: {', '.join(missing_sensors)}"
+                self.log_service.log_event(warning_msg, type='WARNING')
+                print(warning_msg)
 
         except Exception as e:
-            # Log and raise an error if anything goes wrong
             self.log_service.log_event(f"Error inserting line {line_name} data: {str(e)}", type='ERROR')
             print(f"Error inserting line {line_name} data: {e}")
-            print("Parameters:", values)
-            print("Number of parameters:", len(values))
+            if 'values' in locals():
+                print("Parameters:", values)
+                print("Number of parameters:", len(values))
             raise
 
     def generate_temperature_readings(self):
