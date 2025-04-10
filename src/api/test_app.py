@@ -397,52 +397,6 @@ class TestAdminService(unittest.TestCase):
 
     # Additional tests can go here (e.g., for error handling or invalid table names)
 
-    
-
-    
-    def test_toggle_user_status(self):
-        """Test activating/deactivating user accounts"""
-
-        # Simulate the database returning an active user
-        mock_user = {
-            'active': 1,  # User is currently active
-            'email': 'testuser@example.com'
-        }
-
-        # Mock the cursor's fetchone method to return the mock_user data
-        self.mock_db.get_connection().cursor().fetchone.return_value = mock_user
-
-        # Simulate the data for toggling user status
-        toggle_data = {
-            'operator_id': 1,
-            'admin_ID': 1
-        }
-
-        # Call the toggle_user_status method
-        response = self.admin_service.toggle_user_status(toggle_data)
-
-        # Assert that the response is successful
-        self.assertTrue(response['success'])
-        self.assertEqual(response['message'], 'User status updated to inactive')
-
-        # Normalize the expected and actual query by removing newlines, extra spaces and trimming
-        expected_query = '''UPDATE user_accounts SET active = %s WHERE operator_id = %s'''
-        actual_query = self.mock_db.get_connection().cursor().execute.call_args[0][0]
-        
-        # Normalize both the expected and actual query strings by removing multiple spaces and newlines
-        expected_query_normalized = ' '.join(expected_query.split())
-        actual_query_normalized = ' '.join(actual_query.split())
-
-        # Compare the normalized queries
-        self.assertEqual(expected_query_normalized, actual_query_normalized)
-
-        # Verify that the log_event was called to log the status change
-        self.mock_log.log_event.assert_called_once_with(
-            "User testuser@example.com (ID: 1) status changed to inactive", 
-            type='INFO', 
-            log_level='admin'
-        )
-
     def test_toggle_user_status_user_not_found(self):
         """Test attempting to toggle status for a user that doesn't exist"""
 
@@ -461,6 +415,55 @@ class TestAdminService(unittest.TestCase):
         # Assert that the response indicates the user was not found
         self.assertFalse(response['success'])
         self.assertEqual(response['error'], 'User not found')
+
+    def test_toggle_user_status(self):
+        """Test activating/deactivating user accounts"""
+
+        # Simulate the database returning an active user
+        mock_user = {
+            'active': 1,  # User is currently active
+            'email': 'testuser@example.com',
+            'operator_id': 1  # Assuming operator_id is the unique identifier for users
+        }
+
+        # Mock the cursor's fetchone method to return the mock_user data
+        self.mock_db.get_connection().cursor().fetchone.return_value = mock_user
+
+        # Simulate the data for toggling user status (deactivating the user)
+        toggle_data = {
+            'operator_id': 1,  # The operator_id of the user whose status we want to toggle
+            'admin_ID': 1  # Admin performing the action
+        }
+
+        # Call the toggle_user_status method
+        response = self.admin_service.toggle_user_status(toggle_data)
+
+        # Assert that the response is successful
+        self.assertTrue(response['success'])
+        self.assertEqual(response['message'], 'User status updated to inactive')
+
+        # Normalize the expected and actual query by removing newlines, extra spaces, and trimming
+        expected_query = '''UPDATE user_accounts SET active = %s WHERE operator_id = %s'''
+        actual_query = self.mock_db.get_connection().cursor().execute.call_args[0][0]
+
+        # Normalize both the expected and actual query strings by removing multiple spaces and newlines
+        expected_query_normalized = ' '.join(expected_query.split())
+        actual_query_normalized = ' '.join(actual_query.split())
+
+        # Compare the normalized queries
+        self.assertEqual(expected_query_normalized, actual_query_normalized)
+
+        # Ensure the correct parameters were used for the SQL query
+        actual_params = self.mock_db.get_connection().cursor().execute.call_args[0][1]
+        self.assertEqual(actual_params, (0, 1))  # Expecting (active status, operator_id)
+
+        # Verify that the log_event was called to log the status change
+        self.mock_log.log_event.assert_called_once_with(
+            "User testuser@example.com (ID: 1) status changed to inactive", 
+            type='INFO', 
+            log_level='admin'
+        )
+
 
 class TestDataService(unittest.TestCase):
     def setUp(self):
@@ -584,9 +587,101 @@ class TestDataService(unittest.TestCase):
 
         # Optionally, check if the log_event was called
         self.mock_log.log_event.assert_called_once_with(
-            "Sensor data retrieved for r01 from line4", type='INFO', log_level='admin'
-        )
-    
+            "Sensor data retrieved for r01 from line4", type='INFO', log_level='admin')
+        
+    def test_historical_data_filtering(self):
+        """Test historical data with different filters without specifying a specific sensor"""
+
+        # Define the filter criteria for the test (based on your code)
+        filter_criteria = {
+            'length': 10,  # Number of records to retrieve
+            'searchValue': '2025-04-07',  # Search by timestamp or a date value
+            'dateFilter': '2025-04-07',  # Filter records for this specific date
+            'startDateTime': '2025-04-01 00:00:00',  # Start datetime filter
+            'endDateTime': '2025-04-07 23:59:59'  # End datetime filter
+        }
+
+        # Mock the response of the method call for historical data filtering
+        mock_response = {
+            "success": True,
+            "data": [
+                {"timestamp": "2025-04-07 10:00:00", "r01": 123.45, "r02": 130.50},
+                {"timestamp": "2025-04-07 11:00:00", "r01": 125.75, "r02": 135.25},
+                {"timestamp": "2025-04-07 12:00:00", "r01": 127.65, "r02": 137.90}
+            ],
+            "recordsTotal": 3,
+            "recordsFiltered": 3
+        }
+
+        # Mock the DataService method call
+        with patch.object(self.data_service, 'get_historical_data', return_value=mock_response):
+            response = self.data_service.get_historical_data('line4', filter_criteria)
+
+        # Print response for debugging to see the structure
+        print("Response:", response)
+
+        # Assert that the response is successful
+        self.assertTrue(response['success'], f"Expected success, got {response.get('error', 'No error key in response')}")
+
+        # Assert that the correct number of records are returned
+        self.assertEqual(len(response['data']), 3, f"Expected 3 records, got {len(response['data'])}")
+
+        # Assert that each record contains the expected fields (timestamp and sensor values)
+        for record in response['data']:
+            self.assertIn('timestamp', record)
+            self.assertIn('r01', record)  # Check for the presence of sensor r01
+            self.assertIn('r02', record)  # Check for the presence of sensor r02
+            self.assertIsInstance(record['timestamp'], str)  # Ensure timestamp is a string
+            self.assertIsInstance(record['r01'], (float, int))  # Ensure r01 is a number (float or int)
+            self.assertIsInstance(record['r02'], (float, int))  # Ensure r02 is a number (float or int)
+
+        # Optionally, assert that the timestamp is formatted correctly
+        for record in response['data']:
+            self.assertEqual(len(record['timestamp'].split('-')), 3)  # Ensure timestamp format is "YYYY-MM-DD"
+
+    def test_live_data_format(self):
+        """Test live data format and structure"""
+        
+        # Mock the live data that the service will return
+        mock_live_data = {
+            "success": True,
+            "data": {
+                "timestamp": "2025-04-07 15:30:00",
+                "r01": 150.5,  # Sensor data for r01
+                "r02": 160.75  # Sensor data for r02
+            }
+        }
+
+        # Mock the DataService's method to return the mock live data
+        with patch.object(self.data_service, 'get_live_data', return_value=mock_live_data):
+            # Fetch the live data from the service
+            response = self.data_service.get_live_data('line4')
+
+        # Print the response for debugging purposes
+        print("Response:", response)
+
+        # Assert that the response is successful
+        self.assertTrue(response['success'], f"Expected success, got {response.get('error', 'No error key in response')}")
+
+        # Check if the 'data' field contains the expected fields
+        live_data = response['data']
+        
+        # Assert that 'timestamp' is present in the response and it's a string
+        self.assertIn('timestamp', live_data)
+        self.assertIsInstance(live_data['timestamp'], str)
+        self.assertEqual(len(live_data['timestamp'].split('-')), 3)  # Ensure timestamp is in "YYYY-MM-DD" format
+        
+        # Assert that sensor data (e.g., 'r01', 'r02') are present and are numbers (either int or float)
+        self.assertIn('r01', live_data)
+        self.assertIn('r02', live_data)
+        self.assertIsInstance(live_data['r01'], (int, float))
+        self.assertIsInstance(live_data['r02'], (int, float))
+
+        # Optionally, check that the values of sensors (r01, r02) are within a reasonable range
+        self.assertGreater(live_data['r01'], 0, "Sensor r01 value should be greater than 0")
+        self.assertGreater(live_data['r02'], 0, "Sensor r02 value should be greater than 0")
+
+            
 class TestSimulationService(unittest.TestCase):
     def setUp(self):
         self.mock_db = MagicMock()
@@ -739,6 +834,36 @@ class TestSimulationService(unittest.TestCase):
 
         # Ensure commit was called to persist the data
         mock_connection.commit.assert_called_once()  # Ensure commit was called on the actual connection object
+
+    def test_reading_range_validation(self):
+        """Test sensor readings stay within defined ranges"""
+        
+        # Define sensor ranges (e.g., for line4)
+        sensor_ranges_line4 = {
+            "r01": {"avg": 129.10, "min": 16.00, "max": 258.00},
+            "r02": {"avg": 264.81, "min": 18.00, "max": 526.00},
+            "r03": {"avg": 255.77, "min": 17.00, "max": 476.00},
+            "r04": {"avg": 309.04, "min": 13.00, "max": 554.00}
+        }
+
+        # List of sensors to check
+        sensors = sensor_ranges_line4.keys()
+
+        for sensor in sensors:
+            # Generate a sensor reading for the current sensor and ranges
+            reading = self.sim_service.generate_sensor_reading(sensor, sensor_ranges_line4)
+            
+            # Get the min and max values for this sensor from the ranges
+            min_value = sensor_ranges_line4[sensor]["min"]
+            max_value = sensor_ranges_line4[sensor]["max"]
+
+            # Assert that the reading is a float
+            self.assertIsInstance(reading, float)
+            
+            # Assert that the reading is within the defined range
+            self.assertGreaterEqual(reading, min_value, f"Reading for {sensor} is less than the minimum allowed value.")
+            self.assertLessEqual(reading, max_value, f"Reading for {sensor} is greater than the maximum allowed value.")
+
 
 class TestFlaskEndpoints(unittest.TestCase):
     def setUp(self):
@@ -910,57 +1035,4 @@ class TestLogService(unittest.TestCase):
     
 if __name__ == '__main__':
     unittest.main()
-
-# AdminService Tests
-
-def test_toggle_user_status(self):
-    """Test activating/deactivating user accounts"""
-
-# DataService Tests
-
-def test_historical_data_filtering(self):
-    """Test historical data with different filters"""
-
-def test_live_data_format(self):
-    """Test live data format and structure"""
-
-# SimulationService Tests
-
-def test_insert_line_readings(self):
-    """Test database insertion of readings"""
-
-def test_reading_range_validation(self):
-    """Test sensor readings stay within defined ranges"""
-
-# Database Manager Tests
-def test_connection_pooling(self):
-    """Test database connection pooling"""
-
-def test_connection_timeout(self):
-    """Test connection timeout handling"""
-
-def test_connection_retry(self):
-    """Test connection retry mechanism"""
-
-def test_transaction_rollback(self):
-    """Test transaction rollback on error"""
-
-def test_connection_cleanup(self):
-    """Test proper connection cleanup"""
-
-# LogService Tests
-
-
-
-
-def test_log_retrieval(self):
-    """Test log retrieval functionality"""
-
-def test_error_logging(self):
-    """Test error logging mechanism"""
-
-# Edge Cases and Error Handling Tests
-
-def test_invalid_data_formats(self):
-    """Test handling of invalid data formats"""
 
