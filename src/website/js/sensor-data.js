@@ -261,7 +261,8 @@ function fetchHistoricalData(pointsToFetch) {
           .filter((v, i, a) => a.findIndex(t => t.x === v.x) === i);
         
         temperatureData = chartData.map(p => p.y);
-        
+        // Combine with live data
+        updateCombinedData();
         updateCharts();
         updateStatistics();
       }

@@ -233,9 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify({ sensorName: sensorName, tableID:tableID })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    fetchTableHeaders(tableID); // Refresh table
-                }
+                    fetchTableHeaders(tableID);
             } catch (error) {
                 console.error('Error deleting sensor:', error);
             }
