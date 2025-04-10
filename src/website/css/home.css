@@ -56,18 +56,13 @@
     background: var(--deep-navy);
     border-bottom: 1px solid var(--secondary-blue);
 }
+
 .account-dropdown {
     position: relative;
     display: inline-block;
 }
 
-.account-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    color: black;
-}
+
 
 /* Account Dropdown Base Styles */
 .account-dropdown {
@@ -90,6 +85,23 @@
 .account-btn i {
     font-size: 16px;
 }
+
+.header-login-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.header-login-btn i {
+    font-size: 16px;
+}
+
 
 /* Dropdown Content Base Styles */
 .dropdown-content {
@@ -123,7 +135,6 @@
     text-align: center;
 }
 
-/* Light Mode Styles */
 .account-btn {
     background-color: var(--secondary-blue) !important;
     color: #ffffff;
@@ -132,6 +143,17 @@
 .account-btn:hover {
     color: #2196F3;
 }
+
+.header-login-btn {
+    color: #ffffff;
+}
+
+.header-login-btn:hover {
+    color: #ffffff;
+    background-color: var(--light-blue);
+}
+
+
 
 .dropdown-content {
     background-color: var(--secondary-blue) !important;
@@ -146,8 +168,6 @@
     background-color: #f5f5f5;
     color: #2196F3;
 }
-
-
 
 /* Animation */
 @keyframes fadeIn {
@@ -186,7 +206,6 @@
     cursor: pointer;
 }
 
-
 /* Header/Nav Spacing */
 .main-header {
     margin-bottom: 0;
@@ -194,10 +213,11 @@
 
 .header-content {
     position: relative;
-    height: 80px; /* Fixed height for header */
+    height: 80px;
     margin: 0 auto;
     max-width: 1200px;
 }
+
 .header-content {
     display: flex;
     justify-content: space-between;
@@ -217,7 +237,7 @@
     height: 120px;
     width: auto;
 }
-
+/* 
 .login-btn {
     position: absolute;
     right: 50px;
@@ -233,15 +253,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
-.login-btn:hover {
-    background-color: var(--light-blue);
-}
-
-.login-btn i {
-    margin-right: 5px;
-}
 
 /* Bootstrap Navbar Styling */
 .navbar {
@@ -263,6 +276,8 @@
 
 .dashboard-container {
     padding: 20px;
+    min-height: calc(100vh - 230px);
+    padding-bottom: 20px;
 }
 
 .top-controls {
@@ -326,11 +341,17 @@
     color: var(--secondary-blue);
 }
 
+/* Updated Widget Sizes */
 .widget-row {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
     flex-wrap: nowrap;
+    min-height: 400px; /* Increased from 350px */
+}
+
+.dashboard-container .row {
+    margin-bottom: 20px;
 }
 
 .section-title {
@@ -340,7 +361,7 @@
     font-weight: bold;
 }
 
-/* Widget Containers */
+/* Widget Containers - Updated Heights */
 .slider-section,
 .pie-chart-container,
 .bar-chart-container,
@@ -349,7 +370,20 @@
     padding: 15px;
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    height: 300px;
+    height: 380px; /* Increased from 300px */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Bottom row specific styles - Updated Heights */
+.bottom-widget-row .bar-chart-container,
+.bottom-widget-row .scatter-chart-container {
+    height: 400px; /* Increased from 400px */
+}
+
+.bottom-widget-row #barChart,
+.bottom-widget-row #scatterChart {
+    height: calc(100% - 60px); /* Adjusted for better label fitting */
 }
 
 /* Donut Slider Specific Styles */
@@ -420,7 +454,7 @@
 
 .donut-chart {
     width: 100%;
-    height: calc(100% - 25px);
+    height: calc(100% - 40px); /* Adjusted for taller container */
 }
 
 /* Scatter Chart Styles */
@@ -437,22 +471,32 @@
     padding: 0.375rem 0.75rem;
 }
 
-/* Chart Containers */
+/* Chart Containers - Updated Heights */
 #barChart,
 #scatterChart,
 #trafficLightPieChart {
     width: 100%;
-    height: calc(100% - 30px);
+    height: calc(100% - 50px); /* Increased space for labels */
 }
 
 /* Pie Chart Specific Styles */
 .pie-chart-container {
-    padding: 5px 15px 15px 15px; /* Reduced top padding */
+    padding: 5px 15px 15px 15px;
 }
 
 #trafficLightPieChart {
     height: 100%;
-    margin-top: -10px; /* Pulls the chart up slightly */
+    margin-top: -10px;
 }
 
+/* Additional adjustments for scatter chart labels */
+.scatter-chart-container {
+    padding-bottom: 25px; /* More space at bottom for labels */
+}
 
+/* Override Bootstrap column padding for widget rows */
+@media (min-width: 768px) {
+    .widget-row > [class*="col-"] {
+        padding-bottom: 0;
+    }
+}

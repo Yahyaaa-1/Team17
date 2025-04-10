@@ -55,109 +55,228 @@ body.dark-mode .table-container {
     padding: 15px;
     box-shadow: 0 4px 8px var(--shadow-color);
 }
-/* General Dark Mode Styles */
-body.dark-mode {
-    background-color: #121212; /* Dark background for the entire body */
-    color: #ffffff; /* Light text color */
+
+/* Dashboard Specific Dark Mode Styles */
+body.dark-mode .dashboard-container {
+    background-color: var(--primary-bg);
+    padding: 20px;
+    min-height: calc(100vh - 230px);
+    padding-bottom: 20px;
 }
 
-/* Container Styles */
-body.dark-mode .small-stat-card,
-body.dark-mode .slider-section,
-body.dark-mode .donut-chart-container,
-body.dark-mode .pie-chart-container,
-body.dark-mode .bar-chart-container,
-body.dark-mode .scatter-chart-container,
-body.dark-mode .widget-row,
-body.dark-mode .stats-row,
-body.dark-mode .top-controls,
-body.dark-mode .alert {
-    background-color: #1e1e1e; /* Dark background for containers */
-    color: #ffffff; /* Light text color */
-    border: 1px solid #333; /* Dark border for containers */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+body.dark-mode .top-controls {
+    margin-bottom: 15px;
 }
 
-/* Headings */
-body.dark-mode .small-stat-card h4,
-body.dark-mode .section-title {
-    color: #ffffff; /* Light color for headings */
+body.dark-mode .clock-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* Form Elements */
+body.dark-mode .small-clock-widget {
+    font-family: 'Digital', monospace;
+    font-size: 1.3rem;
+    color: #fff;
+    background: linear-gradient(145deg, #333, #222);
+    padding: 8px 12px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    text-align: center;
+    min-width: 160px;
+    border: 1px solid #444;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
 body.dark-mode .form-select {
-    background-color: #2d2d2d; /* Dark background for select elements */
-    color: #ffffff; /* Light text color for select elements */
-    border: 1px solid #444; /* Dark border for select elements */
-}
-
-body.dark-mode .form-select:focus {
-    border-color: #555; /* Lighter border on focus */
-    background-color: #3a3a3a; /* Darker background on focus */
-}
-
-/* Alerts */
-body.dark-mode .alert {
-    background-color: #333; /* Dark background for alerts */
-    color: #ffffff; /* Light text color for alerts */
-}
-
-/* Chart Backgrounds */
-body.dark-mode .donut-chart,
-body.dark-mode #barChart,
-body.dark-mode #scatterChart,
-body.dark-mode #trafficLightPieChart {
-}
-
-/* Chart Overlays */
-body.dark-mode .apexcharts-tooltip {
-    background-color: rgba(50, 50, 50, 0.9); /* Dark tooltip background with transparency */
-    color: #ffffff; /* Light tooltip text */
-}
-
-body.dark-mode .apexcharts-xaxis-label,
-body.dark-mode .apexcharts-yaxis-label {
-    color: #ffffff; /* Light color for axis labels */
-}
-
-body.dark-mode .apexcharts-text {
-    color: #ffffff; /* Light color for chart text */
-}
-
-/* Donut and Pie Chart Styles */
-body.dark-mode .apexcharts-donut,
-body.dark-mode .apexcharts-pie {
-    background-color: #2d2d2d; /* Dark background for donut and pie charts */
-}
-
-/* Scatter Chart Styles */
-body.dark-mode .apexcharts-scatter {
-    background-color: #2d2d2d; /* Dark background for scatter charts */
-}
-
-/* Button Styles */
-body.dark-mode .slider-nav {
-    background-color: #444; /* Dark background for slider buttons */
-    color: #ffffff; /* Light text color for buttons */
-    border: none; /* Remove border */
-    border-radius: 4px; /* Rounded corners */
-}
-
-body.dark-mode .slider-nav:hover {
-    background-color: #555; /* Lighter background on hover */
-}
-
-/* Additional Styles for Better Visibility */
-body.dark-mode .widget-row {
-    margin-bottom: 20px; /* Space between widget rows */
+    width: auto;
+    min-width: 140px;
+    font-size: 0.9rem;
+    padding: 0.375rem 0.75rem;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
 }
 
 body.dark-mode .stats-row {
-    margin-bottom: 20px; /* Space between stats rows */
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    flex-wrap: nowrap;
 }
 
+body.dark-mode .small-stat-card {
+    background-color: #1e1e1e;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    padding: 7px;
+    text-align: center;
+    flex: 1;
+    min-width: 10px;
+    border: 1px solid #333;
+}
 
+body.dark-mode .small-stat-card h4 {
+    font-size: 13px;
+    color: #bbbbbb;
+    margin-bottom: 5px;
+}
+
+body.dark-mode .small-stat-card p {
+    font-size: 20px;
+    font-weight: bold;
+    color: #64b5f6;
+}
+
+/* Widget Rows - Matching Light Mode Dimensions */
+body.dark-mode .widget-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: nowrap;
+    min-height: 400px;
+}
+
+body.dark-mode .section-title {
+    font-size: 15px;
+    color: #bbbbbb;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+/* Widget Containers - Same Heights as Light Mode */
+body.dark-mode .slider-section,
+body.dark-mode .pie-chart-container,
+body.dark-mode .bar-chart-container,
+body.dark-mode .scatter-chart-container {
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #333;
+}
+
+/* Bottom row specific styles - Same Heights */
+body.dark-mode .bottom-widget-row .bar-chart-container,
+body.dark-mode .bottom-widget-row .scatter-chart-container {
+    height: 500px;
+    padding-bottom: 30px;
+}
+
+body.dark-mode .bottom-widget-row #barChart,
+body.dark-mode .bottom-widget-row #scatterChart {
+    height: calc(100% - 60px);
+}
+
+/* Donut Slider - Same Dimensions */
+body.dark-mode .slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    height: calc(100% - 35px);
+}
+
+body.dark-mode .donut-slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 15px;
+    padding: 12px 8px;
+    width: 90%;
+    height: 100%;
+    scrollbar-width: none;
+}
+
+body.dark-mode .donut-slider::-webkit-scrollbar {
+    display: none;
+}
+
+body.dark-mode .slider-nav {
+    background-color: #444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+body.dark-mode .slider-nav:hover {
+    background-color: #555;
+    transform: scale(1.1);
+}
+
+body.dark-mode .donut-chart-container {
+    min-width: 180px;
+    height: 100%;
+    background: #1e1e1e;
+    border-radius: 6px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #333;
+}
+
+body.dark-mode .donut-chart-container h5 {
+    margin-bottom: 12px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+body.dark-mode .donut-chart {
+    width: 100%;
+    height: calc(100% - 40px);
+}
+
+/* Scatter Chart Styles */
+body.dark-mode .scatter-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+body.dark-mode .sensor-select {
+    width: 150px;
+    font-size: 0.9rem;
+    padding: 0.375rem 0.75rem;
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
+}
+
+/* Chart Containers */
+body.dark-mode #barChart,
+body.dark-mode #scatterChart,
+body.dark-mode #trafficLightPieChart {
+    width: 100%;
+    height: calc(100% - 50px);
+}
+
+/* Pie Chart Specific Styles */
+body.dark-mode .pie-chart-container {
+    padding: 5px 15px 15px 15px;
+}
+
+/* Additional adjustments for scatter chart labels */
+body.dark-mode .scatter-chart-container {
+    padding-bottom: 25px;
+}
 
 /* Tables */
 body.dark-mode table {
@@ -207,7 +326,7 @@ body.dark-mode select {
 
 body.dark-mode input::placeholder,
 body.dark-mode textarea::placeholder {
-    color: #bbb; /* Slightly dimmed white for contrast */
+    color: #bbb;
 }
 
 /* Navbar */
@@ -297,7 +416,6 @@ body.dark-mode .tooltip.bs-tooltip-end .tooltip-arrow::before {
 }
 
 /* Signup dark mode */
-
 #darkModeToggle {
     margin-top: 20px;
     transition: background-color 0.3s, color 0.3s;
@@ -316,92 +434,56 @@ body #darkModeToggle {
 body #darkModeToggle:hover {
     background-color: #0056b3;
 }
+
 /* Dark Mode Styles for Form Elements */
 body.dark-mode .form-control {
-    background-color: #2d2d2d; /* Dark background for input fields */
-    border: 1px solid #444; /* Dark border */
-    color: #e0e0e0; /* Light text color */
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    color: #e0e0e0;
 }
 
 body.dark-mode .form-control:focus {
-    background-color: #3a3a3a; /* Darker background on focus */
-    border-color: #555; /* Lighter border on focus */
-    color: #ffffff; /* White text on focus */
-    box-shadow: 0 0 0 0.25rem rgba(66, 70, 73, 0.5); /* Focus shadow */
+    background-color: #3a3a3a;
+    border-color: #555;
+    color: #ffffff;
+    box-shadow: 0 0 0 0.25rem rgba(66, 70, 73, 0.5);
 }
 
 body.dark-mode .form-label {
-    color: #cccccc; /* Light color for labels */
+    color: #cccccc;
 }
 
 body.dark-mode .alert {
-    background-color: #2a2a2a; /* Dark background for alerts */
-    border: 1px solid #444; /* Dark border for alerts */
-    color: #e0e0e0; /* Light text color for alerts */
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #e0e0e0;
 }
 
 body.dark-mode .btn-primary {
-    background-color: #1976d2; /* Dark mode primary button color */
-    border-color: #1976d2; /* Dark mode primary button border */
+    background-color: #1976d2;
+    border-color: #1976d2;
 }
 
 body.dark-mode .btn-primary:hover {
-    background-color: #1565c0; /* Dark mode primary button hover color */
-    border-color: #1565c0; /* Dark mode primary button hover border */
+    background-color: #1565c0;
+    border-color: #1565c0;
 }
 
 /* Additional styles for the signup container in dark mode */
 body.dark-mode .signup-container {
-    background-color: #1e1e1e; /* Dark background for the signup container */
-    border: 1px solid #333; /* Dark border for the signup container */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Login dark mode */
-
-/* Dark Mode Styles for Form Elements */
-body.dark-mode .form-control {
-    background-color: #2d2d2d; /* Dark background for input fields */
-    border: 1px solid #444; /* Dark border */
-    color: #e0e0e0; /* Light text color */
-}
-
-body.dark-mode .form-control:focus {
-    background-color: #3a3a3a; /* Darker background on focus */
-    border-color: #555; /* Lighter border on focus */
-    color: #ffffff; /* White text on focus */
-    box-shadow: 0 0 0 0.25rem rgba(66, 70, 73, 0.5); /* Focus shadow */
-}
-
-body.dark-mode .form-label {
-    color: #cccccc; /* Light color for labels */
-}
-
-body.dark-mode .alert {
-    background-color: #2a2a2a; /* Dark background for alerts */
-    border: 1px solid #444; /* Dark border for alerts */
-    color: #e0e0e0; /* Light text color for alerts */
-}
-
-body.dark-mode .btn-primary {
-    background-color: #1976d2; /* Dark mode primary button color */
-    border-color: #1976d2; /* Dark mode primary button border */
-}
-
-body.dark-mode .btn-primary:hover {
-    background-color: #1565c0; /* Dark mode primary button hover color */
-    border-color: #1565c0; /* Dark mode primary button hover border */
-}
-
-/* Additional styles for the login container in dark mode */
 body.dark-mode .register-container {
-    background-color: #1e1e1e; /* Dark background for the login container */
-    border: 1px solid #333; /* Dark border for the login container */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
-
 
 /* Help Page Specific Styles */
 body.dark-mode .help-container {
@@ -510,6 +592,7 @@ body.dark-mode .accordion-body {
     background-color: var(--card-bg);
     color: var(--text-color);
 }
+
 /* Home Page Specific Styles */
 body.dark-mode .main-header {
     background-color: var(--primary-bg);
@@ -652,194 +735,173 @@ body.dark-mode #expandedChart {
 body.dark-mode .close-btn {
     color: var(--text-color);
 }
+
 /* ApexCharts Tooltip Override */
-.apexcharts-tooltip {
-    color: #000000 !important; /* Black text color */
-    background-color: #ffffff !important; /* White background */
-    border: 1px solid #ddd !important; /* Light border */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important; /* Optional: Add a subtle shadow */
+body.dark-mode .apexcharts-tooltip {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
 }
 
-.apexcharts-tooltip-title {
-    color: #000000 !important; /* Black text color for title */
-    background-color: #f5f5f5 !important; /* Light gray background for title */
-    font-weight: bold !important; /* Make the title bold */
-    border-bottom: 1px solid #ddd !important; /* Add a border below the title */
+body.dark-mode .apexcharts-tooltip-title {
+    background-color: #333 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #444 !important;
 }
 
-.apexcharts-tooltip-series-group {
-    padding: 4px 8px !important; /* Add some padding for better spacing */
+body.dark-mode .apexcharts-tooltip-series-group {
+    padding: 4px 8px !important;
 }
 
-.apexcharts-tooltip-marker {
-    margin-right: 8px !important; /* Add spacing between the marker and text */
+body.dark-mode .apexcharts-tooltip-marker {
+    margin-right: 8px !important;
 }
+
 /* Dark Mode Base Styles */
-.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
-}
-
-/* Header & Logo */
-.dark-mode .main-header {
+body.dark-mode .main-header {
     background-color: #1e1e1e;
     border-bottom: 1px solid #333;
 }
 
-/* Navigation */
-.dark-mode .main-nav {
+body.dark-mode .main-nav {
     background-color: #1a1a1a !important;
     border-bottom: 1px solid #333;
 }
 
-.dark-mode .nav-link {
+body.dark-mode .nav-link {
     color: #bbbbbb !important;
 }
 
-.dark-mode .nav-link:hover,
-.dark-mode .nav-link:focus {
+body.dark-mode .nav-link:hover,
+body.dark-mode .nav-link:focus {
     color: #ffffff !important;
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Login Form Container */
-.dark-mode .register-container {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.dark-mode h1 {
-    color: #ffffff;
-}
-
-/* Form Elements */
-.dark-mode .form-control {
+body.dark-mode .form-control {
     background-color: #2d2d2d;
     border: 1px solid #444;
     color: #e0e0e0;
 }
 
-.dark-mode .form-control:focus {
+body.dark-mode .form-control:focus {
     background-color: #3a3a3a;
     border-color: #555;
     color: #ffffff;
     box-shadow: 0 0 0 0.25rem rgba(66, 70, 73, 0.5);
 }
 
-.dark-mode .form-label {
+body.dark-mode .form-label {
     color: #cccccc;
 }
 
-.dark-mode .forgot-password-link {
+body.dark-mode .forgot-password-link {
     color: #64b5f6;
 }
 
-.dark-mode .forgot-password-link:hover {
+body.dark-mode .forgot-password-link:hover {
     color: #42a5f5;
 }
 
-/* Buttons */
-.dark-mode .btn-primary {
+body.dark-mode .btn-primary {
     background-color: #1976d2;
     border-color: #1976d2;
 }
 
-.dark-mode .btn-primary:hover {
+body.dark-mode .btn-primary:hover {
     background-color: #1565c0;
     border-color: #1565c0;
 }
 
-.dark-mode .btn-secondary {
+body.dark-mode .btn-secondary {
     background-color: #424242;
     border-color: #424242;
 }
 
-.dark-mode .btn-secondary:hover {
+body.dark-mode .btn-secondary:hover {
     background-color: #333333;
     border-color: #333333;
 }
 
-/* Modal */
-.dark-mode .modal-content {
+body.dark-mode .modal-content {
     background-color: #1e1e1e;
     border: 1px solid #333;
 }
 
-.dark-mode .modal-header {
+body.dark-mode .modal-header {
     border-bottom: 1px solid #333;
 }
 
-.dark-mode .modal-footer {
+body.dark-mode .modal-footer {
     border-top: 1px solid #333;
 }
 
-.dark-mode .alert-warning {
+body.dark-mode .alert-warning {
     background-color: #332900;
     border-color: #665200;
     color: #ffd54f;
 }
 
-/* Footer */
-.dark-mode .footer {
+body.dark-mode .footer {
     background-color: #1a1a1a;
     border-top: 1px solid #333;
 }
 
-.dark-mode .footer-link {
+body.dark-mode .footer-link {
     color: #9e9e9e !important;
 }
 
-.dark-mode .footer-link:hover {
+body.dark-mode .footer-link:hover {
     color: #ffffff !important;
 }
 
-.dark-mode .footer-text,
-.dark-mode .footer-subtext {
+body.dark-mode .footer-text,
+body.dark-mode .footer-subtext {
     color: #9e9e9e;
 }
 
-/* Utility Classes */
-.dark-mode .text-muted {
+body.dark-mode .text-muted {
     color: #757575 !important;
 }
 
-/* Sign Up Link */
-.dark-mode .signup-link {
+body.dark-mode .signup-link {
     color: #9e9e9e;
 }
 
-.dark-mode .signup-link a {
+body.dark-mode .signup-link a {
     color: #64b5f6;
 }
 
-.dark-mode .signup-link a:hover {
+body.dark-mode .signup-link a:hover {
     color: #42a5f5;
 }
 
-/* Alert Messages */
-.dark-mode .alert {
+body.dark-mode .alert {
     background-color: #2a2a2a;
     border: 1px solid #444;
     color: #e0e0e0;
 }
 
-/* Input Placeholder */
-.dark-mode ::placeholder {
+body.dark-mode ::placeholder {
     color: #757575 !important;
     opacity: 1;
 }
 
-.dark-mode :-ms-input-placeholder {
+body.dark-mode :-ms-input-placeholder {
     color: #757575 !important;
 }
 
-.dark-mode ::-ms-input-placeholder {
+body.dark-mode ::-ms-input-placeholder {
     color: #757575 !important;
 }
 
-/* Close Button in Modal */
-.dark-mode .btn-close {
+body.dark-mode .btn-close {
     filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    body.dark-mode .widget-row > [class*="col-"] {
+        padding-bottom: 0;
+    }
 }

@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const loginButton = document.createElement('a');
             loginButton.href = `${basePath}login.html`;
             loginButton.className = 'btn header-login-btn'; 
-            loginButton.textContent = 'Login';
+            loginButton.innerHTML = `
+                <i class="fas fa-sign-in-alt"></i> Login
+            `;
             headerControls.appendChild(loginButton);
         } else {
 

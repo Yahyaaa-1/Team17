@@ -129,12 +129,23 @@ function initCharts() {
         dataLabels: { enabled: false }
     });
 
-    // Scatter Chart
+    // Scatter Chart (updated with old functionality)
     scatterChart = new ApexCharts(document.querySelector("#scatterChart"), {
         chart: {
             type: 'scatter',
             height: '100%',
-            toolbar: { tools: { download: true, selection: true, zoom: true } },
+            toolbar: { 
+                show: true,
+                tools: {
+                    download: true,
+                    selection: true,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: true,
+                    reset: true
+                }
+            },
             animations: { enabled: true, easing: 'linear', dynamicAnimation: { speed: 1000 } }
         },
         series: [
@@ -145,24 +156,50 @@ function initCharts() {
         xaxis: {
             type: 'datetime',
             title: { text: 'Time' },
-            labels: { datetimeFormatter: { hour: 'HH:mm', minute: 'HH:mm' } },
-            zoom: { enabled: true, type: 'x', autoScaleYaxis: true }
+            labels: { 
+                formatter: function(value) {
+                    const date = new Date(value);
+                    return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                }
+            },
+            tickAmount: 6,
+            tickPlacement: 'between',
+            tooltip: {
+                formatter: function(value) {
+                    return new Date(value).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+                }
+            },
+            min: (new Date()).getTime() - (5 * 60 * 1000) - (30 * 1000),
+            max: (new Date()).getTime() + (30 * 1000)
         },
         yaxis: {
             title: { text: 'Temperature (°C)' },
             min: 0,
-            max: 100,
-            forceNiceScale: true,
-            tickAmount: 6,
-            labels: { formatter: (val) => `${val.toFixed(1)}°C` }
+            max: 400,
+            tickAmount: 8,
+            labels: {
+                formatter: function(val) {
+                    return val.toFixed(0);
+                },
+                style: {
+                    fontSize: '11px'
+                }
+            },
+            forceNiceScale: true
         },
         colors: ['#00E396', '#FFA500', '#FF0000'],
         markers: { size: 6, strokeWidth: 0, hover: { size: 8 } },
         tooltip: {
             shared: false,
             intersect: true,
-            x: { format: 'dd MMM yyyy HH:mm:ss' },
-            y: { formatter: (val) => `${val.toFixed(2)}°C` }
+            x: {
+                format: 'HH:mm:ss'
+            },
+            y: {
+                formatter: function(val) {
+                    return val.toFixed(2) + '°C';
+                }
+            }
         }
     });
 
@@ -205,20 +242,10 @@ function updateBarChart(liveData) {
 }
 
 function updateAnalytics(liveData) {
-    // Filter out non-sensor keys
     const sensors = Object.keys(liveData).filter(key => 
         key.startsWith('r') && typeof liveData[key] === 'number'
     );
     
-    // if (sensors.length === 0) {
-    //     // No valid sensor data case
-    //     document.getElementById("totalSensors").textContent = "0";
-    //     document.getElementById("averageTemperature").textContent = "0°C";
-    //     document.getElementById("optimalSensors").textContent = "N/A";
-    //     document.getElementById("warningSensors").textContent = "N/A";
-    //     return;
-    // }
-
     const totalSensors = sensors.length;
     let totalTemperature = 0;
     let greenCount = 0;
@@ -237,7 +264,6 @@ function updateAnalytics(liveData) {
             else if (status === 'warning') amberCount++;
             else if (status === 'critical') redCount++;
         } else {
-            // Default to green if no thresholds available
             greenCount++;
         }
     });
@@ -248,7 +274,6 @@ function updateAnalytics(liveData) {
     document.getElementById("optimalSensors").textContent = greenCount;
     document.getElementById("warningSensors").textContent = amberCount + redCount;
     
-    // Update traffic light chart only if system is active
     if (trafficLightSystem) {
         trafficLightChart.updateSeries([greenCount, amberCount, redCount]);
     }
@@ -258,7 +283,7 @@ function updateLiveScatterChart(liveData) {
     const selectedSensor = document.getElementById("sensorSelector").value;
     if (!selectedSensor || !liveData[selectedSensor]) return;
     
-    const timestamp = new Date().getTime();
+    const timestamp = liveData.timestamp ? new Date(liveData.timestamp).getTime() : new Date().getTime();
     const temperature = liveData[selectedSensor];
     const point = { x: timestamp, y: temperature };
     
@@ -276,34 +301,18 @@ function updateLiveScatterChart(liveData) {
         }
     });
 
-    const allPoints = [...liveScatterData.normal, ...liveScatterData.warning, ...liveScatterData.critical];
-    let yMin = 0;
-    let yMax = 100;
-
-    if (allPoints.length > 0) {
-        const values = allPoints.map(p => p.y);
-        const dataMin = Math.min(...values);
-        const dataMax = Math.max(...values);
-        const range = dataMax - dataMin;
-        yMin = Math.max(0, dataMin - range * 0.1);
-        yMax = dataMax + range * 0.1;
-        
-        if ((yMax - yMin) < 20) {
-            const center = (yMin + yMax) / 2;
-            yMin = center - 10;
-            yMax = center + 10;
-        }
-    }
-    
     scatterChart.updateOptions({
         series: [
             { name: 'Normal', data: liveScatterData.normal },
             { name: 'Warning', data: liveScatterData.warning },
             { name: 'Critical', data: liveScatterData.critical }
         ],
-        xaxis: { min: timestamp - 7200000, max: timestamp + 60000 },
-        yaxis: { min: yMin, max: yMax }
-    });
+        xaxis: { 
+            min: timestamp - (5 * 60 * 1000),
+            max: timestamp + (30 * 1000),
+            tickAmount: 6
+        }
+    }, false, true);
 }
 
 function updateScatterChart() {
@@ -331,7 +340,10 @@ function updateScatterChart() {
                         { name: 'Normal', data: liveScatterData.normal },
                         { name: 'Warning', data: liveScatterData.warning },
                         { name: 'Critical', data: liveScatterData.critical }
-                    ]
+                    ],
+                    xaxis: {
+                        tickAmount: 6
+                    }
                 });
             }
         })
