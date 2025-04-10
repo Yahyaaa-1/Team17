@@ -477,20 +477,51 @@ class DataService:
     def __init__(self, db_manager, log_service):
         self.db_manager = db_manager
         self.log_service = log_service
+
+    # def get_table_columns(self, line):
+    #     """Get all columns for a given line table"""
+    #     try:
+    #         connection = self.db_manager.get_connection()
+    #         if not connection:
+    #             return None
+                
+    #         cursor = connection.cursor()
+    #         cursor.execute(f"SHOW COLUMNS FROM {line}")
+    #         columns = [column[0] for column in cursor.fetchall()]
+    #         return columns
+    #     except Exception as e:
+    #         self.log_service.log_event(f"Error getting columns for {line}: {str(e)}", type='ERROR')
+    #         return None
+    #     finally:
+    #         if 'cursor' in locals(): cursor.close()
+    #         if 'connection' in locals(): connection.close()
+
     def get_historical_data(self, line, data):
         try:
             # Get DataTables parameters
             start = int(data.get("start", 0))
-            length = int(data.get("length", 25))  # Default to 25 rows as shown in your table
+            length = int(data.get("length", 25))
             start_date_time = data.get("startDateTime", "")
             end_date_time = data.get("endDateTime", "")
 
-            # Base query for your specific columns
+            # First get the actual columns in the table
+            columns = AdminService.get_table_columns(line)
+            if not columns:
+                return {"success": False, "error": f"Could not retrieve columns for table {line}"}
+
+            # Filter to only sensor columns (excluding timestamp and timezone)
+            sensor_columns = [col for col in columns if col not in ['timestamp', 'timezone']]
+            
+            if not sensor_columns:
+                return {"success": False, "error": f"No sensor columns found in table {line}"}
+
+            # Build the SELECT part of the query dynamically
+            select_columns = ["timestamp", "timezone"] + sensor_columns
+            select_part = ", ".join(select_columns)
+
+            # Base query
             query = f"""
-                SELECT 
-                    timestamp,
-                    timezone,
-                    r01, r02, r03, r04, r05, r06, r07, r08
+                SELECT {select_part}
                 FROM {line}
                 WHERE 1=1
             """
@@ -533,15 +564,19 @@ class DataService:
                 "success": True,
                 "data": results,
                 "recordsTotal": total_records,
-                "recordsFiltered": total_records
+                "recordsFiltered": total_records,
+                "sensors": sensor_columns  
             }
 
         except Exception as e:
-            print(f"Error in get_historical_data: {str(e)}")
+            error_msg = f"Error in get_historical_data: {str(e)}"
+            self.log_service.log_event(error_msg, type='ERROR')
+            print(error_msg)
             return {"success": False, "error": str(e)}
         finally:
             if 'cursor' in locals(): cursor.close()
             if 'connection' in locals(): connection.close()
+
 
     def get_logs(self):
         try:

@@ -19,34 +19,6 @@ let isZoomed = false;
 let currentZoomXaxis = { min: undefined, max: undefined };
 let isFirstLiveDataFetch = true;
 
-// Inject CSS styles directly
-const style = document.createElement('style');
-style.textContent = `
-  .apexcharts-toolbar {
-    background: #f5f5f5;
-    border-radius: 4px;
-    padding: 2px;
-  }
-  .apexcharts-zoom-icon, .apexcharts-zoomin-icon, 
-  .apexcharts-zoomout-icon, .apexcharts-reset-zoom-icon, 
-  .apexcharts-pan-icon, .apexcharts-selection-icon {
-    padding: 6px;
-    margin: 0 2px;
-  }
-  .apexcharts-zoom-icon.selected, .apexcharts-zoomin-icon.selected, 
-  .apexcharts-zoomout-icon.selected, .apexcharts-reset-zoom-icon.selected, 
-  .apexcharts-pan-icon.selected, .apexcharts-selection-icon.selected {
-    background: #e0e0e0;
-  }
-  .time-filter {
-    transition: all 0.3s ease;
-  }
-  .time-filter.active {
-    background-color: #4CAF50;
-    color: white;
-  }
-`;
-document.head.appendChild(style);
 
 document.getElementById("sensorTitle").textContent = `Sensor Data for ${sensor} on ${line}`;
 

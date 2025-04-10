@@ -163,7 +163,7 @@ endDateTimeFilter.addEventListener('change', function() {
                 },
                 error: function(xhr, error, thrown) {
                     console.error("Data fetch error:", xhr.responseText, error, thrown);
-                    alert("Error fetching data. Please try again.");
+                    // alert("Error fetching data. Please try again.");
                 },
                 dataSrc: function(response) {
                     if (!response.success) {
