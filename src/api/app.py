@@ -140,13 +140,13 @@ class AuthService:
                     'is_admin': user['admin']
                 }
             else:
-                self.log_service.log_event(f"Failed login attempt for inactive account: {email}")  # Log for inactive account
+                self.log_service.log_event(f"Failed login attempt for inactive account: {email}")
                 return {"success": False, "error": "Account is inactive", "code": 401}
 
         else:
             cursor.close()
             conn.close()
-            self.log_service.log_event(f"Failed login attempt for {email}")  # Log for failed login
+            self.log_service.log_event(f"Failed login attempt for {email}")
             return {"success": False, "error": "Invalid email or password", "code": 401}
 
     def update_password(self, data):
@@ -539,7 +539,6 @@ class DataService:
             for record in results:
                 record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
 
-            # Log the successful retrieval of logs
             self.log_service.log_event("Admin retrieved all user logs", type='INFO', log_level='admin')
 
             return {"success": True, "data": results}
@@ -548,7 +547,6 @@ class DataService:
         finally:
             if 'cursor' in locals(): cursor.close()
             if 'connection' in locals(): connection.close()
-
 
     def get_live_data(self, line):
         try:
@@ -653,7 +651,6 @@ class DataService:
             
             data["timestamp"] = data["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
 
-             # Log the event that sensor data was retrieved
             self.log_service.log_event(f"Sensor data retrieved for {sensor} from {line}", type='INFO', log_level='admin')
             return {"success": True, "data": data}
         except Exception as e:
@@ -666,8 +663,6 @@ class SimulationService:
         self.db_manager = db_manager
         self.log_service = log_service
         self.thread = None
-
-        # Sensor ranges for line4 and line5
         self.sensors = {}
 
         # Line 4 Sensors Ranges
@@ -722,7 +717,7 @@ class SimulationService:
         
         return round(new_temp, 2)
 
-    def insert_line_readings(self, cursor, line_name, sensors, ranges, timestamp, timezone):
+    def insert_line_readings(self, connection, cursor, line_name, sensors, ranges, timestamp, timezone):
         """Insert readings for a line into the database."""
         values = [timestamp, timezone]
         values.extend([self.generate_sensor_reading(sensor, ranges) for sensor in sensors])
@@ -770,11 +765,16 @@ class SimulationService:
 
                 # Insert readings for dynamic lines and sensors
                 for line, sensors in self.sensors.items():
-                    self.insert_line_readings(cursor, line, list(sensors.keys()), self.sensors[line],
-                          current_timestamp, timezone_offset)
+                    self.insert_line_readings(
+                        connection,
+                        cursor,
+                        line,
+                        list(sensors.keys()),
+                        self.sensors[line],
+                        current_timestamp,
+                        timezone_offset
+                    )
 
-
-                connection.commit()
                 time.sleep(30)
 
             except Exception as e:
@@ -797,8 +797,6 @@ class SimulationService:
 
     def stop(self):
         """Stop the simulation if needed."""
-        # The thread will stop automatically when the application exits
-        # because it's a daemon thread
         pass
 
 class FlaskApp:
@@ -809,8 +807,6 @@ class FlaskApp:
             supports_credentials=True,
             allow_headers=["Content-Type", "Authorization"],
             methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-        
-        
         
         self.db_manager = DatabaseManager()
         self.log_service = LogService(self.db_manager)
@@ -938,7 +934,8 @@ class FlaskApp:
             result = self.auth_service.update_password(request.get_json())
             if not result['success']:
                 return jsonify({"success": False, "error": result['error']}), result.get('code', 500)
-            return
+            return jsonify(result)
+
         @self.app.route('/api/admin/update-user-details', methods=['POST', 'OPTIONS'])
         def update_user_details():
             if request.method == 'OPTIONS': return self.handle_options()
@@ -976,7 +973,6 @@ class FlaskApp:
                 return self.error(result['error'], result.get('code', 500))
             return jsonify(result)
             
-
         @self.app.route('/api/sensor-data/<line>/<sensor>', methods=['GET', 'OPTIONS'])
         def get_sensor_data(line, sensor):
             if request.method == 'OPTIONS': return self.handle_options()

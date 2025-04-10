@@ -127,9 +127,3 @@ input[type="date"]:not([min]):not([max]) {
 }
 
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        padding: 20px;
-    }
-}
