@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(sessionStorage.getItem('user'));
     const admin = JSON.parse(sessionStorage.getItem('isAdmin'));
+    const newPasswordInput = document.getElementById('newPassword');
+    const togglePassword = document.getElementById('toggleNewPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
     if (!user) window.location.href = '/pages/login.html';
 
     // Populate account details
@@ -10,6 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
         <p><strong>Full Name:</strong> ${user.fullName || user.full_name}</p>
         <p><strong>Admin Privileges:</strong> ${admin ? 'Yes' : 'No'}</p>
     `;
+
+    togglePassword.addEventListener('click', function () {
+        const type = newPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        newPasswordInput.setAttribute('type', type);
+
+        // Toggle the icon (optional visual feedback)
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    toggleConfirmPassword.addEventListener('click', function () {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+
+        // Toggle the icon (optional visual feedback)
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
 
     // Initialize dark mode toggle using data-bs-theme
     const darkModeToggle = document.getElementById('darkModeToggle');
