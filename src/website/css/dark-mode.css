@@ -790,6 +790,50 @@ body.dark-mode .apexcharts-tooltip-series-group {
 body.dark-mode .apexcharts-tooltip-marker {
     margin-right: 8px !important;
 }
+/* ApexCharts Dark Mode Overrides */
+body.dark-mode .apexcharts-text tspan,
+body.dark-mode .apexcharts-xaxis-label text,
+body.dark-mode .apexcharts-yaxis-label text,
+body.dark-mode .apexcharts-title-text,
+body.dark-mode .apexcharts-legend-text,
+body.dark-mode .apexcharts-yaxis-title text,
+body.dark-mode .apexcharts-xaxis-title text {
+    fill: #ffffff !important;
+}
+
+body.dark-mode .apexcharts-grid line {
+    stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .apexcharts-xaxis line,
+body.dark-mode .apexcharts-yaxis line {
+    stroke: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .apexcharts-legend-marker {
+    color: #ffffff !important;
+}
+
+/* For the tooltip marker */
+body.dark-mode .apexcharts-tooltip-marker {
+    margin-right: 8px !important;
+}
+
+/* For the axis title */
+body.dark-mode .apexcharts-yaxis-title,
+body.dark-mode .apexcharts-xaxis-title {
+    fill: #ffffff !important;
+}
+
+/* For the data labels if you have them enabled */
+body.dark-mode .apexcharts-datalabel {
+    fill: #ffffff !important;
+}
+
+/* For the legend text */
+body.dark-mode .apexcharts-legend-text {
+    color: #ffffff !important;
+}
 
 /* Dark Mode Base Styles */
 body.dark-mode .main-header {
