@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="../css/dark-mode.css">
     <script src="../js/dark-mode.js"></script>
 </head>
+
 <body>
     <!-- Main Header -->
     <header class="main-header position-relative">
@@ -50,7 +52,7 @@
                 </li>
             </ul>
         </div>
-        
+
     </nav>
 
     <!-- Main Content Area -->
@@ -60,33 +62,22 @@
             <form id="login-form">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="email" 
-                        name="email" 
-                        required 
-                        title="Email must start with W followed by 3 numbers"
-                    >
+                    <input type="text" class="form-control" id="email" name="email" required
+                        title="Email must start with W followed by 3 numbers">
                 </div>
-            
+
                 <div class="mb-3 position-relative">
                     <label for="password" class="form-label">Password</label>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="password" 
-                        name="password" 
-                        required
-                    >
-                    <i class="far fa-eye password-toggle" id="togglePassword" style="position: absolute; right: 10px; top: 38px; cursor: pointer;"></i>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <i class="far fa-eye password-toggle" id="togglePassword"
+                        style="position: absolute; right: 10px; top: 38px; cursor: pointer;"></i>
                     <a href="#" class="forgot-password-link">Forgot Password?</a>
                 </div>
-            
+
                 <div id="message" class="alert" style="display: none;"></div>
-            
+
                 <button type="submit" class="btn btn-primary w-100 register-btn">Login</button>
-            
+
                 <div class="signup-link text-center mt-3">
                     Don't have an account? <a href="signup.html">Sign Up</a>
                 </div>
@@ -99,37 +90,38 @@
         </div>
     </main>
 
-<!-- Forgot Password Modal -->
-<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="forgotPasswordModalLabel">Forgot Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill"></i> 
-                    This will result in losing any preferences set in your account.
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel">Forgot Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="forgotPasswordForm">
-                    <div class="mb-3">
-                        <label for="operatorId" class="form-label">Operator ID</label>
-                        <input type="text" class="form-control" id="operatorId" required>
+                <div class="modal-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        This will result in losing any preferences set in your account.
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="Femail" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="validateForgotPassword">Validate</button>
+                    <form id="forgotPasswordForm">
+                        <div class="mb-3">
+                            <label for="operatorId" class="form-label">Operator ID</label>
+                            <input type="text" class="form-control" id="operatorId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="Femail" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="validateForgotPassword">Validate</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Footer -->
     <footer class="bg-dark text-light py-4">
@@ -144,4 +136,5 @@
     <script src="../js/login.js"></script>
     <script src="../js/dark-mode.js"></script>
 </body>
+
 </html>
