@@ -76,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         
-            // Convert operatorId to number (if it's a string) to match the type of operator_id in userAccounts
             const user = userAccounts.find(emp => emp.operator_id === Number(operatorId));  // Ensure comparison is between same types
         
             if (user) {
@@ -85,8 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('edit_operator_id').value = user.operator_id;
                 document.getElementById('edit_email').value = user.email;
                 document.getElementById('edit_full_name').value = user.full_name;
-                document.getElementById('edit_temp_password').value = user.password; // Assuming temp_password is password
-                // Show the modal
+                 // Show the modal
                 const modal = document.getElementById('editModal');
                 modal.style.display = "block";
             } else {
