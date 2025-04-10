@@ -74,6 +74,40 @@ class AuthService:
         self.log_service.log_event(f"New user registered: {email}")
         return {"success": True, "message": "Registration successful"}
 
+    def forgot_password(self, data):
+        try:
+            operator_id = data.get('operator_id')
+            email = data.get('email')
+
+            if not operator_id or not email:
+                return {'success': False, 'error': 'Operator ID and Email are required', 'code': 400}
+
+            connection = self.db_manager.get_connection()
+            if not connection:
+                return {'success': False, 'error': 'Database connection failed', 'code': 500}
+
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT * FROM user_accounts
+                WHERE operator_id = %s AND email = %s
+            """, (operator_id, email))
+            user = cursor.fetchone()
+
+            if user:
+                cursor.execute("DELETE FROM user_accounts WHERE operator_id = %s", (operator_id,))
+                connection.commit()
+                self.log_service.log_event(f"Password reset: Deleted account {email} (ID: {operator_id})", type='WARNING')
+                return {'success': True, 'message': 'Password reset successfully'}
+            else:
+                return {'success': False, 'error': 'Invalid Operator ID or Email', 'code': 400}
+
+        except Exception as e:
+            self.log_service.log_event(f"Error in forgot_password: {str(e)}", type='ERROR')
+            return {'success': False, 'error': str(e), 'code': 500}
+        finally:
+            if 'cursor' in locals(): cursor.close()
+            if 'connection' in locals(): connection.close()
+
     def login(self, data):
         email = data.get('email')
         password = data.get('password')
@@ -703,8 +737,8 @@ class SimulationService:
             readings_dict = dict(zip(sensors, values[2:]))
             print(f"{line_name}: {readings_dict}")
 
-            # Commit the transaction using the connection object
-            connection.commit()
+            # # Commit the transaction to save the changes ---------------------------------- aadam
+            # cursor.connection.commit()
 
         except Exception as e:
             # Log and raise an error if anything goes wrong

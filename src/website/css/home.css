@@ -62,13 +62,7 @@
     display: inline-block;
 }
 
-.account-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    color: black;
-}
+
 
 /* Account Dropdown Base Styles */
 .account-dropdown {
@@ -91,6 +85,23 @@
 .account-btn i {
     font-size: 16px;
 }
+
+.header-login-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.header-login-btn i {
+    font-size: 16px;
+}
+
 
 /* Dropdown Content Base Styles */
 .dropdown-content {
@@ -124,7 +135,6 @@
     text-align: center;
 }
 
-/* Light Mode Styles */
 .account-btn {
     background-color: var(--secondary-blue) !important;
     color: #ffffff;
@@ -133,6 +143,17 @@
 .account-btn:hover {
     color: #2196F3;
 }
+
+.header-login-btn {
+    color: #ffffff;
+}
+
+.header-login-btn:hover {
+    color: #ffffff;
+    background-color: var(--light-blue);
+}
+
+
 
 .dropdown-content {
     background-color: var(--secondary-blue) !important;
@@ -216,7 +237,7 @@
     height: 120px;
     width: auto;
 }
-
+/* 
 .login-btn {
     position: absolute;
     right: 50px;
@@ -232,15 +253,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
-.login-btn:hover {
-    background-color: var(--light-blue);
-}
-
-.login-btn i {
-    margin-right: 5px;
-}
 
 /* Bootstrap Navbar Styling */
 .navbar {
