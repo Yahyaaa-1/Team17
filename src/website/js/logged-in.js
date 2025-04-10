@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const basePath = getBasePath();
         
         if (!isLoggedIn) {
+            sessionStorage.clear()
             // Create login button if not logged in
             const loginButton = document.createElement('a');
             loginButton.href = `${basePath}login.html`;
