@@ -1,8 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 
 // Dynamically fetch line and sensor parameters from URL query string
-const line = urlParams.get("line") || "line4";  // default to line4 if not provided
-const sensor = urlParams.get("sensor") || "r01"; // default to r01 if not provided
+const line = urlParams.get("line") || "line4";  
+const sensor = urlParams.get("sensor") || "r01"; 
 
 if (!line || !sensor) {
   console.error('Line or sensor not specified in the URL');
@@ -14,7 +14,7 @@ let chartData = [];
 let historicalData = [];
 let liveData = [];
 let temperatureData = [];
-let timeRange = 60 * 60 * 1000; // Default: 1 hour in milliseconds
+let timeRange = 60 * 60 * 1000;
 let isZoomed = false;
 let currentZoomXaxis = { min: undefined, max: undefined };
 let isFirstLiveDataFetch = true;

@@ -52,7 +52,7 @@
 /* ============================================= */
 
 .widget {
-    background-color: var(--card-bg);
+    /* background-color: var(--card-bg); */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px var(--shadow-color);
@@ -149,7 +149,7 @@
 }
 
 .stat-item {
-    background-color: var(--card-bg);
+    /* background-color: var(--card-bg); */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 1rem;
@@ -206,7 +206,9 @@
 
 .apexcharts-xaxis-label,
 .apexcharts-yaxis-label {
+    color: red;
     font-family: inherit !important;
     font-size: 0.8rem !important;
 }
+
 
