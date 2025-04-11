@@ -127,9 +127,15 @@ class TestSimulationService(unittest.TestCase):
         # Define the sensors for line4 (as an example)
         sensors = ['r01', 'r02']
 
-        # Call insert_line_readings
+        # Call insert_line_readings with the correct parameter order
         self.sim_service.insert_line_readings(
-            mock_cursor, 'line4', sensors, sensor_ranges_line4, current_timestamp, timezone_offset
+            mock_connection,  # Pass the mock connection here
+            mock_cursor,      # Pass the mock cursor here
+            'line4',          # Line name
+            sensors,          # Sensors list
+            sensor_ranges_line4,  # Sensor ranges
+            current_timestamp,    # Timestamp
+            timezone_offset       # Timezone
         )
 
         # Expected query to be executed (strip out extra indentation/spacing)
@@ -153,7 +159,7 @@ class TestSimulationService(unittest.TestCase):
 
         # Ensure the parameters passed to execute() match the expected values
         self.assertEqual(mock_cursor.execute.call_args[0][1], 
-                         [current_timestamp, timezone_offset, 130.45, 267.87])
+                        [current_timestamp, timezone_offset, 130.45, 267.87])
 
         # Ensure commit was called to persist the data
         mock_connection.commit.assert_called_once()  # Ensure commit was called on the actual connection object
