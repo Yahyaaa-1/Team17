@@ -498,49 +498,86 @@ class DataService:
 
     def get_historical_data(self, line, data):
         try:
-            length = int(data.get("length", 50))
-            search_value = data.get("searchValue", "")
-            date_filter = data.get("dateFilter", "")
+            # Get DataTables parameters
+            length = int(data.get("length", 100))
+            start = int(data.get("start", 0))
             start_date_time = data.get("startDateTime", "")
             end_date_time = data.get("endDateTime", "")
 
-            query = f"SELECT * FROM {line} WHERE 1=1"
-            count_query = f"SELECT COUNT(*) FROM {line} WHERE 1=1"
+            # First get the actual columns in the table
+            columns = self.get_table_columns(line)
+            if not columns:
+                return {"success": False, "error": f"Could not retrieve columns for table {line}"}
+
+            # Filter to only sensor columns (excluding timestamp and timezone)
+            sensor_columns = [col for col in columns if col not in ['timestamp', 'timezone']]
+            
+            if not sensor_columns:
+                return {"success": False, "error": f"No sensor columns found in table {line}"}
+
+            # Build the SELECT part of the query dynamically
+            select_columns = ["timestamp", "timezone"] + sensor_columns
+            select_part = ", ".join(select_columns)
+
+            # Base query
+            query = f"""
+                SELECT {select_part}
+                FROM {line}
+                WHERE 1=1
+            """
+            count_query = f"SELECT COUNT(*) as total FROM {line} WHERE 1=1"
             params = []
 
-            if date_filter:
-                query += " AND DATE(timestamp) = %s"
-                count_query += " AND DATE(timestamp) = %s"
-                params.append(date_filter)
-            if search_value:
-                query += " AND (timestamp LIKE %s)"
-                count_query += " AND (timestamp LIKE %s)"
-                params.append(f"%{search_value}%")
+            # Add date range filter if provided
             if start_date_time and end_date_time:
                 query += " AND timestamp BETWEEN %s AND %s"
                 count_query += " AND timestamp BETWEEN %s AND %s"
                 params.extend([start_date_time, end_date_time])
 
-            query += " ORDER BY timestamp DESC LIMIT %s"
-            params.append(length)
-
+            # Add ordering
+            query += " ORDER BY timestamp DESC"
+            
+             # Handle pagination differently for unlimited entries
+            if length == -1:
+                # For unlimited entries, remove LIMIT clause
+                pagination_params = params
+            else:
+                # Normal pagination
+                query += " LIMIT %s OFFSET %s"
+                pagination_params = params.copy()
+                pagination_params.extend([length, start])
+                
             connection = self.db_manager.get_connection()
             if not connection:
-                return {"success": False, "error": "Database connection failed", "code": 500}
+                return {"success": False, "error": "Database connection failed"}
 
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(query, params)
+            
+            # Get total records
+            cursor.execute(count_query, params if params else None)
+            total_records = cursor.fetchone()['total']
+
+            # Get paginated data
+            cursor.execute(query, pagination_params)
             results = cursor.fetchall()
 
-            cursor.execute(count_query, params[:-1])  # Exclude the limit parameter
-            total_entries = cursor.fetchone()['COUNT(*)']
-
+            # Format timestamps
             for record in results:
                 record["timestamp"] = record["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-            
-            return {"success": True, "data": results, "recordsTotal": total_entries, "recordsFiltered": total_entries}
+
+            return {
+                "success": True,
+                "data": results,
+                "recordsTotal": total_records,
+                "recordsFiltered": total_records,
+                "sensors": sensor_columns  # Return available sensors for frontend
+            }
+
         except Exception as e:
-            return {"success": False, "error": str(e), "code": 500}
+            error_msg = f"Error in get_historical_data: {str(e)}"
+            self.log_service.log_event(error_msg, type='ERROR')
+            print(error_msg)
+            return {"success": False, "error": str(e)}
         finally:
             if 'cursor' in locals(): cursor.close()
             if 'connection' in locals(): connection.close()

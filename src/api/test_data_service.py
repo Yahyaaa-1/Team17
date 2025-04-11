@@ -17,14 +17,25 @@ class TestDataService(unittest.TestCase):
     def test_historical_data_retrieval(self):
         """Test historical data retrieval"""
         mock_data = [{'timestamp': datetime.now(), 'value': 42.0}]
-        self.mock_db.get_connection().cursor().fetchall.return_value = mock_data
+        
+        # Mock the database connection and cursor
+        cursor_mock = MagicMock()
+        cursor_mock.fetchall.return_value = mock_data
+        self.mock_db.get_connection().cursor.return_value = cursor_mock
         self.mock_db.get_connection().cursor().execute.return_value = None
+        
+        # Mock get_table_columns to return the correct columns for 'line4'
+        self.data_service.get_table_columns = MagicMock(return_value=['timestamp', 'timezone', 'r01'])
 
-        
+        # Call the method under test
         response = self.data_service.get_historical_data('line4', {})
-        
+
+        print(f"Response: {response}")  # Debug print to inspect the full response
+
+        # Assertions
         self.assertTrue(response['success'])
         self.assertEqual(len(response['data']), 1)
+
 
     @patch('app.generate_password_hash')
     def test_get_logs(self, mock_hash):
