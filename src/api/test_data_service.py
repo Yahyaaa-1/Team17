@@ -18,6 +18,8 @@ class TestDataService(unittest.TestCase):
         """Test historical data retrieval"""
         mock_data = [{'timestamp': datetime.now(), 'value': 42.0}]
         self.mock_db.get_connection().cursor().fetchall.return_value = mock_data
+        self.mock_db.get_connection().cursor().execute.return_value = None
+
         
         response = self.data_service.get_historical_data('line4', {})
         

@@ -100,71 +100,56 @@ class TestSimulationService(unittest.TestCase):
         print("Test simulation start/stop passed successfully.")
 
     @patch('time.localtime')
-    @patch.object(SimulationService, 'generate_sensor_reading')  # Mock generate_sensor_reading to return fixed values
+    @patch.object(SimulationService, 'generate_sensor_reading')
     def test_insert_line_readings(self, mock_generate_reading, mock_localtime):
         """Test database insertion of readings"""
 
-        # Define sensor ranges directly in the method
         sensor_ranges_line4 = {
             "r01": {"avg": 129.10, "min": 16.00, "max": 258.00},
             "r02": {"avg": 264.81, "min": 18.00, "max": 526.00}
         }
 
-        # Set the mocked current time and timezone
-        mock_localtime.return_value.tm_mon = 5  # May (for timezone offset +01)
+        mock_localtime.return_value.tm_mon = 5
         current_timestamp = datetime.now().replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')
-        timezone_offset = "+01"  # Simulating the timezone offset for May
+        timezone_offset = "+01"
 
-        # Mock the sensor readings to return fixed values for r01 and r02
-        mock_generate_reading.side_effect = [130.45, 267.87]  # These are the expected values for r01 and r02
+        mock_generate_reading.side_effect = [130.45, 267.87]
 
-        # Mock the database connection and cursor
-        mock_connection = MagicMock()  # Mock the real database connection
-        mock_cursor = MagicMock()  # Mock the cursor
+        mock_connection = MagicMock()
+        mock_cursor = MagicMock()
         mock_connection.cursor.return_value = mock_cursor
-        self.mock_db.get_connection.return_value = mock_connection  # Mock the database manager to return the mock connection
+        self.mock_db.get_connection.return_value = mock_connection
 
-        # Define the sensors for line4 (as an example)
+        # ✅ Define sensors
         sensors = ['r01', 'r02']
 
-        # Call insert_line_readings with the correct parameter order
+        # ✅ Mock SHOW COLUMNS result to make them "valid"
+        mock_cursor.fetchall.return_value = [('timestamp',), ('timezone',), ('r01',), ('r02',)]
+
         self.sim_service.insert_line_readings(
-            mock_connection,  # Pass the mock connection here
-            mock_cursor,      # Pass the mock cursor here
-            'line4',          # Line name
-            sensors,          # Sensors list
-            sensor_ranges_line4,  # Sensor ranges
-            current_timestamp,    # Timestamp
-            timezone_offset       # Timezone
+            mock_connection, mock_cursor, 'line4',
+            sensors, sensor_ranges_line4, current_timestamp, timezone_offset
         )
 
-        # Expected query to be executed (strip out extra indentation/spacing)
         expected_query = """
             INSERT INTO line4
             (timestamp, timezone, r01, r02)
             VALUES (%s, %s, %s, %s)
         """
-        
-        # Normalize both the actual and expected query strings by stripping excess whitespace and newlines
+
         def normalize_query(query):
-            # Remove extra spaces and normalize the string
             return " ".join(query.strip().split())
 
-        # Normalize the expected and actual queries
         normalized_expected_query = normalize_query(expected_query)
         normalized_actual_query = normalize_query(mock_cursor.execute.call_args[0][0])
 
-        # Ensure the query is executed with the correct parameters
         self.assertEqual(normalized_actual_query, normalized_expected_query)
-
-        # Ensure the parameters passed to execute() match the expected values
-        self.assertEqual(mock_cursor.execute.call_args[0][1], 
+        self.assertEqual(mock_cursor.execute.call_args[0][1],
                         [current_timestamp, timezone_offset, 130.45, 267.87])
-
-        # Ensure commit was called to persist the data
-        mock_connection.commit.assert_called_once()  # Ensure commit was called on the actual connection object
+        mock_connection.commit.assert_called_once()
 
         print("Test insert line readings passed successfully.")
+
 
     def test_reading_range_validation(self):
         """Test sensor readings stay within defined ranges"""
