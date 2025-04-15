@@ -6,11 +6,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import time 
-# Flask App Configuration
+
 app = Flask(__name__)
 CORS(app)
 
-# Database Configuration
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
@@ -18,46 +17,46 @@ DB_CONFIG = {
     "database": "rakusensdatabase"
 }
 
-# Constants
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-START_TIME = datetime(2025, 4, 11, 00, 22, 0)
+START_TIME = datetime(2025, 4, 11, 0, 38, 0)
 INTERVAL = timedelta(seconds=30)
 DURATION = timedelta(hours=0.25)
 
 def get_db_connection():
-    """Establish connection to MySQL database"""
     try:
         return mysql.connector.connect(**DB_CONFIG)
     except mysql.connector.Error as err:
         print(f"DB Connection Error: {err}")
         return None
 
-def detect_sensors(line):
-    """Detect available sensor models for a line"""
+def detect_active_sensors(conn, line):
+    cursor = conn.cursor()
+    
+    cursor.execute(f"SHOW COLUMNS FROM {line} LIKE 'r%'")
+    db_sensors = [col[0] for col in cursor.fetchall() if col[0].startswith('r')]
+    
     model_dir = os.path.join(SCRIPT_DIR, "models", line)
-    sensors = []
+    model_sensors = []
     if os.path.exists(model_dir):
-        for file in os.listdir(model_dir):
-            if file.startswith("prophet_r") and file.endswith(".pkl"):
-                sensor_num = file.split("_r")[1].split(".pkl")[0]
-                sensors.append(f"r{sensor_num}")
-    return sorted(sensors)
+        model_sensors = [
+            f"r{file.split('_r')[1].split('.pkl')[0]}" 
+            for file in os.listdir(model_dir) 
+            if file.startswith("prophet_r") and file.endswith(".pkl")
+        ]
+    
+    return sorted(list(set(db_sensors) & set(model_sensors)))
 
 def setup_forecast_table(conn, line):
-    """Create or clear forecast table for a line"""
     cursor = conn.cursor()
     table_name = f"forecasted{line}"
     
-    # Check if table exists
     cursor.execute(f"SHOW TABLES LIKE '{table_name}'")
     exists = cursor.fetchone()
     
     if exists:
-        # Clear existing table
         cursor.execute(f"TRUNCATE TABLE {table_name}")
         print(f"Cleared existing table: {table_name}")
     else:
-        # Create new table
         cursor.execute(f"""
         CREATE TABLE {table_name} (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -76,7 +75,6 @@ def setup_forecast_table(conn, line):
     cursor.close()
 
 def load_model_and_forecast(model_path, timestamp):
-    """Load a Prophet model and forecast for a given timestamp"""
     try:
         model = joblib.load(model_path)
         future_df = pd.DataFrame({"ds": [timestamp]})
@@ -87,7 +85,6 @@ def load_model_and_forecast(model_path, timestamp):
         return None
 
 def store_forecasts(conn, line, sensor, timestamp, forecast):
-    """Store forecast in database"""
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -104,29 +101,23 @@ def store_forecasts(conn, line, sensor, timestamp, forecast):
         cursor.close()
 
 def generate_and_store_forecasts():
-    """Generate forecasts for all lines and store in database"""
     conn = get_db_connection()
     if not conn:
         return
     
-    # Process both lines
     for line in ["line4", "line5"]:
+        start_time = time.time()
         
-        start_time = time.time()  # Start timing
-
-        sensors = detect_sensors(line)
+        sensors = detect_active_sensors(conn, line)
         if not sensors:
-            print(f"No sensor models found for {line}")
+            print(f"No active sensor models found for {line}")
             continue
             
-        # Setup table for this line
         setup_forecast_table(conn, line)
-        
-        # Generate timestamps
         timestamps = [START_TIME + i * INTERVAL 
                      for i in range(int(DURATION / INTERVAL) + 1)]
         
-        print(f"\nProcessing {len(sensors)} sensors for {line}...")
+        print(f"\nProcessing {len(sensors)} active sensors for {line}...")
         
         for sensor in sensors:
             model_path = os.path.join(SCRIPT_DIR, "models", line, 
@@ -137,20 +128,16 @@ def generate_and_store_forecasts():
                 if forecast is not None:
                     store_forecasts(conn, line, sensor, timestamp, forecast)
 
-        end_time = time.time()  # End timing
-        elapsed_time = end_time - start_time  # Calculate the elapsed time
-        print(f"Time taken to process {line}: {elapsed_time:.2f} seconds")  # Print the time taken
-    
+        end_time = time.time()
+        print(f"Time taken to process {line}: {end_time - start_time:.2f} seconds")
     
     conn.close()
     print("\nForecast generation complete!")
 
 @app.route('/forecast', methods=['GET'])
 def get_forecast():
-    """API endpoint to trigger forecast generation"""
     generate_and_store_forecasts()
     return jsonify({"status": "success", "message": "Forecasts generated and stored"})
 
 if __name__ == "__main__":
     generate_and_store_forecasts()
-    # To run as API: app.run(debug=True, use_reloader=False)

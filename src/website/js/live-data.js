@@ -1,6 +1,7 @@
 let selectedLine = "line4";
 let donutCharts = {};
 let currentSlide = 0;
+let maxSlides = 0;
 let trafficLightChart;
 let barChart;
 let scatterChart;
@@ -9,10 +10,23 @@ let forecastThresholds = {};
 let trafficLightSystem = false; 
 
 // Helper Functions
-function getSensorsForLine(line) {
-    return line === "line4" ? 
-        ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08"] : 
-        ["r01", "r02", "r03", "r04", "r05", "r06", "r07", "r08", "r09", "r10", "r11", "r12", "r13", "r14", "r15", "r16", "r17"];
+async function getSensorsForLine(line) {
+    try {
+        const response = await fetch(`http://127.0.0.1:5000/api/admin/table-headers?tableID=${line}`);
+        const data = await response.json();
+        if (data.success) {
+            // Filter out non-sensor columns and return
+            return data.headers.filter(header => 
+                header.startsWith('r') && 
+                header !== 'timestamp' && 
+                header !== 'timezone'
+            ).sort(); // Sort sensors alphabetically
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching sensors:', error);
+        return [];
+    }
 }
 
 function getTrafficLightStatus(value, lowerBound, upperBound) {
@@ -43,13 +57,16 @@ function getTrafficLightColor(sensor, value) {
 }
 
 // Initialization Functions
-function initializeDonutSlider(line) {
+async function initializeDonutSlider(line) {
     const slider = document.getElementById('donutSlider');
     slider.innerHTML = '';
     currentSlide = 0;
     donutCharts = {};
 
-    getSensorsForLine(line).forEach(sensor => {
+    // Get the actual sensors from the database
+    const sensors = await getSensorsForLine(line);
+    
+    sensors.forEach(sensor => {
         const chartContainer = document.createElement('div');
         chartContainer.className = 'donut-chart-container';
         
@@ -92,6 +109,9 @@ function initializeDonutSlider(line) {
         });
         donutCharts[sensor].render();
     });
+    
+    // Update the max slides for navigation
+    maxSlides = Math.max(0, sensors.length - 1);
 }
 
 function initCharts() {
@@ -129,7 +149,7 @@ function initCharts() {
         dataLabels: { enabled: false }
     });
 
-    // Scatter Chart (updated with old functionality)
+    // Scatter Chart
     scatterChart = new ApexCharts(document.querySelector("#scatterChart"), {
         chart: {
             type: 'scatter',
@@ -209,22 +229,46 @@ function initCharts() {
 }
 
 // Update Functions
-function updateSensorSelector(line) {
+async function updateSensorSelector(line) {
     const selector = document.getElementById("sensorSelector");
-    selector.innerHTML = '';
-    getSensorsForLine(line).forEach(sensor => {
+    const currentSelectedValue = selector.value;
+    
+    // Clear existing options but keep the default option if it exists
+    selector.innerHTML = selector.querySelector('option[value=""]') ? 
+        '<option value="">Select Sensor</option>' : '';
+    
+    const sensors = await getSensorsForLine(line);
+    
+    if (sensors.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No sensors available";
+        selector.appendChild(option);
+        return;
+    }
+    
+    sensors.forEach(sensor => {
         const option = document.createElement('option');
         option.value = sensor;
         option.textContent = sensor.toUpperCase();
         selector.appendChild(option);
     });
+    
+    // Restore previous selection if it still exists
+    if (sensors.includes(currentSelectedValue)) {
+        selector.value = currentSelectedValue;
+    } else if (sensors.length > 0) {
+        // Select the first sensor by default if previous selection is gone
+        selector.value = sensors[0];
+    }
+    
     liveScatterData = { normal: [], warning: [], critical: [] };
-    if (getSensorsForLine(line).length > 0) updateScatterChart();
+    updateScatterChart();
 }
 
 function updateDonutCharts(liveData) {
-    Object.keys(liveData).forEach(sensor => {
-        if (sensor !== "timestamp" && donutCharts[sensor]) {
+    Object.keys(donutCharts).forEach(sensor => {
+        if (liveData[sensor] !== undefined) {
             const value = liveData[sensor];
             const color = getTrafficLightColor(sensor, value);
             donutCharts[sensor].updateOptions({ colors: [color] });
@@ -316,8 +360,20 @@ function updateLiveScatterChart(liveData) {
 }
 
 function updateScatterChart() {
-    const selectedSensor = document.getElementById("sensorSelector").value;
-    if (!selectedSensor) return;
+    const selector = document.getElementById("sensorSelector");
+    const selectedSensor = selector.value;
+    
+    // Don't proceed if no valid sensor is selected
+    if (!selectedSensor || selector.selectedIndex <= 0) {
+        scatterChart.updateOptions({
+            series: [
+                { name: 'Normal', data: [] },
+                { name: 'Warning', data: [] },
+                { name: 'Critical', data: [] }
+            ]
+        });
+        return;
+    }
     
     liveScatterData = { normal: [], warning: [], critical: [] };
     
@@ -347,7 +403,11 @@ function updateScatterChart() {
                 });
             }
         })
-        .catch(console.error);
+        .catch(error => {
+            console.error('Error fetching scatter data:', error);
+            // If there's an error (like sensor not found), refresh the selector
+            updateSensorSelector(selectedLine);
+        });
 }
 
 // Data Fetching
@@ -356,11 +416,14 @@ function fetchLiveData() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                updateDonutCharts(data.data);
-                updateBarChart(data.data);
-                updateLiveScatterChart(data.data);
-                updateAnalytics(data.data);
-                fetchForecastedData(data.data);
+                // First ensure our selectors are up to date
+                updateSensorSelector(selectedLine).then(() => {
+                    updateDonutCharts(data.data);
+                    updateBarChart(data.data);
+                    updateLiveScatterChart(data.data);
+                    updateAnalytics(data.data);
+                    fetchForecastedData(data.data);
+                });
             }
         })
         .catch(console.error);
@@ -404,7 +467,7 @@ function processForecastedThresholds(forecastedData) {
 }
 
 function updateTrafficLightStatus(forecastedData, liveData) {
-    const sensors = getSensorsForLine(selectedLine);
+    const sensors = Object.keys(donutCharts); // Use only sensors that have donut charts
     let greenCount = 0;
     let amberCount = 0;
     let redCount = 0;
@@ -441,7 +504,6 @@ function handleInoperativeTrafficLightSystem() {
         }
     });
     
-    const sensors = getSensorsForLine(selectedLine);
     document.getElementById("optimalSensors").textContent = "N/A";
     document.getElementById("warningSensors").textContent = "N/A";
 }
@@ -473,7 +535,6 @@ function slideDonutsLeft() {
 function slideDonutsRight() {
     const slider = document.getElementById('donutSlider');
     const chartWidth = document.querySelector('.donut-chart-container').offsetWidth;
-    const maxSlides = (selectedLine === "line4") ? 7 : 16;
     if (currentSlide < maxSlides) {
         currentSlide++;
         slider.scrollTo({ left: currentSlide * (chartWidth + 15), behavior: 'smooth' });
@@ -481,16 +542,16 @@ function slideDonutsRight() {
 }
 
 // Event Listeners
-document.addEventListener("DOMContentLoaded", () => {
-    initializeDonutSlider(selectedLine);
+document.addEventListener("DOMContentLoaded", async () => {
+    await initializeDonutSlider(selectedLine);
     initCharts();
-    updateSensorSelector(selectedLine);
+    await updateSensorSelector(selectedLine);
     fetchLiveData();
 
-    document.getElementById("lineSelector").addEventListener("change", function() {
+    document.getElementById("lineSelector").addEventListener("change", async function() {
         selectedLine = this.value;
-        initializeDonutSlider(selectedLine);
-        updateSensorSelector(selectedLine);
+        await initializeDonutSlider(selectedLine);
+        await updateSensorSelector(selectedLine);
         fetchLiveData();
     });
 
