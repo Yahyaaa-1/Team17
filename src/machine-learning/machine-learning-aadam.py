@@ -6,6 +6,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import time 
+
 # Flask App Configuration
 app = Flask(__name__)
 CORS(app)
@@ -20,7 +21,7 @@ DB_CONFIG = {
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-START_TIME = datetime(2025, 4, 11, 00, 22, 0)
+START_TIME = datetime(2025, 4, 15, 12, 47, 0)
 INTERVAL = timedelta(seconds=30)
 DURATION = timedelta(hours=0.25)
 
@@ -94,8 +95,13 @@ def store_forecasts(conn, line, sensor, timestamp, forecast):
             f"INSERT INTO forecasted{line} "
             "(sensor, forecast_time, forecast_value, lower_bound, upper_bound) "
             "VALUES (%s, %s, %s, %s, %s)",
-            (sensor, timestamp, forecast['yhat'], 
-             forecast['yhat_lower'], forecast['yhat_upper'])
+            (
+                sensor,
+                timestamp,
+                float(forecast['yhat']),
+                float(forecast['yhat_lower']),
+                float(forecast['yhat_upper'])
+            )
         )
         conn.commit()
     except mysql.connector.Error as err:
@@ -109,38 +115,27 @@ def generate_and_store_forecasts():
     if not conn:
         return
     
-    # Process both lines
     for line in ["line4", "line5"]:
-        
-        start_time = time.time()  # Start timing
-
+        start_time = time.time()
         sensors = detect_sensors(line)
         if not sensors:
             print(f"No sensor models found for {line}")
             continue
-            
-        # Setup table for this line
-        setup_forecast_table(conn, line)
         
-        # Generate timestamps
-        timestamps = [START_TIME + i * INTERVAL 
-                     for i in range(int(DURATION / INTERVAL) + 1)]
+        setup_forecast_table(conn, line)
+        timestamps = [START_TIME + i * INTERVAL for i in range(int(DURATION / INTERVAL) + 1)]
         
         print(f"\nProcessing {len(sensors)} sensors for {line}...")
         
         for sensor in sensors:
-            model_path = os.path.join(SCRIPT_DIR, "models", line, 
-                                    f"prophet_{sensor}.pkl")
-            
+            model_path = os.path.join(SCRIPT_DIR, "models", line, f"prophet_{sensor}.pkl")
             for timestamp in timestamps:
                 forecast = load_model_and_forecast(model_path, timestamp)
                 if forecast is not None:
                     store_forecasts(conn, line, sensor, timestamp, forecast)
 
-        end_time = time.time()  # End timing
-        elapsed_time = end_time - start_time  # Calculate the elapsed time
-        print(f"Time taken to process {line}: {elapsed_time:.2f} seconds")  # Print the time taken
-    
+        elapsed_time = time.time() - start_time
+        print(f"Time taken to process {line}: {elapsed_time:.2f} seconds")
     
     conn.close()
     print("\nForecast generation complete!")
