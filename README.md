@@ -30,18 +30,21 @@ Open Command Prompt (cmd) and switch to the API folder in your project:
 
 cd path\to\your\Website-Test\api
 
-3. Create and Activate a Virtual Environment
+3. Run machine-learning model (enter a specific future timestamp in the code (located in the api folder) beforehand:
+   python machine_learning_aadam.py
+
+4. Create and Activate a Virtual Environment
 Create a virtual environment:
 
 python -m venv venv
 
 venv\Scripts\activate.bat
 
-4. Install Required Packages
+5. Install Required Packages
 
 pip install -r requirements.txt
 
-5. Start the Flask API
+6. Start the Flask API
 Run the Flask application:
 
 python app.py
